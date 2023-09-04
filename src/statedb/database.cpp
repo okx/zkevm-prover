@@ -992,7 +992,6 @@ zkresult Database::getProgram(const string &_key, vector<uint8_t> &data, Databas
 
 zkresult Database::flush()
 {
-    TimerStart(DATABASE_FLUSH);
     if (!config.dbMultiWrite)
     {
         return ZKR_SUCCESS;
@@ -1017,6 +1016,7 @@ zkresult Database::flush()
         return ZKR_SUCCESS;
     }
 
+    TimerStart(DATABASE_FLUSH);
     zkresult zkr = ZKR_SUCCESS;
 
     multiWriteLock();
