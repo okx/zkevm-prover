@@ -14,10 +14,10 @@ StateDB::StateDB(Goldilocks &fr, const Config &config) : fr(fr), config(config),
 }
 
 StateDB::~StateDB()
-{    
+{
 #ifdef LOG_TIME_STATISTICS_STATEDB
     tms.print("StateDB");
-#endif    
+#endif
 }
 
 zkresult StateDB::set(const Goldilocks::Element (&oldRoot)[4], const Goldilocks::Element (&key)[4], const mpz_class &value, const bool persistent, Goldilocks::Element (&newRoot)[4], SmtSetResult *result, DatabaseMap *dbReadLog)
@@ -31,13 +31,17 @@ zkresult StateDB::set(const Goldilocks::Element (&oldRoot)[4], const Goldilocks:
 #endif
 
     SmtSetResult *r;
-    if (result == NULL) r = new SmtSetResult;
-    else r = result;
+    if (result == NULL)
+        r = new SmtSetResult;
+    else
+        r = result;
 
     zkresult zkr = smt.set(db, oldRoot, key, value, persistent, *r, dbReadLog);
-    for (int i = 0; i < 4; i++) newRoot[i] = r->newRoot[i];
+    for (int i = 0; i < 4; i++)
+        newRoot[i] = r->newRoot[i];
 
-    if (result == NULL) delete r;
+    if (result == NULL)
+        delete r;
 
 #ifdef LOG_TIME_STATISTICS_STATEDB
     tms.add("set", TimeDiff(t));
@@ -57,14 +61,17 @@ zkresult StateDB::get(const Goldilocks::Element (&root)[4], const Goldilocks::El
 #endif
 
     SmtGetResult *r;
-    if (result == NULL) r = new SmtGetResult;
-    else r = result;
+    if (result == NULL)
+        r = new SmtGetResult;
+    else
+        r = result;
 
     zkresult zkr = smt.get(db, root, key, *r, dbReadLog);
 
     value = r->value;
 
-    if (result == NULL) delete r;
+    if (result == NULL)
+        delete r;
 
 #ifdef LOG_TIME_STATISTICS_STATEDB
     tms.add("get", TimeDiff(t));
@@ -131,7 +138,6 @@ void StateDB::loadDB(const DatabaseMap::MTMap &input, const bool persistent)
 #ifdef LOG_TIME_STATISTICS_STATEDB
     tms.add("loadDB", TimeDiff(t));
 #endif
-
 }
 
 void StateDB::loadProgramDB(const DatabaseMap::ProgramMap &input, const bool persistent)
@@ -157,6 +163,7 @@ void StateDB::loadProgramDB(const DatabaseMap::ProgramMap &input, const bool per
 
 zkresult StateDB::flush()
 {
+    TimerStart(STATE_DB_FLUSH);
 #ifdef LOG_TIME_STATISTICS_STATEDB
     gettimeofday(&t, NULL);
 #endif
@@ -173,7 +180,7 @@ zkresult StateDB::flush()
     tms.print("StateDB");
     tms.clear();
 #endif
-
+    TimerStopAndLog(STATE_DB_FLUSH);
     return result;
 }
 
