@@ -30,6 +30,7 @@ StateDBRemote::~StateDBRemote()
 
 zkresult StateDBRemote::set(const Goldilocks::Element (&oldRoot)[4], const Goldilocks::Element (&key)[4], const mpz_class &value, const bool persistent, Goldilocks::Element (&newRoot)[4], SmtSetResult *result, DatabaseMap *dbReadLog)
 {
+    TimerStart(STATE_DB_REMOTE_SET);
 #ifdef LOG_TIME_STATISTICS_STATEDB_REMOTE
     gettimeofday(&t, NULL);
 #endif
@@ -100,11 +101,13 @@ zkresult StateDBRemote::set(const Goldilocks::Element (&oldRoot)[4], const Goldi
     tms.add("set", TimeDiff(t));
 #endif
 
+    TimerStopAndLog(STATE_DB_REMOTE_SET);
     return static_cast<zkresult>(response.result().code());
 }
 
 zkresult StateDBRemote::get(const Goldilocks::Element (&root)[4], const Goldilocks::Element (&key)[4], mpz_class &value, SmtGetResult *result, DatabaseMap *dbReadLog)
 {
+    TimerStart(STATE_DB_REMOTE_GET);
 #ifdef LOG_TIME_STATISTICS_STATEDB_REMOTE
     gettimeofday(&t, NULL);
 #endif
@@ -168,12 +171,13 @@ zkresult StateDBRemote::get(const Goldilocks::Element (&root)[4], const Goldiloc
 #ifdef LOG_TIME_STATISTICS_STATEDB_REMOTE
     tms.add("get", TimeDiff(t));
 #endif
-
+    TimerStopAndLog(STATE_DB_REMOTE_GET);
     return static_cast<zkresult>(response.result().code());
 }
 
 zkresult StateDBRemote::setProgram(const Goldilocks::Element (&key)[4], const vector<uint8_t> &data, const bool persistent)
 {
+    TimerStart(STATE_DB_REMOTE_SET_PROGRAM);
 #ifdef LOG_TIME_STATISTICS_STATEDB_REMOTE
     gettimeofday(&t, NULL);
 #endif
@@ -205,12 +209,13 @@ zkresult StateDBRemote::setProgram(const Goldilocks::Element (&key)[4], const ve
 #ifdef LOG_TIME_STATISTICS_STATEDB_REMOTE
     tms.add("setProgram", TimeDiff(t));
 #endif
-
+    TimerStopAndLog(STATE_DB_REMOTE_SET_PROGRAM);
     return static_cast<zkresult>(response.result().code());
 }
 
 zkresult StateDBRemote::getProgram(const Goldilocks::Element (&key)[4], vector<uint8_t> &data, DatabaseMap *dbReadLog)
 {
+    TimerStart(STATE_DB_REMOTE_GET_PROGRAM);
 #ifdef LOG_TIME_STATISTICS_STATEDB_REMOTE
     gettimeofday(&t, NULL);
 #endif
@@ -248,12 +253,13 @@ std:
 #ifdef LOG_TIME_STATISTICS_STATEDB_REMOTE
     tms.add("getProgram", TimeDiff(t));
 #endif
-
+    TimerStopAndLog(STATE_DB_REMOTE_GET_PROGRAM);
     return static_cast<zkresult>(response.result().code());
 }
 
 void StateDBRemote::loadDB(const DatabaseMap::MTMap &input, const bool persistent)
 {
+    TimerStart(STATE_DB_REMOTE_LOAD_DB);
 #ifdef LOG_TIME_STATISTICS_STATEDB_REMOTE
     gettimeofday(&t, NULL);
 #endif
@@ -271,6 +277,7 @@ void StateDBRemote::loadDB(const DatabaseMap::MTMap &input, const bool persisten
         zklog.error("StateDBRemote:loadDB() GRPC error(" + to_string(s.error_code()) + "): " + s.error_message());
     }
 
+    TimerStopAndLog(STATE_DB_REMOTE_LOAD_DB);
 #ifdef LOG_TIME_STATISTICS_STATEDB_REMOTE
     tms.add("loadDB", TimeDiff(t));
 #endif
@@ -278,6 +285,7 @@ void StateDBRemote::loadDB(const DatabaseMap::MTMap &input, const bool persisten
 
 void StateDBRemote::loadProgramDB(const DatabaseMap::ProgramMap &input, const bool persistent)
 {
+    TimerStart(STATE_DB_REMOTE_LOAD_PROGRAM_DB);
 #ifdef LOG_TIME_STATISTICS_STATEDB_REMOTE
     gettimeofday(&t, NULL);
 #endif
@@ -295,6 +303,7 @@ void StateDBRemote::loadProgramDB(const DatabaseMap::ProgramMap &input, const bo
         zklog.error("StateDBRemote:loadProgramDB() GRPC error(" + to_string(s.error_code()) + "): " + s.error_message());
     }
 
+    TimerStopAndLog(STATE_DB_REMOTE_LOAD_PROGRAM_DB);
 #ifdef LOG_TIME_STATISTICS_STATEDB_REMOTE
     tms.add("loadProgramDB", TimeDiff(t));
 #endif
@@ -302,7 +311,7 @@ void StateDBRemote::loadProgramDB(const DatabaseMap::ProgramMap &input, const bo
 
 zkresult StateDBRemote::flush()
 {
-    TimerStart(STATE_STATE_REMOTE);
+    TimerStart(STATE_DB_REMOTE_FLUSH);
 #ifdef LOG_TIME_STATISTICS_STATEDB_REMOTE
     gettimeofday(&t, NULL);
 #endif
@@ -318,6 +327,6 @@ zkresult StateDBRemote::flush()
 #ifdef LOG_TIME_STATISTICS_STATEDB_REMOTE
     tms.add("flush", TimeDiff(t));
 #endif
-    TimerStopAndLog(STATE_STATE_REMOTE);
+    TimerStopAndLog(STATE_DB_REMOTE_FLUSH);
     return static_cast<zkresult>(response.result().code());
 }
