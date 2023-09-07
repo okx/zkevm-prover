@@ -22,6 +22,7 @@ StateDB::~StateDB()
 
 zkresult StateDB::set(const Goldilocks::Element (&oldRoot)[4], const Goldilocks::Element (&key)[4], const mpz_class &value, const bool persistent, Goldilocks::Element (&newRoot)[4], SmtSetResult *result, DatabaseMap *dbReadLog)
 {
+    TimerStart(STATE_DB_SET);
 #ifdef LOG_TIME_STATISTICS_STATEDB
     gettimeofday(&t, NULL);
 #endif
@@ -46,12 +47,13 @@ zkresult StateDB::set(const Goldilocks::Element (&oldRoot)[4], const Goldilocks:
 #ifdef LOG_TIME_STATISTICS_STATEDB
     tms.add("set", TimeDiff(t));
 #endif
-
+    TimerStopAndLog(STATE_DB_SET);
     return zkr;
 }
 
 zkresult StateDB::get(const Goldilocks::Element (&root)[4], const Goldilocks::Element (&key)[4], mpz_class &value, SmtGetResult *result, DatabaseMap *dbReadLog)
 {
+    TimerStart(STATE_DB_GET);
 #ifdef LOG_TIME_STATISTICS_STATEDB
     gettimeofday(&t, NULL);
 #endif
@@ -77,11 +79,13 @@ zkresult StateDB::get(const Goldilocks::Element (&root)[4], const Goldilocks::El
     tms.add("get", TimeDiff(t));
 #endif
 
+    TimerStopAndLog(STATE_DB_GET);
     return zkr;
 }
 
 zkresult StateDB::setProgram(const Goldilocks::Element (&key)[4], const vector<uint8_t> &data, const bool persistent)
 {
+    TimerStart(STATE_DB_SET_PROGRAM);
 #ifdef LOG_TIME_STATISTICS_STATEDB
     gettimeofday(&t, NULL);
 #endif
@@ -95,12 +99,13 @@ zkresult StateDB::setProgram(const Goldilocks::Element (&key)[4], const vector<u
 #ifdef LOG_TIME_STATISTICS_STATEDB
     tms.add("setProgram", TimeDiff(t));
 #endif
-
+    TimerStopAndLog(STATE_DB_SET_PROGRAM);
     return zkr;
 }
 
 zkresult StateDB::getProgram(const Goldilocks::Element (&key)[4], vector<uint8_t> &data, DatabaseMap *dbReadLog)
 {
+    TimerStart(STATE_DB_GET_PROGRAM);
 #ifdef LOG_TIME_STATISTICS_STATEDB
     gettimeofday(&t, NULL);
 #endif
@@ -115,12 +120,13 @@ zkresult StateDB::getProgram(const Goldilocks::Element (&key)[4], vector<uint8_t
 #ifdef LOG_TIME_STATISTICS_STATEDB
     tms.add("getProgram", TimeDiff(t));
 #endif
-
+    TimerStopAndLog(STATE_DB_GET_PROGRAM);
     return zkr;
 }
 
 void StateDB::loadDB(const DatabaseMap::MTMap &input, const bool persistent)
 {
+    TimerStart(STATE_DB_LOAD_DB);
 #ifdef LOG_TIME_STATISTICS_STATEDB
     gettimeofday(&t, NULL);
 #endif
@@ -138,10 +144,12 @@ void StateDB::loadDB(const DatabaseMap::MTMap &input, const bool persistent)
 #ifdef LOG_TIME_STATISTICS_STATEDB
     tms.add("loadDB", TimeDiff(t));
 #endif
+    TimerStopAndLog(STATE_DB_LOAD_DB);
 }
 
 void StateDB::loadProgramDB(const DatabaseMap::ProgramMap &input, const bool persistent)
 {
+    TimerStart(STATE_DB_LOAD_PROGRAM_DB);
 #ifdef LOG_TIME_STATISTICS_STATEDB
     gettimeofday(&t, NULL);
 #endif
@@ -159,6 +167,7 @@ void StateDB::loadProgramDB(const DatabaseMap::ProgramMap &input, const bool per
 #ifdef LOG_TIME_STATISTICS_STATEDB
     tms.add("loadProgramDB", TimeDiff(t));
 #endif
+    TimerStopAndLog(STATE_DB_LOAD_PROGRAM_DB);
 }
 
 zkresult StateDB::flush()

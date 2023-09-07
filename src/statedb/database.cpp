@@ -59,6 +59,7 @@ void Database::init(void)
 
 zkresult Database::read(const string &_key, vector<Goldilocks::Element> &value, DatabaseMap *dbReadLog, const bool update, const vector<uint64_t> *keys, uint64_t level)
 {
+    TimerStart(DATABASE_READ);
     // Check that it has been initialized before
     if (!bInitialized)
     {
@@ -207,11 +208,13 @@ zkresult Database::read(const string &_key, vector<Goldilocks::Element> &value, 
     }
 #endif
 
+    TimerStopAndLog(DATABASE_READ);
     return r;
 }
 
 zkresult Database::write(const string &_key, const vector<Goldilocks::Element> &value, const bool persistent, const bool update)
 {
+    TimerStart(DATABASE_WRITE);
     // Check that it has  been initialized before
     if (!bInitialized)
     {
@@ -274,6 +277,7 @@ zkresult Database::write(const string &_key, const vector<Goldilocks::Element> &
     }
 #endif
 
+    TimerStopAndLog(DATABASE_WRITE);
     return r;
 }
 
@@ -434,6 +438,7 @@ void Database::disposeConnection(DatabaseConnection *pConnection)
 
 zkresult Database::readRemote(bool bProgram, const string &key, string &value)
 {
+    TimerStart(DATABASE_READ_REMOTE);
     const string &tableName = (bProgram ? config.dbProgramTableName : config.dbNodesTableName);
 
     if (config.logRemoteDbReads)
@@ -491,11 +496,13 @@ zkresult Database::readRemote(bool bProgram, const string &key, string &value)
     // Dispose the read db conneciton
     disposeConnection(pDatabaseConnection);
 
+    TimerStopAndLog(DATABASE_READ_REMOTE);
     return ZKR_SUCCESS;
 }
 
 zkresult Database::readTreeRemote(const string &key, const vector<uint64_t> *keys, uint64_t level, uint64_t &numberOfFields)
 {
+    TimerStart(DATABASE_READ_TREE_REOMTE);
     zkassert(keys != NULL);
 
     if (config.logRemoteDbReads)
@@ -602,11 +609,13 @@ zkresult Database::readTreeRemote(const string &key, const vector<uint64_t> *key
         zklog.info("Database::readTreeRemote() key=" + key + " read " + to_string(numberOfFields));
     }
 
+    TimerStopAndLog(DATABASE_READ_TREE_REOMTE);
     return ZKR_SUCCESS;
 }
 
 zkresult Database::writeRemote(bool bProgram, const string &key, const string &value, const bool update)
 {
+    TimerStart(DATABASE_WRITE_TREE_REOMTE);
     zkresult result = ZKR_SUCCESS;
 
     const string &tableName = (bProgram ? config.dbProgramTableName : config.dbNodesTableName);
@@ -672,6 +681,7 @@ zkresult Database::writeRemote(bool bProgram, const string &key, const string &v
         disposeConnection(pDatabaseConnection);
     }
 
+    TimerStopAndLog(DATABASE_WRITE_TREE_REOMTE);
     return result;
 }
 
@@ -854,6 +864,7 @@ zkresult Database::writeGetTreeFunction(void)
 
 zkresult Database::setProgram(const string &_key, const vector<uint8_t> &data, const bool persistent, const bool update)
 {
+    TimerStart(DATABASE_SET_PROGRAM);
     // Check that it has been initialized before
     if (!bInitialized)
     {
@@ -910,11 +921,13 @@ zkresult Database::setProgram(const string &_key, const vector<uint8_t> &data, c
     }
 #endif
 
+    TimerStopAndLog(DATABASE_SET_PROGRAM);
     return r;
 }
 
 zkresult Database::getProgram(const string &_key, vector<uint8_t> &data, DatabaseMap *dbReadLog, const bool update)
 {
+    TimerStart(DATABASE_GET_PROGRAM);
     // Check that it has been initialized before
     if (!bInitialized)
     {
@@ -987,11 +1000,13 @@ zkresult Database::getProgram(const string &_key, vector<uint8_t> &data, Databas
     }
 #endif
 
+    TimerStopAndLog(DATABASE_GET_PROGRAM);
     return r;
 }
 
 zkresult Database::flush()
 {
+    TimerStart(DATABASE_FLUSH);
     if (!config.dbMultiWrite)
     {
         return ZKR_SUCCESS;
@@ -1016,7 +1031,6 @@ zkresult Database::flush()
         return ZKR_SUCCESS;
     }
 
-    TimerStart(DATABASE_FLUSH);
     zkresult zkr = ZKR_SUCCESS;
 
     multiWriteLock();
