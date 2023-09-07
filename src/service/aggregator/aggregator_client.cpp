@@ -8,10 +8,9 @@
 using namespace std;
 using json = nlohmann::json;
 
-AggregatorClient::AggregatorClient (Goldilocks &fr, const Config &config, Prover &prover) :
-    fr(fr),
-    config(config),
-    prover(prover)
+AggregatorClient::AggregatorClient(Goldilocks &fr, const Config &config, Prover &prover) : fr(fr),
+                                                                                           config(config),
+                                                                                           prover(prover)
 {
     // Create channel
     std::shared_ptr<grpc_impl::Channel> channel = ::grpc::CreateChannel(config.aggregatorClientHost + ":" + to_string(config.aggregatorClientPort), grpc::InsecureChannelCredentials());
@@ -20,18 +19,18 @@ AggregatorClient::AggregatorClient (Goldilocks &fr, const Config &config, Prover
     stub = new aggregator::v1::AggregatorService::Stub(channel);
 }
 
-void AggregatorClient::runThread (void)
+void AggregatorClient::runThread(void)
 {
     zklog.info("AggregatorClient::runThread() creating aggregatorClientThread");
     pthread_create(&t, NULL, aggregatorClientThread, this);
 }
 
-void AggregatorClient::waitForThread (void)
+void AggregatorClient::waitForThread(void)
 {
     pthread_join(t, NULL);
 }
 
-bool AggregatorClient::GetStatus (::aggregator::v1::GetStatusResponse &getStatusResponse)
+bool AggregatorClient::GetStatus(::aggregator::v1::GetStatusResponse &getStatusResponse)
 {
     // Lock the prover
     prover.lock();
@@ -67,7 +66,7 @@ bool AggregatorClient::GetStatus (::aggregator::v1::GetStatusResponse &getStatus
     getStatusResponse.set_version_server("0.0.1");
 
     // Set the list of pending requests uuids
-    for (uint64_t i=0; i<prover.pendingRequests.size(); i++)
+    for (uint64_t i = 0; i < prover.pendingRequests.size(); i++)
     {
         getStatusResponse.add_pending_request_queue_ids(prover.pendingRequests[i]->uuid);
     }
@@ -97,12 +96,13 @@ bool AggregatorClient::GetStatus (::aggregator::v1::GetStatusResponse &getStatus
     return true;
 }
 
-bool AggregatorClient::GenBatchProof (const aggregator::v1::GenBatchProofRequest &genBatchProofRequest, aggregator::v1::GenBatchProofResponse &genBatchProofResponse)
+bool AggregatorClient::GenBatchProof(const aggregator::v1::GenBatchProofRequest &genBatchProofRequest, aggregator::v1::GenBatchProofResponse &genBatchProofResponse)
 {
+    TimerStart(AGGREGATOR_GEN_BATCH_PROOF);
 #ifdef LOG_SERVICE
     zklog.info("AggregatorClient::GenBatchProof() called with request: " + genBatchProofRequest.DebugString());
 #endif
-    ProverRequest * pProverRequest = new ProverRequest(fr, config, prt_genBatchProof);
+    ProverRequest *pProverRequest = new ProverRequest(fr, config, prt_genBatchProof);
     if (pProverRequest == NULL)
     {
         zklog.error("AggregatorClient::GenBatchProof() failed allocation a new ProveRequest");
@@ -199,10 +199,10 @@ bool AggregatorClient::GenBatchProof (const aggregator::v1::GenBatchProofRequest
     pProverRequest->input.publicInputsExtended.publicInputs.aggregatorAddress.set_str(auxString, 16);
 
     // Parse keys map
-    google::protobuf::Map<std::__cxx11::basic_string<char>, std::__cxx11::basic_string<char> > db;
+    google::protobuf::Map<std::__cxx11::basic_string<char>, std::__cxx11::basic_string<char>> db;
     db = genBatchProofRequest.input().db();
-    google::protobuf::Map<std::__cxx11::basic_string<char>, std::__cxx11::basic_string<char> >::iterator it;
-    for (it=db.begin(); it!=db.end(); it++)
+    google::protobuf::Map<std::__cxx11::basic_string<char>, std::__cxx11::basic_string<char>>::iterator it;
+    for (it = db.begin(); it != db.end(); it++)
     {
         if (it->first.size() > (64))
         {
@@ -212,13 +212,13 @@ bool AggregatorClient::GenBatchProof (const aggregator::v1::GenBatchProofRequest
         }
         vector<Goldilocks::Element> dbValue;
         string concatenatedValues = it->second;
-        if (concatenatedValues.size()%16!=0)
+        if (concatenatedValues.size() % 16 != 0)
         {
             zklog.error("AggregatorClient::GenBatchProof() found invalid db value size: " + to_string(concatenatedValues.size()));
             genBatchProofResponse.set_result(aggregator::v1::Result::RESULT_ERROR);
             return false;
         }
-        for (uint64_t i=0; i<concatenatedValues.size(); i+=16)
+        for (uint64_t i = 0; i < concatenatedValues.size(); i += 16)
         {
             Goldilocks::Element fe;
             string2fe(fr, concatenatedValues.substr(i, 16), fe);
@@ -228,10 +228,10 @@ bool AggregatorClient::GenBatchProof (const aggregator::v1::GenBatchProofRequest
     }
 
     // Parse contracts data
-    google::protobuf::Map<std::__cxx11::basic_string<char>, std::__cxx11::basic_string<char> > contractsBytecode;
+    google::protobuf::Map<std::__cxx11::basic_string<char>, std::__cxx11::basic_string<char>> contractsBytecode;
     contractsBytecode = genBatchProofRequest.input().contracts_bytecode();
-    google::protobuf::Map<std::__cxx11::basic_string<char>, std::__cxx11::basic_string<char> >::iterator itp;
-    for (itp=contractsBytecode.begin(); itp!=contractsBytecode.end(); itp++)
+    google::protobuf::Map<std::__cxx11::basic_string<char>, std::__cxx11::basic_string<char>>::iterator itp;
+    for (itp = contractsBytecode.begin(); itp != contractsBytecode.end(); itp++)
     {
         /*if (it->first.size() != (2+64))
         {
@@ -240,7 +240,7 @@ bool AggregatorClient::GenBatchProof (const aggregator::v1::GenBatchProofRequest
         }*/
         vector<uint8_t> dbValue;
         string contractValue = string2ba(itp->second);
-        for (uint64_t i=0; i<contractValue.size(); i++)
+        for (uint64_t i = 0; i < contractValue.size(); i++)
         {
             dbValue.push_back(contractValue.at(i));
         }
@@ -257,15 +257,17 @@ bool AggregatorClient::GenBatchProof (const aggregator::v1::GenBatchProofRequest
 #ifdef LOG_SERVICE
     zklog.info("AggregatorClient::GenBatchProof() returns: " + genBatchProofResponse.DebugString());
 #endif
+    TimerStopAndLog(AGGREGATOR_GEN_BATCH_PROOF);
     return true;
 }
 
-bool AggregatorClient::GenAggregatedProof (const aggregator::v1::GenAggregatedProofRequest &genAggregatedProofRequest, aggregator::v1::GenAggregatedProofResponse &genAggregatedProofResponse)
+bool AggregatorClient::GenAggregatedProof(const aggregator::v1::GenAggregatedProofRequest &genAggregatedProofRequest, aggregator::v1::GenAggregatedProofResponse &genAggregatedProofResponse)
 {
+    TimerStart(AGGREGATOR_AGGREGATED_PROOF);
 #ifdef LOG_SERVICE
     zklog.info("AggregatorClient::GenAggregatedProof() called with request: " + genAggregatedProofRequest.DebugString());
 #endif
-    ProverRequest * pProverRequest = new ProverRequest(fr, config, prt_genAggregatedProof);
+    ProverRequest *pProverRequest = new ProverRequest(fr, config, prt_genAggregatedProof);
     if (pProverRequest == NULL)
     {
         zklog.error("AggregatorClient::GenAggregatedProof() failed allocation a new ProveRequest");
@@ -289,15 +291,17 @@ bool AggregatorClient::GenAggregatedProof (const aggregator::v1::GenAggregatedPr
 #ifdef LOG_SERVICE
     zklog.info("AggregatorClient::GenAggregatedProof() returns: " + genAggregatedProofResponse.DebugString());
 #endif
+    TimerStopAndLog(AGGREGATOR_AGGREGATED_PROOF);
     return true;
 }
 
-bool AggregatorClient::GenFinalProof (const aggregator::v1::GenFinalProofRequest &genFinalProofRequest, aggregator::v1::GenFinalProofResponse &genFinalProofResponse)
+bool AggregatorClient::GenFinalProof(const aggregator::v1::GenFinalProofRequest &genFinalProofRequest, aggregator::v1::GenFinalProofResponse &genFinalProofResponse)
 {
+    TimerStart(AGGREGATOR_GEN_FINAL_PROOF);
 #ifdef LOG_SERVICE
     zklog.info("AggregatorClient::GenFinalProof() called with request: " + genFinalProofRequest.DebugString());
 #endif
-    ProverRequest * pProverRequest = new ProverRequest(fr, config, prt_genFinalProof);
+    ProverRequest *pProverRequest = new ProverRequest(fr, config, prt_genFinalProof);
     if (pProverRequest == NULL)
     {
         zklog.error("AggregatorClient::GenFinalProof() failed allocation a new ProveRequest");
@@ -330,10 +334,11 @@ bool AggregatorClient::GenFinalProof (const aggregator::v1::GenFinalProofRequest
 #ifdef LOG_SERVICE
     zklog.info("AggregatorClient::GenFinalProof() returns: " + genFinalProofResponse.DebugString());
 #endif
+    TimerStopAndLog(AGGREGATOR_GEN_FINAL_PROOF);
     return true;
 }
 
-bool AggregatorClient::Cancel (const aggregator::v1::CancelRequest &cancelRequest, aggregator::v1::CancelResponse &cancelResponse)
+bool AggregatorClient::Cancel(const aggregator::v1::CancelRequest &cancelRequest, aggregator::v1::CancelResponse &cancelResponse)
 {
     // Get the cancel request UUID
     string uuid = cancelRequest.id();
@@ -374,7 +379,7 @@ bool AggregatorClient::Cancel (const aggregator::v1::CancelRequest &cancelReques
     return true;
 }
 
-bool AggregatorClient::GetProof (const aggregator::v1::GetProofRequest &getProofRequest, aggregator::v1::GetProofResponse &getProofResponse)
+bool AggregatorClient::GetProof(const aggregator::v1::GetProofRequest &getProofRequest, aggregator::v1::GetProofResponse &getProofResponse)
 {
 #ifdef LOG_SERVICE
     zklog.info("AggregatorClient::GetProof() received request: " + getProofRequest.DebugString());
@@ -397,12 +402,12 @@ bool AggregatorClient::GetProof (const aggregator::v1::GetProofRequest &getProof
     }
     else
     {
-        ProverRequest * pProverRequest = it->second;
+        ProverRequest *pProverRequest = it->second;
 
         // If request is not completed, return the proper result
         if (!pProverRequest->bCompleted)
         {
-            //zklog.error("ZKProverServiceImpl::GetProof() not completed uuid=" + uuid);
+            // zklog.error("ZKProverServiceImpl::GetProof() not completed uuid=" + uuid);
             getProofResponse.set_result(aggregator::v1::GetProofResponse_Result_RESULT_PENDING);
             getProofResponse.set_result_string("pending");
         }
@@ -424,54 +429,54 @@ bool AggregatorClient::GetProof (const aggregator::v1::GetProofRequest &getProof
 
             switch (pProverRequest->type)
             {
-                case prt_genFinalProof:
-                {
-                    aggregator::v1::FinalProof * pFinalProof = new aggregator::v1::FinalProof();
-                    zkassert(pFinalProof != NULL);
+            case prt_genFinalProof:
+            {
+                aggregator::v1::FinalProof *pFinalProof = new aggregator::v1::FinalProof();
+                zkassert(pFinalProof != NULL);
 
-                    pFinalProof->set_proof(pProverRequest->proof.getStringProof());
+                pFinalProof->set_proof(pProverRequest->proof.getStringProof());
 
-                    // Set public inputs extended
-                    aggregator::v1::PublicInputs* pPublicInputs = new(aggregator::v1::PublicInputs);
-                    pPublicInputs->set_old_state_root(scalar2ba(pProverRequest->proof.publicInputsExtended.publicInputs.oldStateRoot));
-                    pPublicInputs->set_old_acc_input_hash(scalar2ba(pProverRequest->proof.publicInputsExtended.publicInputs.oldAccInputHash));
-                    pPublicInputs->set_old_batch_num(pProverRequest->proof.publicInputsExtended.publicInputs.oldBatchNum);
-                    pPublicInputs->set_chain_id(pProverRequest->proof.publicInputsExtended.publicInputs.chainID);
-                    pPublicInputs->set_fork_id(pProverRequest->proof.publicInputsExtended.publicInputs.forkID);
-                    pPublicInputs->set_batch_l2_data(pProverRequest->proof.publicInputsExtended.publicInputs.batchL2Data);
-                    pPublicInputs->set_global_exit_root(scalar2ba(pProverRequest->proof.publicInputsExtended.publicInputs.globalExitRoot));
-                    pPublicInputs->set_eth_timestamp(pProverRequest->proof.publicInputsExtended.publicInputs.timestamp);
-                    pPublicInputs->set_sequencer_addr(Add0xIfMissing(pProverRequest->proof.publicInputsExtended.publicInputs.sequencerAddr.get_str(16)));
-                    pPublicInputs->set_aggregator_addr(Add0xIfMissing(pProverRequest->proof.publicInputsExtended.publicInputs.aggregatorAddress.get_str(16)));
-                    aggregator::v1::PublicInputsExtended* pPublicInputsExtended = new(aggregator::v1::PublicInputsExtended);
-                    pPublicInputsExtended->set_allocated_public_inputs(pPublicInputs);
-                    pPublicInputsExtended->set_new_state_root(scalar2ba(pProverRequest->proof.publicInputsExtended.newStateRoot));
-                    pPublicInputsExtended->set_new_acc_input_hash(scalar2ba(pProverRequest->proof.publicInputsExtended.newAccInputHash));
-                    pPublicInputsExtended->set_new_local_exit_root(scalar2ba(pProverRequest->proof.publicInputsExtended.newLocalExitRoot));
-                    pPublicInputsExtended->set_new_batch_num(pProverRequest->proof.publicInputsExtended.newBatchNum);
-                    pFinalProof->set_allocated_public_(pPublicInputsExtended);
+                // Set public inputs extended
+                aggregator::v1::PublicInputs *pPublicInputs = new (aggregator::v1::PublicInputs);
+                pPublicInputs->set_old_state_root(scalar2ba(pProverRequest->proof.publicInputsExtended.publicInputs.oldStateRoot));
+                pPublicInputs->set_old_acc_input_hash(scalar2ba(pProverRequest->proof.publicInputsExtended.publicInputs.oldAccInputHash));
+                pPublicInputs->set_old_batch_num(pProverRequest->proof.publicInputsExtended.publicInputs.oldBatchNum);
+                pPublicInputs->set_chain_id(pProverRequest->proof.publicInputsExtended.publicInputs.chainID);
+                pPublicInputs->set_fork_id(pProverRequest->proof.publicInputsExtended.publicInputs.forkID);
+                pPublicInputs->set_batch_l2_data(pProverRequest->proof.publicInputsExtended.publicInputs.batchL2Data);
+                pPublicInputs->set_global_exit_root(scalar2ba(pProverRequest->proof.publicInputsExtended.publicInputs.globalExitRoot));
+                pPublicInputs->set_eth_timestamp(pProverRequest->proof.publicInputsExtended.publicInputs.timestamp);
+                pPublicInputs->set_sequencer_addr(Add0xIfMissing(pProverRequest->proof.publicInputsExtended.publicInputs.sequencerAddr.get_str(16)));
+                pPublicInputs->set_aggregator_addr(Add0xIfMissing(pProverRequest->proof.publicInputsExtended.publicInputs.aggregatorAddress.get_str(16)));
+                aggregator::v1::PublicInputsExtended *pPublicInputsExtended = new (aggregator::v1::PublicInputsExtended);
+                pPublicInputsExtended->set_allocated_public_inputs(pPublicInputs);
+                pPublicInputsExtended->set_new_state_root(scalar2ba(pProverRequest->proof.publicInputsExtended.newStateRoot));
+                pPublicInputsExtended->set_new_acc_input_hash(scalar2ba(pProverRequest->proof.publicInputsExtended.newAccInputHash));
+                pPublicInputsExtended->set_new_local_exit_root(scalar2ba(pProverRequest->proof.publicInputsExtended.newLocalExitRoot));
+                pPublicInputsExtended->set_new_batch_num(pProverRequest->proof.publicInputsExtended.newBatchNum);
+                pFinalProof->set_allocated_public_(pPublicInputsExtended);
 
-                    getProofResponse.set_allocated_final_proof(pFinalProof);
+                getProofResponse.set_allocated_final_proof(pFinalProof);
 
-                    break;
-                }
-                case prt_genBatchProof:
-                {
-                    string recursiveProof = pProverRequest->batchProofOutput.dump();
-                    getProofResponse.set_recursive_proof(recursiveProof);
-                    break;
-                }
-                case prt_genAggregatedProof:
-                {
-                    string recursiveProof = pProverRequest->aggregatedProofOutput.dump();
-                    getProofResponse.set_recursive_proof(recursiveProof);
-                    break;
-                }
-                default:
-                {
-                    zklog.error("AggregatorClient::GetProof() invalid pProverRequest->type=" + to_string(pProverRequest->type));
-                    exitProcess();
-                }
+                break;
+            }
+            case prt_genBatchProof:
+            {
+                string recursiveProof = pProverRequest->batchProofOutput.dump();
+                getProofResponse.set_recursive_proof(recursiveProof);
+                break;
+            }
+            case prt_genAggregatedProof:
+            {
+                string recursiveProof = pProverRequest->aggregatedProofOutput.dump();
+                getProofResponse.set_recursive_proof(recursiveProof);
+                break;
+            }
+            default:
+            {
+                zklog.error("AggregatorClient::GetProof() invalid pProverRequest->type=" + to_string(pProverRequest->type));
+                exitProcess();
+            }
             }
         }
     }
@@ -484,7 +489,7 @@ bool AggregatorClient::GetProof (const aggregator::v1::GetProofRequest &getProof
     return true;
 }
 
-void* aggregatorClientThread(void* arg)
+void *aggregatorClientThread(void *arg)
 {
     zklog.info("aggregatorClientThread() started");
     string uuid;
@@ -513,24 +518,24 @@ void* aggregatorClientThread(void* arg)
                 break;
             }
             watchdog.restart();
-            
+
             switch (aggregatorMessage.request_case())
             {
-                case aggregator::v1::AggregatorMessage::RequestCase::kGetProofRequest:
-                    break;
-                case aggregator::v1::AggregatorMessage::RequestCase::kGetStatusRequest:
-                case aggregator::v1::AggregatorMessage::RequestCase::kGenBatchProofRequest:
-                case aggregator::v1::AggregatorMessage::RequestCase::kCancelRequest:
-                    zklog.info("aggregatorClientThread() got: " + aggregatorMessage.ShortDebugString());
-                    break;
-                case aggregator::v1::AggregatorMessage::RequestCase::kGenAggregatedProofRequest:
-                    zklog.info("aggregatorClientThread() got genAggregatedProof() request");
-                    break;
-                case aggregator::v1::AggregatorMessage::RequestCase::kGenFinalProofRequest:
-                    zklog.info("aggregatorClientThread() got genFinalProof() request");
-                    break;
-                default:
-                    break;
+            case aggregator::v1::AggregatorMessage::RequestCase::kGetProofRequest:
+                break;
+            case aggregator::v1::AggregatorMessage::RequestCase::kGetStatusRequest:
+            case aggregator::v1::AggregatorMessage::RequestCase::kGenBatchProofRequest:
+            case aggregator::v1::AggregatorMessage::RequestCase::kCancelRequest:
+                zklog.info("aggregatorClientThread() got: " + aggregatorMessage.ShortDebugString());
+                break;
+            case aggregator::v1::AggregatorMessage::RequestCase::kGenAggregatedProofRequest:
+                zklog.info("aggregatorClientThread() got genAggregatedProof() request");
+                break;
+            case aggregator::v1::AggregatorMessage::RequestCase::kGenFinalProofRequest:
+                zklog.info("aggregatorClientThread() got genFinalProof() request");
+                break;
+            default:
+                break;
             }
 
             // We return the same ID we got in the aggregator message
@@ -545,95 +550,95 @@ void* aggregatorClientThread(void* arg)
 
             switch (aggregatorMessage.request_case())
             {
-                case aggregator::v1::AggregatorMessage::RequestCase::kGetStatusRequest:
-                {
-                    // Allocate a new get status response
-                    aggregator::v1::GetStatusResponse * pGetStatusResponse = new aggregator::v1::GetStatusResponse();
-                    zkassert(pGetStatusResponse != NULL);
+            case aggregator::v1::AggregatorMessage::RequestCase::kGetStatusRequest:
+            {
+                // Allocate a new get status response
+                aggregator::v1::GetStatusResponse *pGetStatusResponse = new aggregator::v1::GetStatusResponse();
+                zkassert(pGetStatusResponse != NULL);
 
-                    // Call GetStatus
-                    pAggregatorClient->GetStatus(*pGetStatusResponse);
+                // Call GetStatus
+                pAggregatorClient->GetStatus(*pGetStatusResponse);
 
-                    // Set the get status response
-                    proverMessage.set_allocated_get_status_response(pGetStatusResponse);
-                    break;
-                }
+                // Set the get status response
+                proverMessage.set_allocated_get_status_response(pGetStatusResponse);
+                break;
+            }
 
-                case aggregator::v1::AggregatorMessage::RequestCase::kGenBatchProofRequest:
-                {
-                    // Allocate a new gen batch proof response
-                    aggregator::v1::GenBatchProofResponse * pGenBatchProofResponse = new aggregator::v1::GenBatchProofResponse();
-                    zkassert(pGenBatchProofResponse != NULL);
+            case aggregator::v1::AggregatorMessage::RequestCase::kGenBatchProofRequest:
+            {
+                // Allocate a new gen batch proof response
+                aggregator::v1::GenBatchProofResponse *pGenBatchProofResponse = new aggregator::v1::GenBatchProofResponse();
+                zkassert(pGenBatchProofResponse != NULL);
 
-                    // Call GenBatchProof
-                    pAggregatorClient->GenBatchProof(aggregatorMessage.gen_batch_proof_request(), *pGenBatchProofResponse);
+                // Call GenBatchProof
+                pAggregatorClient->GenBatchProof(aggregatorMessage.gen_batch_proof_request(), *pGenBatchProofResponse);
 
-                    // Set the gen batch proof response
-                    proverMessage.set_allocated_gen_batch_proof_response(pGenBatchProofResponse);
-                    break;
-                }
+                // Set the gen batch proof response
+                proverMessage.set_allocated_gen_batch_proof_response(pGenBatchProofResponse);
+                break;
+            }
 
-                case aggregator::v1::AggregatorMessage::RequestCase::kGenAggregatedProofRequest:
-                {
-                    // Allocate a new gen aggregated proof response
-                    aggregator::v1::GenAggregatedProofResponse * pGenAggregatedProofResponse = new aggregator::v1::GenAggregatedProofResponse();
-                    zkassert(pGenAggregatedProofResponse != NULL);
+            case aggregator::v1::AggregatorMessage::RequestCase::kGenAggregatedProofRequest:
+            {
+                // Allocate a new gen aggregated proof response
+                aggregator::v1::GenAggregatedProofResponse *pGenAggregatedProofResponse = new aggregator::v1::GenAggregatedProofResponse();
+                zkassert(pGenAggregatedProofResponse != NULL);
 
-                    // Call GenAggregatedProof
-                    pAggregatorClient->GenAggregatedProof(aggregatorMessage.gen_aggregated_proof_request(), *pGenAggregatedProofResponse);
+                // Call GenAggregatedProof
+                pAggregatorClient->GenAggregatedProof(aggregatorMessage.gen_aggregated_proof_request(), *pGenAggregatedProofResponse);
 
-                    // Set the gen aggregated proof response
-                    proverMessage.set_allocated_gen_aggregated_proof_response(pGenAggregatedProofResponse);
-                    break;
-                }
+                // Set the gen aggregated proof response
+                proverMessage.set_allocated_gen_aggregated_proof_response(pGenAggregatedProofResponse);
+                break;
+            }
 
-                case aggregator::v1::AggregatorMessage::RequestCase::kGenFinalProofRequest:
-                {
-                    // Allocate a new gen final proof response
-                    aggregator::v1::GenFinalProofResponse * pGenFinalProofResponse = new aggregator::v1::GenFinalProofResponse();
-                    zkassert(pGenFinalProofResponse != NULL);
+            case aggregator::v1::AggregatorMessage::RequestCase::kGenFinalProofRequest:
+            {
+                // Allocate a new gen final proof response
+                aggregator::v1::GenFinalProofResponse *pGenFinalProofResponse = new aggregator::v1::GenFinalProofResponse();
+                zkassert(pGenFinalProofResponse != NULL);
 
-                    // Call GenFinalProof
-                    pAggregatorClient->GenFinalProof(aggregatorMessage.gen_final_proof_request(), *pGenFinalProofResponse);
+                // Call GenFinalProof
+                pAggregatorClient->GenFinalProof(aggregatorMessage.gen_final_proof_request(), *pGenFinalProofResponse);
 
-                    // Set the gen final proof response
-                    proverMessage.set_allocated_gen_final_proof_response(pGenFinalProofResponse);
-                    break;
-                }
+                // Set the gen final proof response
+                proverMessage.set_allocated_gen_final_proof_response(pGenFinalProofResponse);
+                break;
+            }
 
-                case aggregator::v1::AggregatorMessage::RequestCase::kCancelRequest:
-                {
-                    // Allocate a new cancel response
-                    aggregator::v1::CancelResponse * pCancelResponse = new aggregator::v1::CancelResponse();
-                    zkassert(pCancelResponse != NULL);
+            case aggregator::v1::AggregatorMessage::RequestCase::kCancelRequest:
+            {
+                // Allocate a new cancel response
+                aggregator::v1::CancelResponse *pCancelResponse = new aggregator::v1::CancelResponse();
+                zkassert(pCancelResponse != NULL);
 
-                    // Call Cancel
-                    pAggregatorClient->Cancel(aggregatorMessage.cancel_request(), *pCancelResponse);
+                // Call Cancel
+                pAggregatorClient->Cancel(aggregatorMessage.cancel_request(), *pCancelResponse);
 
-                    // Set the cancel response
-                    proverMessage.set_allocated_cancel_response(pCancelResponse);
-                    break;
-                }
+                // Set the cancel response
+                proverMessage.set_allocated_cancel_response(pCancelResponse);
+                break;
+            }
 
-                case aggregator::v1::AggregatorMessage::RequestCase::kGetProofRequest:
-                {
-                    // Allocate a new cancel response
-                    aggregator::v1::GetProofResponse * pGetProofResponse = new aggregator::v1::GetProofResponse();
-                    zkassert(pGetProofResponse != NULL);
+            case aggregator::v1::AggregatorMessage::RequestCase::kGetProofRequest:
+            {
+                // Allocate a new cancel response
+                aggregator::v1::GetProofResponse *pGetProofResponse = new aggregator::v1::GetProofResponse();
+                zkassert(pGetProofResponse != NULL);
 
-                    // Call GetProof
-                    pAggregatorClient->GetProof(aggregatorMessage.get_proof_request(), *pGetProofResponse);
+                // Call GetProof
+                pAggregatorClient->GetProof(aggregatorMessage.get_proof_request(), *pGetProofResponse);
 
-                    // Set the get proof response
-                    proverMessage.set_allocated_get_proof_response(pGetProofResponse);
-                    break;
-                }
+                // Set the get proof response
+                proverMessage.set_allocated_get_proof_response(pGetProofResponse);
+                break;
+            }
 
-                default:
-                {
-                    zklog.error("aggregatorClientThread() received an invalid type=" + to_string(aggregatorMessage.request_case()));
-                    break;
-                }
+            default:
+            {
+                zklog.error("aggregatorClientThread() received an invalid type=" + to_string(aggregatorMessage.request_case()));
+                break;
+            }
             }
 
             // Write the prover message
@@ -645,22 +650,22 @@ void* aggregatorClientThread(void* arg)
                 break;
             }
             watchdog.restart();
-            
+
             switch (aggregatorMessage.request_case())
             {
-                case aggregator::v1::AggregatorMessage::RequestCase::kGetStatusRequest:
-                case aggregator::v1::AggregatorMessage::RequestCase::kGenBatchProofRequest:
-                case aggregator::v1::AggregatorMessage::RequestCase::kGenAggregatedProofRequest:
-                case aggregator::v1::AggregatorMessage::RequestCase::kGenFinalProofRequest:
-                case aggregator::v1::AggregatorMessage::RequestCase::kCancelRequest:
-                    zklog.info("aggregatorClientThread() sent: " + proverMessage.ShortDebugString());
-                    break;
-                case aggregator::v1::AggregatorMessage::RequestCase::kGetProofRequest:
-                    if (proverMessage.get_proof_response().result() != aggregator::v1::GetProofResponse_Result_RESULT_PENDING)
-                        zklog.info("aggregatorClientThread() getProof() response sent; result=" + proverMessage.get_proof_response().result_string());
-                    break;
-                default:
-                    break;
+            case aggregator::v1::AggregatorMessage::RequestCase::kGetStatusRequest:
+            case aggregator::v1::AggregatorMessage::RequestCase::kGenBatchProofRequest:
+            case aggregator::v1::AggregatorMessage::RequestCase::kGenAggregatedProofRequest:
+            case aggregator::v1::AggregatorMessage::RequestCase::kGenFinalProofRequest:
+            case aggregator::v1::AggregatorMessage::RequestCase::kCancelRequest:
+                zklog.info("aggregatorClientThread() sent: " + proverMessage.ShortDebugString());
+                break;
+            case aggregator::v1::AggregatorMessage::RequestCase::kGetProofRequest:
+                if (proverMessage.get_proof_response().result() != aggregator::v1::GetProofResponse_Result_RESULT_PENDING)
+                    zklog.info("aggregatorClientThread() getProof() response sent; result=" + proverMessage.get_proof_response().result_string());
+                break;
+            default:
+                break;
             }
 
             if (pAggregatorClient->config.saveResponseToFile)
