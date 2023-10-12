@@ -54,9 +54,9 @@ jobs:
 
   # node-tests:
   #   needs: build-docker
-  #   uses: 0xPolygonHermez/zkevm-node/.github/workflows/test-from-prover.yml@develop
+  #   uses: okx/Xagon-node/.github/workflows/test-from-prover.yml@develop
   #   with:
-  #     prover_image: hermeznetwork/zkevm-prover:${{needs.build-docker.outputs.image_tag}}"
+  #     prover_image: okx/Xagon-prover:${{needs.build-docker.outputs.image_tag}}"
   #   secrets:
   #     DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   #     DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
