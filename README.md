@@ -31,8 +31,8 @@ The zkEVM Prover process can provide up to 3 RPC services and clients:
 
 ### Clone repository
 ```sh
-$ git clone git@github.com:okx/Xagon-prover.git
-$ cd Xagon-prover
+$ git clone git@github.com:okx/Xgon-prover.git
+$ cd Xgon-prover
 $ git submodule init
 $ git submodule update
 ```
