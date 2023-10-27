@@ -146,8 +146,9 @@ void Executor::process_batch (ProverRequest &proverRequest)
             }
             else if (config.useMainExecGenerated)
             {
+                MainExecutor mainExecutor_fork_5_cp = MainExecutor(mainExecutor_fork_5.fr,mainExecutor_fork_5.poseidon, mainExecutor_fork_5.config);
                 zklog.info("Executor::process_batch() fork 5 generated");
-                fork_5::main_exec_generated_fast(mainExecutor_fork_5, proverRequest);
+                fork_5::main_exec_generated_fast(mainExecutor_fork_5_cp, proverRequest);
             }
             else
             {
