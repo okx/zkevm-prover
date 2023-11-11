@@ -1,7 +1,7 @@
-# zkEVM Prover
-zkEVM proof generator
+# X1 zkEVM Prover
+X1 zkEVM proof generator
 ## General info
-The zkEVM Prover process can provide up to 3 RPC services and clients:
+The X1 zkEVM Prover process can provide up to 3 RPC services and clients:
 
 ### Aggregator client
 - It connects to an Aggregator server.
@@ -31,8 +31,8 @@ The zkEVM Prover process can provide up to 3 RPC services and clients:
 
 ### Clone repository
 ```sh
-$ git clone git@github.com:okx/xgon-prover.git
-$ cd xgon-prover
+$ git clone git@github.com:okx/x1-prover.git
+$ cd x1-prover
 $ git submodule init
 $ git submodule update
 ```
