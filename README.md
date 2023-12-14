@@ -1,4 +1,4 @@
-# zkEVM Prover
+# X1 Prover
 
 Built to interface with Ethereum Virtual Machines (EVM), the prover provides critical services through three primary RPC clients: the Aggregator client, Executor service, and StateDB service. The Aggregator client connects to an Aggregator server and harnesses multiple zkEVM Provers simultaneously, thereby maximizing proof generation efficiency. This involves a process where the Prover component calculates a resulting state by processing EVM transaction batches and subsequently generates a proof based on the PIL polynomials definition and their constraints. The Executor service offers a mechanism to validate the integrity of proposed EVM transaction batches, ensuring they adhere to specific workload requirements. The StateDB service interfaces with a system's state (represented as a Merkle tree) and the corresponding database, thus serving as a centralized state information repository.
 
@@ -7,7 +7,7 @@ Built to interface with Ethereum Virtual Machines (EVM), the prover provides cri
 ### Aggregator client
 
 - It establishes a connection to an Aggregator server.
-- Multiple zkEVM Provers can simultaneously connect to the Aggregator server, thereby enhancing the proof generation capability.
+- Multiple X1 Provers can simultaneously connect to the Aggregator server, thereby enhancing the proof generation capability.
 - Upon being invoked by the Aggregator service for batch proof generation:
   - The Prover component processes the input data (a set of EVM transactions), computes the resulting state, and creates a proof based on the PIL polynomial definitions and their constraints.
   - The Executor component integrates 14 state machines to process the input data and produce evaluations of the committed polynomials, essential for proof generation. Each state machine generates its computational evidence, and intricate calculations are passed on to the subsequent state machine.
@@ -33,12 +33,12 @@ Built to interface with Ethereum Virtual Machines (EVM), the prover provides cri
 
 ## Compiling locally
 
-Steps to compile `zkevm-prover` locally:
+Steps to compile `x1-prover` locally:
 ### Clone repository
 
 ```sh
-git clone --recursive https://github.com/0xPolygonHermez/zkevm-prover.git
-cd zkevm-prover
+git clone --recursive https://github.com/okx/x1-prover.git
+cd x1-prover
 ```
 
 ### Download necessary files
@@ -76,7 +76,7 @@ zypper install libbenchmark1 libomp16-devel libgmp10 nlohmann_json-devel postgre
 ```
 dnf group install "C Development Tools and Libraries" "Development Tools"
 dnf config-manager --add-repo https://terra.fyralabs.com/terra.repo
-dnf install google-benchmark-devel libomp-devel gmp gmp-devel gmp-c++ nlohmann-json-devel postgresql libpqxx-devel nasm libsecp256k1-devel grpc-devel libsodium-devel cmake grpc grpc-devel grpc-cpp protobuf-devel protobuf-c-devel uuid-devel libuuid-devel uuid-c++ llvm llvm-devel openssl-devel 
+dnf install google-benchmark-devel libomp-devel gmp gmp-devel gmp-c++ nlohmann-json-devel postgresql libpqxx-devel nasm libsecp256k1-devel grpc-devel libsodium-devel cmake grpc grpc-devel grpc-cpp protobuf-devel protobuf-c-devel uuid-devel libuuid-devel uuid-c++ llvm llvm-devel openssl-devel
 ```
 
 #### Arch
