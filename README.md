@@ -37,7 +37,7 @@ Steps to compile `x1-prover` locally:
 ### Clone repository
 
 ```sh
-git clone --recursive https://github.com/0xPolygonHermez/x1-prover.git
+git clone --recursive https://github.com/okx/x1-prover.git
 cd x1-prover
 ```
 
