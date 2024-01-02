@@ -104,5 +104,16 @@ To run a proof test you must perform the following steps:
 - Run the Prover from the `testvectors` folder using the command `$ ../build/zkProver`
 - The result files of the proof will be stored in the folder specified in the `"outputPath"` config parameter
 
+# Profiling
 
+Patch ``prof.patch`` applies to commit (main baranch).
+
+```
+git clone https://github.com/okx/x1-prover.git
+cd x1-prover
+git checkout 127c6241f7bb0067d413156fb3c3b2c99827f213
+git apply prof.patch
+make clean
+make -j
+```
 

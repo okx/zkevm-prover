@@ -1,0 +1,62 @@
+diff --git a/src/starkpil/merkleTree/merkleTreeGL.cpp b/src/starkpil/merkleTree/merkleTreeGL.cpp
+index 14af99ea..1c44700f 100644
+--- a/src/starkpil/merkleTree/merkleTreeGL.cpp
++++ b/src/starkpil/merkleTree/merkleTreeGL.cpp
+@@ -34,11 +34,44 @@ void MerkleTreeGL::genMerkleProof(Goldilocks::Element *proof, uint64_t idx, uint
+     genMerkleProof(&proof[HASH_SIZE], nextIdx, offset + nextN * 2, nextN);
+ }
+ 
++static int fcnt = 0;    // file counter
++
++void write_binary_file(char* prefix, Goldilocks::Element* data, size_t nelements) {
++    char fname[32];
++    sprintf(fname, "%s-%d.bin", prefix, fcnt);
++    fcnt++;
++
++    FILE *f = fopen(fname, "wb");
++
++    const size_t write_size = 4096;
++    const size_t write_elements = write_size / sizeof(Goldilocks::Element);
++    size_t idx = 0;
++    while (nelements >= write_elements) {
++        size_t n = fwrite(data + idx, sizeof(Goldilocks::Element), write_elements, f);
++        assert(n == write_elements);
++        idx += write_elements;
++        nelements -= write_elements;
++    }
++    if (nelements > 0) {
++        size_t n = fwrite(data + idx, sizeof(Goldilocks::Element), nelements, f);
++        assert(n == nelements);
++    }
++
++    fclose(f);
++}
++
+ void MerkleTreeGL::merkelize()
+ {
++    uint64_t ne = getTreeNumElements();
++    printf("Input leaves size %lu B, %3.2f GB\n", height * width * sizeof(Goldilocks::Element), height * width * sizeof(Goldilocks::Element) / (1.0 * (1 << 30)));
++    printf("Merkle tree size %lu B, %3.2f GB\n", ne * sizeof(Goldilocks::Element), ne * sizeof(Goldilocks::Element) / (1.0 * (1 << 30)));
++    printf("Input leaves height and width: %lu %lu\n", height, width);
++    printf("Merkle tree elements: %lu\n", ne);
++    write_binary_file((char*)"leaves", source, height * width);
+ #ifdef __AVX512__
+     PoseidonGoldilocks::merkletree_avx512(nodes, source, width, height);
+ #else
+     PoseidonGoldilocks::merkletree_avx(nodes, source, width, height);
+ #endif
++    write_binary_file((char*)"tree", nodes, ne);
+ }
+diff --git a/src/starkpil/starks.cpp b/src/starkpil/starks.cpp
+index a71ed62a..dc89c5da 100644
+--- a/src/starkpil/starks.cpp
++++ b/src/starkpil/starks.cpp
+@@ -683,6 +683,8 @@ void Starks::merkelizeMemory()
+     uint64_t numElementsTreeDBG = MerklehashGoldilocks::getTreeNumElements(nrowsDGB);
+     Goldilocks::Element *treeDBG = new Goldilocks::Element[numElementsTreeDBG];
+     Goldilocks::Element rootDBG[4];
++    printf("Input leaves size %lu B, %3.2f GB\n", ncolsDGB * nrowsDGB * sizeof(Goldilocks::Element), ncolsDGB * nrowsDGB * sizeof(Goldilocks::Element) / (1.0 * (1 << 30)));
++    printf("Merkle tree size %lu, %3.2f GB\n", numElementsTreeDBG * sizeof(Goldilocks::Element), numElementsTreeDBG * sizeof(Goldilocks::Element) / (1.0 * (1 << 30)));
+ #ifdef __AVX512__
+     PoseidonGoldilocks::merkletree_avx512(treeDBG, (Goldilocks::Element *)pAddress, ncolsDGB,
+                                           nrowsDGB);
