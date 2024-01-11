@@ -157,15 +157,14 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Steps 
     treesGL[1]->getRoot(root1.address());
     TimerStopAndLog(STARK_STEP_2_MERKLETREE);
     zklog.info("MerkleTree rootGL 1: [ " + root1.toString(4) + " ]");
-    transcript.put(root1.address(), HASH_SIZE);
-
-    TimerStopAndLog(STARK_STEP_2_LDE_AND_MERKLETREE);
-    TimerStopAndLog(STARK_STEP_2);
-
     // sync step 1
     pthread_join(th, NULL);
     zklog.info("MerkleTree rootGL 0: [ " + root0.toString(4) + " ]");
     transcript.put(root0.address(), HASH_SIZE);
+    transcript.put(root1.address(), HASH_SIZE);
+
+    TimerStopAndLog(STARK_STEP_2_LDE_AND_MERKLETREE);
+    TimerStopAndLog(STARK_STEP_2);
 
 
     //--------------------------------
@@ -316,16 +315,17 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Steps 
 
     treesGL[3]->merkelize();
     treesGL[3]->getRoot(root3.address());
-    zklog.info("MerkleTree rootGL 3: [ " + root3.toString(4) + " ]");
-    transcript.put(root3.address(), HASH_SIZE);
-
-    TimerStopAndLog(STARK_STEP_4_MERKLETREE);
-    TimerStopAndLog(STARK_STEP_4);
 
     // sync step 3
     pthread_join(th, NULL);
     zklog.info("MerkleTree rootGL 2: [ " + root2.toString(4) + " ]");
     transcript.put(root2.address(), HASH_SIZE);
+
+    zklog.info("MerkleTree rootGL 3: [ " + root3.toString(4) + " ]");
+    transcript.put(root3.address(), HASH_SIZE);
+
+    TimerStopAndLog(STARK_STEP_4_MERKLETREE);
+    TimerStopAndLog(STARK_STEP_4);
 
     //--------------------------------
     // 5. Compute FRI Polynomial
