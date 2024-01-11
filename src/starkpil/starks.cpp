@@ -4,21 +4,7 @@
 #include "zklog.hpp"
 #include "exit_process.hpp"
 
-#include <pthread.h>
-
 USING_PROVER_FORK_NAMESPACE;
-
-typedef struct {
-    MerkleTreeGL* tree;
-    Polinomial* root;
-} ThreadArgs;
-
-void* task(void *args) {
-    ThreadArgs *ta = (ThreadArgs*)args;
-    ta->tree->merkelize();
-    ta->tree->getRoot(ta->root->address());
-    return NULL;
-}
 
 void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Steps *steps)
 {
@@ -65,18 +51,12 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Steps 
 
     ntt.extendPol(p_cm1_2ns, p_cm1_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm1_n], p_cm2_2ns);
     TimerStopAndLog(STARK_STEP_1_LDE);
-
     TimerStart(STARK_STEP_1_MERKLETREE);
-    pthread_t th;
-	pthread_attr_t attr;
-    ThreadArgs ta;
-    ta.tree = treesGL[0];
-    ta.root = &root0;
-	pthread_attr_init(&attr);
-	pthread_create(&th, &attr, task, (void*)&ta);
+    treesGL[0]->merkelize();
+    treesGL[0]->getRoot(root0.address());
     TimerStopAndLog(STARK_STEP_1_MERKLETREE);
-
-    // TODO: this is not accurate
+    zklog.info("MerkleTree rootGL 0: [ " + root0.toString(4) + " ]");
+    transcript.put(root0.address(), HASH_SIZE);
     TimerStopAndLog(STARK_STEP_1_LDE_AND_MERKLETREE);
     TimerStopAndLog(STARK_STEP_1);
 
@@ -157,15 +137,10 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Steps 
     treesGL[1]->getRoot(root1.address());
     TimerStopAndLog(STARK_STEP_2_MERKLETREE);
     zklog.info("MerkleTree rootGL 1: [ " + root1.toString(4) + " ]");
-    // sync step 1
-    pthread_join(th, NULL);
-    zklog.info("MerkleTree rootGL 0: [ " + root0.toString(4) + " ]");
-    transcript.put(root0.address(), HASH_SIZE);
     transcript.put(root1.address(), HASH_SIZE);
 
     TimerStopAndLog(STARK_STEP_2_LDE_AND_MERKLETREE);
     TimerStopAndLog(STARK_STEP_2);
-
 
     //--------------------------------
     // 3.- Compute Z polynomials
@@ -238,14 +213,12 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Steps 
     TimerStart(STARK_STEP_3_LDE);
     ntt.extendPol(p_cm3_2ns, p_cm3_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm3_n], pBuffer);
     TimerStopAndLog(STARK_STEP_3_LDE);
-
     TimerStart(STARK_STEP_3_MERKLETREE);
-    ta.tree = treesGL[2];
-    ta.root = &root2;
-	pthread_create(&th, &attr, task, (void*)&ta);
-
-    // TODO - not accurate
+    treesGL[2]->merkelize();
+    treesGL[2]->getRoot(root2.address());
     TimerStopAndLog(STARK_STEP_3_MERKLETREE);
+    zklog.info("MerkleTree rootGL 2: [ " + root2.toString(4) + " ]");
+    transcript.put(root2.address(), HASH_SIZE);
     TimerStopAndLog(STARK_STEP_3_LDE_AND_MERKLETREE);
     TimerStopAndLog(STARK_STEP_3);
 
@@ -315,12 +288,6 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Steps 
 
     treesGL[3]->merkelize();
     treesGL[3]->getRoot(root3.address());
-
-    // sync step 3
-    pthread_join(th, NULL);
-    zklog.info("MerkleTree rootGL 2: [ " + root2.toString(4) + " ]");
-    transcript.put(root2.address(), HASH_SIZE);
-
     zklog.info("MerkleTree rootGL 3: [ " + root3.toString(4) + " ]");
     transcript.put(root3.address(), HASH_SIZE);
 
@@ -716,8 +683,6 @@ void Starks::merkelizeMemory()
     uint64_t numElementsTreeDBG = MerklehashGoldilocks::getTreeNumElements(nrowsDGB);
     Goldilocks::Element *treeDBG = new Goldilocks::Element[numElementsTreeDBG];
     Goldilocks::Element rootDBG[4];
-    printf("Input leaves size %lu B, %3.2f GB\n", ncolsDGB * nrowsDGB * sizeof(Goldilocks::Element), ncolsDGB * nrowsDGB * sizeof(Goldilocks::Element) / (1.0 * (1 << 30)));
-    printf("Merkle tree size %lu, %3.2f GB\n", numElementsTreeDBG * sizeof(Goldilocks::Element), numElementsTreeDBG * sizeof(Goldilocks::Element) / (1.0 * (1 << 30)));
 #ifdef __AVX512__
     PoseidonGoldilocks::merkletree_avx512(treeDBG, (Goldilocks::Element *)pAddress, ncolsDGB,
                                           nrowsDGB);
