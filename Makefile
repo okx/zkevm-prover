@@ -16,7 +16,7 @@ endif
 CXX := g++
 AS := nasm
 CXXFLAGS := -std=c++17 -Wall -pthread -flarge-source-files -Wno-unused-label -rdynamic -mavx2 $(GRPCPP_FLAGS) #-Wfatal-errors
-LDFLAGS := -lprotobuf -lsodium -lgpr -lpthread -lpqxx -lpq -lgmp -lstdc++ -lgmpxx -lsecp256k1 -lcrypto -luuid -fopenmp -liomp5 $(GRPCPP_LIBS)
+LDFLAGS := -lprotobuf -lsodium -lgpr -lpthread -lpqxx -lpq -lgmp -lstdc++ -lgmpxx -lsecp256k1 -lcrypto -luuid -liomp5 $(GRPCPP_LIBS)
 CFLAGS := -fopenmp
 ASFLAGS := -felf64
 
@@ -69,7 +69,7 @@ bctree: $(BUILD_DIR)/$(TARGET_BCT)
 test: $(BUILD_DIR)/$(TARGET_TEST)
 
 $(BUILD_DIR)/$(TARGET_ZKP): $(OBJS_ZKP)
-	$(NVCC) $(OBJS_ZKP) $(CXXFLAGS) -arch=$(CUDA_ARCH) -o $@ $(LDFLAGS)
+	$(NVCC) $(OBJS_ZKP) -O3 -arch=$(CUDA_ARCH) -o $@ $(LDFLAGS)
 
 $(BUILD_DIR)/$(TARGET_BCT): $(OBJS_BCT)
 	$(CXX) $(OBJS_BCT) $(CXXFLAGS) -o $@ $(LDFLAGS) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS)
