@@ -46,12 +46,14 @@ CPPFLAGS ?= $(INC_FLAGS) -MMD -MP
 GRPC_CPP_PLUGIN = grpc_cpp_plugin
 GRPC_CPP_PLUGIN_PATH ?= `which $(GRPC_CPP_PLUGIN)`
 
-INC_DIRS := $(shell find $(SRC_DIRS) -type d) $(sort $(dir))
+INC_DIRS := $(shell find $(SRC_DIRS) ./cryptography_cuda -type d) /usr/local/cuda/include $(sort $(dir))
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 SRCS_ZKP := $(shell find $(SRC_DIRS) ! -path "./tools/starkpil/bctree/*" ! -path "./test/prover/*" ! -path "./src/goldilocks/benchs/*" ! -path "./src/goldilocks/benchs/*" ! -path "./src/goldilocks/tests/*" ! -path "./src/goldilocks/utils/*" ! -path "./src/main_generator/*" ! -path "./src/pols_generator/*" -name *.cpp -or -name *.c -or -name *.asm -or -name *.cc -or -name *.cu)
 
-OBJS_ZKP := $(SRCS_ZKP:%=$(BUILD_DIR)/%.o)
+SRCS_ZKP2 := cryptography_cuda/cuda/util/all_gpus.cpp cryptography_cuda/src/lib.cu
+
+OBJS_ZKP := $(SRCS_ZKP:%=$(BUILD_DIR)/%.o) $(SRCS_ZKP2:%=$(BUILD_DIR)/%.o)
 DEPS_ZKP := $(OBJS_ZKP:.o=.d)
 
 SRCS_BCT := $(shell find $(SRC_DIRS) ! -path "./src/main.cpp" ! -path "./test/prover/*" ! -path "./src/goldilocks/benchs/*" ! -path "./src/goldilocks/benchs/*" ! -path "./src/goldilocks/tests/*" ! -path "./src/main_generator/*" ! -path "./src/pols_generator/*" -name *.cpp -or -name *.c -or -name *.asm -or -name *.cc)
@@ -85,7 +87,7 @@ $(BUILD_DIR)/%.asm.o: %.asm
 # c++ source
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	$(MKDIR_P) $(dir $@)
-	$(CXX) -D__USE_CUDA__ $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+	$(CXX) -D__USE_CUDA__ -DFEATURE_GOLDILOCKS $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/%.cc.o: %.cc
 	$(MKDIR_P) $(dir $@)
@@ -93,7 +95,7 @@ $(BUILD_DIR)/%.cc.o: %.cc
 
 $(BUILD_DIR)/%.cu.o: %.cu
 	$(MKDIR_P) $(dir $@)
-	$(NVCC) -D__USE_CUDA__ -Xcompiler -fopenmp -Xcompiler -fPIC -Xcompiler -mavx2 -Xcompiler -O3 -O3 -arch=$(CUDA_ARCH) -O3 $< -dc --output-file $@
+	$(NVCC) -D__USE_CUDA__ -DFEATURE_GOLDILOCKS -D__X1_PROVER__ $(INC_FLAGS) -Xcompiler -fopenmp -Xcompiler -fPIC -Xcompiler -mavx2 -Xcompiler -O3 -O3 -arch=$(CUDA_ARCH) -O3 $< -dc --output-file $@
 
 main_generator: $(BUILD_DIR)/$(TARGET_MNG)
 
