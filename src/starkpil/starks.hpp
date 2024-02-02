@@ -189,6 +189,15 @@ public:
         treesGL[3] = new MerkleTreeGL(NExtended, starkInfo.mapSectionsN.section[eSection::cm4_2ns], cm4_2ns);
         treesGL[4] = new MerkleTreeGL((Goldilocks::Element *)pConstTreeAddress);
         TimerStopAndLog(MERKLE_TREE_ALLOCATION);
+
+        TimerStart(INIT_TWIDDLE_FACTORS);
+#pragma omp parallel for
+        for (u_int32_t i = 0; i < 8; i++){
+            ntt.init_twiddle_factors_cuda(i, 23);
+            ntt.init_twiddle_factors_cuda(i, 24);
+        }
+        TimerStopAndLog(INIT_TWIDDLE_FACTORS);
+
     };
     ~Starks()
     {
