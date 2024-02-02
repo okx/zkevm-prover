@@ -190,6 +190,7 @@ public:
         treesGL[4] = new MerkleTreeGL((Goldilocks::Element *)pConstTreeAddress);
         TimerStopAndLog(MERKLE_TREE_ALLOCATION);
 
+        ntt.computeR(23);
         TimerStart(INIT_TWIDDLE_FACTORS);
 #pragma omp parallel for
         for (u_int32_t i = 0; i < 8; i++){
