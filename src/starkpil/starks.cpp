@@ -49,8 +49,11 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     TimerStart(STARK_STEP_1);
     TimerStart(STARK_STEP_1_LDE_AND_MERKLETREE);
     TimerStart(STARK_STEP_1_LDE);
-
+#ifdef __USE_CUDA__
+    ntt.extendPol_cuda(p_cm1_2ns, p_cm1_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm1_n], p_cm2_2ns);
+#else
     ntt.extendPol(p_cm1_2ns, p_cm1_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm1_n], p_cm2_2ns);
+#endif
     TimerStopAndLog(STARK_STEP_1_LDE);
     TimerStart(STARK_STEP_1_MERKLETREE);
     treesGL[0]->merkelize();
@@ -131,7 +134,11 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
 
     TimerStart(STARK_STEP_2_LDE_AND_MERKLETREE);
     TimerStart(STARK_STEP_2_LDE);
+#ifdef __USE_CUDA__
+    ntt.extendPol_cuda(p_cm2_2ns, p_cm2_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm2_n], pBuffer);
+#else
     ntt.extendPol(p_cm2_2ns, p_cm2_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm2_n], pBuffer);
+#endif
     TimerStopAndLog(STARK_STEP_2_LDE);
     TimerStart(STARK_STEP_2_MERKLETREE);
     treesGL[1]->merkelize();
@@ -212,7 +219,11 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
 
     TimerStart(STARK_STEP_3_LDE_AND_MERKLETREE);
     TimerStart(STARK_STEP_3_LDE);
+#ifdef __USE_CUDA__
+    ntt.extendPol_cuda(p_cm3_2ns, p_cm3_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm3_n], pBuffer);
+#else
     ntt.extendPol(p_cm3_2ns, p_cm3_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm3_n], pBuffer);
+#endif
     TimerStopAndLog(STARK_STEP_3_LDE);
     TimerStart(STARK_STEP_3_MERKLETREE);
     treesGL[2]->merkelize();
