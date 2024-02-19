@@ -33,12 +33,12 @@ Built to interface with Ethereum Virtual Machines (EVM), the prover provides cri
 
 ## Compiling locally
 
-Steps to compile `zkevm-prover` locally:
+Steps to compile `x1-prover` locally:
 ### Clone repository
 
 ```sh
-git clone --recursive https://github.com/0xPolygonHermez/zkevm-prover.git
-cd zkevm-prover
+git clone --recursive https://github.com/okx/x1-prover.git
+cd x1-prover
 ```
 
 ### Download necessary files
