@@ -58,6 +58,9 @@ public:
     }
 
     void merkelize();
+    Goldilocks::Element* get_nodes_ptr() {
+        return nodes;
+    }
     uint64_t getTreeNumElements()
     {
         return height * HASH_SIZE + (height - 1) * HASH_SIZE;
