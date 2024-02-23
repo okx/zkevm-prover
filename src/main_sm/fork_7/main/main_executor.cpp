@@ -104,6 +104,7 @@ MainExecutor::MainExecutor (Goldilocks &fr, PoseidonGoldilocks &poseidon, const 
     checkFirstTxTypeLabel     = rom.getLabel(string("checkFirstTxType"));
     writeBlockInfoRootLabel   = rom.getLabel(string("writeBlockInfoRoot"));
     verifyMerkleProofEndLabel = rom.getLabel(string("verifyMerkleProofEnd"));
+    funcModexpLabel           = rom.getLabel(string("funcModexp"));
 
     // Init labels mutex
     pthread_mutex_init(&labelsMutex, NULL);
@@ -4995,7 +4996,25 @@ void MainExecutor::execute (ProverRequest &proverRequest, MainCommitPols &pols, 
             {
                 pols.isNeg[i] = fr.one();
                 if (rom.line[zkPC].useJmpAddr)
+                {
+                    if (pols.zkPC[i] == fr.fromU64(1582)) 
+                    {
+                        uint64_t depth = ((fork_7::FullTracer *)proverRequest.pFullTracer)->depth;
+                        if (depth > 1)
+                        {
+                            proverRequest.result = ZKR_SM_MAIN_OOG_2;
+                            logError(ctx, "Invalid OOG_2");
+                            pHashDB->cancelBatch(proverRequest.uuid);
+                            return;
+                        }
+                        else
+                        {
+                            proverRequest.result = ZKR_SM_MAIN_CLOSE_BATCH;
+                            zklog.info("Main Executor OOG_2 ZKR_SM_MAIN_CLOSE_BATCH");
+                        }
+                    }
                     pols.zkPC[nexti] = rom.line[zkPC].jmpAddr;
+                }
                 else
                     pols.zkPC[nexti] = fr.fromU64(addr);
                 jmpnCondValue = fr.toU64(fr.add(op0, fr.fromU64(0x100000000)));
@@ -5040,6 +5059,14 @@ void MainExecutor::execute (ProverRequest &proverRequest, MainCommitPols &pols, 
                 jmpnCondValue = jmpnCondValue >> 1;
             }
             pols.JMPN[i] = fr.one();
+
+            if ((proverRequest.input.executionMode != 1) && (pols.zkPC[nexti] == fr.fromU64(funcModexpLabel)))
+            {
+                proverRequest.result = ZKR_SM_MAIN_UNSUPPORTED_PRECOMPILED;
+                logError(ctx, "Invalid funcModexp call");
+                pHashDB->cancelBatch(proverRequest.uuid);
+                return;
+            }
         }
         // If JMPC, jump conditionally if carry
         else if (rom.line[zkPC].JMPC == 1)
@@ -5344,7 +5371,10 @@ void MainExecutor::execute (ProverRequest &proverRequest, MainCommitPols &pols, 
     proverRequest.counters.steps = ctx.lastStep;
 
     // Set the error (all previous errors generated a return)
-    proverRequest.result = ZKR_SUCCESS;
+    if (proverRequest.result != ZKR_SM_MAIN_CLOSE_BATCH)
+    {
+        proverRequest.result = ZKR_SUCCESS;
+    }
 
     // Check that we did not run out of steps during the execution
     if (ctx.lastStep == 0)

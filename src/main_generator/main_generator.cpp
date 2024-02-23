@@ -403,6 +403,7 @@ string generate(const json &rom, const string &functionName, const string &fileN
 #if PROVER_FORK_ID >= 7
     code += "    RawFq::Element x1fe, y1fe, x2fe, y2fe, x3fe, y3fe;\n";
     code += "    RawFq::Element _x3fe, _y3fe;\n";
+    code += "    uint64_t depth;\n";
 #endif
 
     if (!bFastMode)
@@ -5419,6 +5420,24 @@ code += "    #endif\n";
             // If op<0, jump to addr: zkPC'=addr
             code += "    if (jmpnCondValue >= FrFirst32Negative)\n";
             code += "    {\n";
+#if PROVER_FORK_ID >= 7
+            if (zkPC == 1582)
+            {
+                code += "        depth = ((fork_7::FullTracer *)proverRequest.pFullTracer)->depth;\n";
+                code += "        if (depth > 1)\n";
+                code += "        {\n";
+                code += "            proverRequest.result = ZKR_SM_MAIN_OOG_2;\n";
+                code += "            mainExecutor.logError(ctx, \"Invalid OOG 2\");\n";
+                code += "            mainExecutor.pHashDB->cancelBatch(proverRequest.uuid);\n";
+                code += "            return;\n";
+                code += "        }\n";
+                code += "        else\n";
+                code += "        {\n";
+                code += "            proverRequest.result = ZKR_SM_MAIN_CLOSE_BATCH;\n";
+                code += "            zklog.info(\"Main Executor OOG_2 ZKR_SM_MAIN_CLOSE_BATCH\");\n";
+                code += "        }\n";
+            }
+#endif
             if (!bFastMode)
             {
                 code += "        pols.isNeg[i] = fr.one();\n";
@@ -5432,6 +5451,18 @@ code += "    #endif\n";
             //code += "        goto *" + functionName + "_labels[addr]; // If op<0, jump to addr: zkPC'=addr\n";
             code += "        bJump = true;\n";
             bConditionalJump = true;
+
+            if ((proverForkID == 7) && rom["program"][zkPC].contains("jmpAddrLabel") && (rom["program"][zkPC]["jmpAddrLabel"] == "funcModexp"))
+            {
+                code += "        if (proverRequest.input.executionMode != 1)\n";
+                code += "        {\n";
+                code += "            proverRequest.result = ZKR_SM_MAIN_UNSUPPORTED_PRECOMPILED;\n";
+                code += "            mainExecutor.logError(ctx, \"Invalid funcModexp call\");\n";
+                code += "            mainExecutor.pHashDB->cancelBatch(proverRequest.uuid);\n";
+                code += "            return;\n";
+                code += "        }\n";
+            }
+
             code += "    }\n";
             // If op>=0, simply increase zkPC'=zkPC+1
             code += "    else if (jmpnCondValue <= FrLast32Positive)\n";
@@ -5553,7 +5584,7 @@ code += "    #endif\n";
                 {
                     code += "    pols.zkPC[nexti] = fr.fromU64(addr);\n";
                 }
-            }
+            }          
         }
         // If return
         else if (rom["program"][zkPC].contains("return") && (rom["program"][zkPC]["return"] == 1))
@@ -5912,7 +5943,8 @@ code += "    #endif\n";
     code += "    proverRequest.counters.steps = ctx.lastStep;\n\n";
 
     code += "    // Set the error (all previous errors generated a return)\n";
-    code += "    proverRequest.result = ZKR_SUCCESS;\n";
+    code += "    if (proverRequest.result != ZKR_SM_MAIN_CLOSE_BATCH)\n";
+    code += "        proverRequest.result = ZKR_SUCCESS;\n";
 
     code += "    // Check that we did not run out of steps during the execution\n";
     code += "    if (ctx.lastStep == 0)\n";
