@@ -4,6 +4,7 @@
 #include "blake_gate.hpp"
 #include "zkassert.hpp"
 #include "timer.hpp"
+#include "zklog.hpp"
 
 using namespace std;
 
@@ -138,7 +139,7 @@ uint64_t Blake2b256_Test (Goldilocks &fr, const Config &config)
         string hash;
 
         Blake2b256_String(input, hash);
-        
+
         if (hash != expectedHash)
         {
             zklog.error("BlakeTest() 1 failed, hash of " + input + " is " + hash + " instead of " + expectedHash);
@@ -159,7 +160,7 @@ uint64_t Blake2b256_Test (Goldilocks &fr, const Config &config)
         string hash;
 
         Blake2b256Gate_String(input, hash);
-        
+
         if (hash != expectedHash)
         {
             zklog.error("BlakeTest() 2 failed, hash of " + input + " is " + hash + " instead of " + expectedHash);

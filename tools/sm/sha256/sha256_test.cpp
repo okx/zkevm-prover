@@ -3,6 +3,7 @@
 #include "sha256_gate.hpp"
 #include "timer.hpp"
 #include "exit_process.hpp"
+#include "zklog.hpp"
 
 vector<vector<string>> sha256TestVectors = {
     {"", "0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
