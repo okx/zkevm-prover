@@ -33,12 +33,12 @@ Built to interface with Ethereum Virtual Machines (EVM), the prover provides cri
 
 ## Compiling locally
 
-Steps to compile `x1-prover` locally:
+Steps to compile `xlayer-prover` locally:
 ### Clone repository
 
 ```sh
-git clone --recursive https://github.com/okx/x1-prover.git
-cd x1-prover
+git clone --recursive https://github.com/okx/xlayer-prover.git
+cd xlayer-prover
 ```
 
 ### Download necessary files
