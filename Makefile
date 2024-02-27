@@ -1,3 +1,8 @@
+$(shell cd src/goldilocks && ./configure.sh && cd ../..)
+$(shell sleep 2)
+include src/goldilocks/CudaArch.mk
+NVCC := /usr/local/cuda/bin/nvcc
+
 TARGET_ZKP := zkProver
 TARGET_ZKP_GPU := zkProver
 TARGET_BCT := bctree
@@ -22,9 +27,6 @@ LDFLAGS := -lprotobuf -lsodium -lgpr -lpthread -lpqxx -lpq -lgmp -lstdc++ -lgmpx
 CFLAGS := -fopenmp
 ASFLAGS := -felf64
 
-NVCC := /usr/local/cuda/bin/nvcc
-CUDA_ARCH = sm_86
-
 # Debug build flags
 ifeq ($(dbg),1)
       CXXFLAGS += -g -D DEBUG
@@ -33,12 +35,11 @@ else
 endif
 
 # Verify if AVX-512 is supported
-# for now disabled, to enable it, you only need to uncomment these lines
-#AVX512_SUPPORTED := $(shell cat /proc/cpuinfo | grep -E 'avx512' -m 1)
+AVX512_SUPPORTED := $(shell cat /proc/cpuinfo | grep -E 'avx512' -m 1)
 
-#ifneq ($(AVX512_SUPPORTED),)
-#	CXXFLAGS += -mavx512f -D__AVX512__
-#endif
+ifneq ($(AVX512_SUPPORTED),)
+	CXXFLAGS += -mavx512f -D__AVX512__
+endif
 
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
