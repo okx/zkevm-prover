@@ -4,7 +4,11 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential libgmp-dev \
     libbenchmark-dev nasm nlohmann-json3-dev libsecp256k1-dev libomp-dev \
     libpqxx-dev git libssl-dev cmake libgrpc++-dev libprotobuf-dev grpc-proto \
-    libsodium-dev protobuf-compiler protobuf-compiler-grpc uuid-dev && \
+    libsodium-dev protobuf-compiler protobuf-compiler-grpc uuid-dev wget && \
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb && \
+    dpkg -i cuda-keyring_1.1-1_all.deb && \
+    apt-get update -y && \
+    apt-get -y install cuda-toolkit-12-3 && \
     rm -fr /var/cache/apt/*
 
 WORKDIR /usr/src/app
