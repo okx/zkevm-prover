@@ -38,7 +38,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt update && \
     libgrpc++-dev libprotobuf-dev grpc-proto libsodium-dev && \
     rm -fr /var/cache/apt/*
 
-COPY --from=build-gpu /usr/src/app/build/zkProver /usr/local/bin/zkProver
+COPY --from=build /usr/src/app/build-gpu/zkProver /usr/local/bin/zkProver
 
 ENTRYPOINT []
 
