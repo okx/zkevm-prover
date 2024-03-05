@@ -1,7 +1,8 @@
+NVCC := /usr/local/cuda/bin/nvcc
+
 $(shell cd src/goldilocks && ./configure.sh && cd ../..)
 $(shell sleep 2)
 include src/goldilocks/CudaArch.mk
-NVCC := /usr/local/cuda/bin/nvcc
 
 TARGET_ZKP := zkProver
 TARGET_ZKP_GPU := zkProver
@@ -68,8 +69,6 @@ DEPS_BCT := $(OBJS_BCT:.o=.d)
 SRCS_TEST := $(shell find $(SRC_DIRS) ! -path "./src/main.cpp" ! -path "./tools/starkpil/bctree/*" ! -path "./src/goldilocks/benchs/*" ! -path "./src/goldilocks/benchs/*" ! -path "./src/goldilocks/tests/*" ! -path "./src/main_generator/*" ! -path "./src/pols_generator/*" -name *.cpp -or -name *.c -or -name *.asm -or -name *.cc)
 OBJS_TEST := $(SRCS_TEST:%=$(BUILD_DIR)/%.o)
 DEPS_TEST := $(OBJS_TEST:.o=.d)
-
-all: $(BUILD_DIR_GPU)/$(TARGET_ZKP_GPU)
 
 cpu: $(BUILD_DIR)/$(TARGET_ZKP)
 
