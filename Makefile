@@ -1,7 +1,4 @@
-all:
-
-$(shell cd src/goldilocks && ./configure.sh && cd ../..)
-$(shell sleep 2)
+INFO = $(shell cd src/goldilocks && ./configure.sh && cd ../.. && sleep 2)
 include src/goldilocks/CudaArch.mk
 
 NVCC := /usr/local/cuda/bin/nvcc
