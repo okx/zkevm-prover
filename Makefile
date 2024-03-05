@@ -1,8 +1,10 @@
-NVCC := /usr/local/cuda/bin/nvcc
+all:
 
 $(shell cd src/goldilocks && ./configure.sh && cd ../..)
 $(shell sleep 2)
 include src/goldilocks/CudaArch.mk
+
+NVCC := /usr/local/cuda/bin/nvcc
 
 TARGET_ZKP := zkProver
 TARGET_ZKP_GPU := zkProver
