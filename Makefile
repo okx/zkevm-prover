@@ -69,7 +69,7 @@ SRCS_TEST := $(shell find $(SRC_DIRS) ! -path "./src/main.cpp" ! -path "./tools/
 OBJS_TEST := $(SRCS_TEST:%=$(BUILD_DIR)/%.o)
 DEPS_TEST := $(OBJS_TEST:.o=.d)
 
-all: $(BUILD_DIR)/$(TARGET_ZKP)
+all: $(BUILD_DIR_GPU)/$(TARGET_ZKP_GPU)
 
 cpu: $(BUILD_DIR)/$(TARGET_ZKP)
 
