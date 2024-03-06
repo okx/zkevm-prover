@@ -34,6 +34,30 @@
 
 #ifdef __USE_CUDA__
 #include "cuda_utils.hpp"
+#include "ntt_goldilocks.hpp"
+#include <pthread.h>
+
+int asynctask(void* (*task)(void* args), void* arg)
+{
+	pthread_t th;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	return pthread_create(&th, &attr, task, arg);
+}
+
+void* warmup_task(void* arg)
+{
+    NTT_Goldilocks ntt(1 << 21);
+    ntt.setUseGPU(true);
+    ntt.LDE_MerkleTree_MultiGPU_Init((1 << 20), (1 << 21), 64);
+    ntt.LDE_MerkleTree_MultiGPU_Free();
+}
+
+void warmup_gpu()
+{
+    asynctask(warmup_task, NULL);
+}
 #endif
 
 #ifndef __AVX512__
@@ -116,6 +140,7 @@ Prover::Prover(Goldilocks &fr,
             {
 #ifdef __USE_CUDA__
                 pAddress = alloc_pinned_mem(polsSize);
+                warmup_gpu();
 #else
                 pAddress = calloc(polsSize, 1);
 #endif
