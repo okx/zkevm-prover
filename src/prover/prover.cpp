@@ -32,6 +32,10 @@
 #include "zklog.hpp"
 #include "exit_process.hpp"
 
+#ifdef __USE_CUDA__
+#include "cuda_utils.hpp"
+#endif
+
 #ifndef __AVX512__
 #define NROWS_STEPS_ 4
 #else
@@ -110,7 +114,11 @@ Prover::Prover(Goldilocks &fr,
             }
             else
             {
+#ifdef __USE_CUDA__
+                pAddress = alloc_pinned_mem(polsSize);
+#else
                 pAddress = calloc(polsSize, 1);
+#endif
                 if (pAddress == NULL)
                 {
                     zklog.error("Prover::genBatchProof() failed calling malloc() of size " + to_string(polsSize));
@@ -170,7 +178,11 @@ Prover::~Prover()
         }
         else
         {
+#ifdef __USE_CUDA__
+            free_pinned_mem(pAddress);
+#else
             free(pAddress);
+#endif
         }
         free(pAddressStarksRecursiveF);
 
