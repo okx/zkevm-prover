@@ -48,10 +48,8 @@ int asynctask(void* (*task)(void* args), void* arg)
 
 void* warmup_task(void* arg)
 {
-    NTT_Goldilocks ntt(1 << 21);
-    ntt.setUseGPU(true);
-    ntt.LDE_MerkleTree_MultiGPU_Init((1 << 20), (1 << 21), 64);
-    ntt.LDE_MerkleTree_MultiGPU_Free();
+    warmup_all_gpus();
+    return NULL;
 }
 
 void warmup_gpu()
