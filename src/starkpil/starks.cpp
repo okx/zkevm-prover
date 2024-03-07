@@ -54,7 +54,6 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     ntt.setUseGPU(true);
     if (ncols > 0)
     {
-        printf("N: %lu, NExtended: %lu, Number columns: %lu\n", N, NExtended, ncols);
         /*
         if (ncols > 300)
         {
