@@ -1,4 +1,10 @@
+$(shell cd src/goldilocks && ./configure.sh && cd ../..)
+$(shell sleep 2)
+include src/goldilocks/CudaArch.mk
+NVCC := /usr/local/cuda/bin/nvcc
+
 TARGET_ZKP := zkProver
+TARGET_ZKP_GPU := zkProver
 TARGET_BCT := bctree
 TARGET_MNG += mainGenerator
 TARGET_PLG += polsGenerator
@@ -6,6 +12,7 @@ TARGET_PLD += polsDiff
 TARGET_TEST := zkProverTest
 
 BUILD_DIR := ./build
+BUILD_DIR_GPU := ./build-gpu
 SRC_DIRS := ./src ./test ./tools
 
 GRPCPP_FLAGS := $(shell pkg-config grpc++ --cflags)
@@ -29,12 +36,11 @@ else
 endif
 
 # Verify if AVX-512 is supported
-# for now disabled, to enable it, you only need to uncomment these lines
-#AVX512_SUPPORTED := $(shell cat /proc/cpuinfo | grep -E 'avx512' -m 1)
+AVX512_SUPPORTED := $(shell cat /proc/cpuinfo | grep -E 'avx512' -m 1)
 
-#ifneq ($(AVX512_SUPPORTED),)
-#	CXXFLAGS += -mavx512f -D__AVX512__
-#endif
+ifneq ($(AVX512_SUPPORTED),)
+	CXXFLAGS += -mavx512f -D__AVX512__
+endif
 
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
@@ -47,8 +53,10 @@ GRPC_CPP_PLUGIN_PATH ?= `which $(GRPC_CPP_PLUGIN)`
 INC_DIRS := $(shell find $(SRC_DIRS) -type d) $(sort $(dir))
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
-SRCS_ZKP := $(shell find $(SRC_DIRS) ! -path "./tools/starkpil/bctree/*" ! -path "./test/prover/*" ! -path "./src/goldilocks/benchs/*" ! -path "./src/goldilocks/benchs/*" ! -path "./src/goldilocks/tests/*" ! -path "./src/main_generator/*" ! -path "./src/pols_generator/*" ! -path "./src/pols_diff/*" -name *.cpp -or -name *.c -or -name *.asm -or -name *.cc)
+SRCS_ZKP := $(shell find $(SRC_DIRS) ! -path "./tools/starkpil/bctree/*" ! -path "./test/prover/*" ! -path "./src/goldilocks/benchs/*" ! -path "./src/goldilocks/benchs/*" ! -path "./src/goldilocks/tests/*" ! -path "./src/main_generator/*" ! -path "./src/pols_generator/*" ! -path "./src/pols_diff/*" ! -path "./src/goldilocks/utils/*" -name *.cpp -or -name *.c -or -name *.asm -or -name *.cc)
+SRCS_ZKP_GPU := $(shell find $(SRC_DIRS) ! -path "./tools/starkpil/bctree/*" ! -path "./test/prover/*" ! -path "./src/goldilocks/benchs/*" ! -path "./src/goldilocks/benchs/*" ! -path "./src/goldilocks/tests/*" ! -path "./src/main_generator/*" ! -path "./src/pols_generator/*" ! -path "./src/pols_diff/*" ! -path "./src/goldilocks/utils/*" -name *.cpp -or -name *.c -or -name *.asm -or -name *.cc -or -name *.cu)
 OBJS_ZKP := $(SRCS_ZKP:%=$(BUILD_DIR)/%.o)
+OBJS_ZKP_GPU := $(SRCS_ZKP_GPU:%=$(BUILD_DIR_GPU)/%.o)
 DEPS_ZKP := $(OBJS_ZKP:.o=.d)
 
 SRCS_BCT := ./tools/starkpil/bctree/build_const_tree.cpp ./tools/starkpil/bctree/main.cpp ./src/goldilocks/src/goldilocks_base_field.cpp ./src/ffiasm/fr.cpp ./src/ffiasm/fr.asm ./src/starkpil/merkleTree/merkleTreeBN128.cpp ./src/poseidon_opt/poseidon_opt.cpp ./src/goldilocks/src/poseidon_goldilocks.cpp
@@ -61,12 +69,19 @@ DEPS_TEST := $(OBJS_TEST:.o=.d)
 
 all: $(BUILD_DIR)/$(TARGET_ZKP)
 
+cpu: $(BUILD_DIR)/$(TARGET_ZKP)
+
+gpu: $(BUILD_DIR_GPU)/$(TARGET_ZKP_GPU)
+
 bctree: $(BUILD_DIR)/$(TARGET_BCT)
 
 test: $(BUILD_DIR)/$(TARGET_TEST)
 
 $(BUILD_DIR)/$(TARGET_ZKP): $(OBJS_ZKP)
 	$(CXX) $(OBJS_ZKP) $(CXXFLAGS) -o $@ $(LDFLAGS) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS)
+
+$(BUILD_DIR_GPU)/$(TARGET_ZKP_GPU): $(OBJS_ZKP_GPU)
+	$(NVCC) $(OBJS_ZKP_GPU) -O3 -arch=$(CUDA_ARCH) -o $@ $(LDFLAGS)
 
 $(BUILD_DIR)/$(TARGET_BCT): $(OBJS_BCT)
 	$(CXX) $(OBJS_BCT) $(CXXFLAGS) -o $@ $(LDFLAGS) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS)
@@ -79,14 +94,31 @@ $(BUILD_DIR)/%.asm.o: %.asm
 	$(MKDIR_P) $(dir $@)
 	$(AS) $(ASFLAGS) $< -o $@
 
+# assembly
+$(BUILD_DIR_GPU)/%.asm.o: %.asm
+	$(MKDIR_P) $(dir $@)
+	$(AS) $(ASFLAGS) $< -o $@
+
 # c++ source
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	$(MKDIR_P) $(dir $@)
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
+$(BUILD_DIR_GPU)/%.cpp.o: %.cpp
+	$(MKDIR_P) $(dir $@)
+	$(CXX) -D__USE_CUDA__ $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+
 $(BUILD_DIR)/%.cc.o: %.cc
 	$(MKDIR_P) $(dir $@)
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+
+$(BUILD_DIR_GPU)/%.cc.o: %.cc
+	$(MKDIR_P) $(dir $@)
+	$(CXX) -D__USE_CUDA__ $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+
+$(BUILD_DIR_GPU)/%.cu.o: %.cu
+	$(MKDIR_P) $(dir $@)
+	$(NVCC) -D__USE_CUDA__ -Isrc/goldilocks/utils -Xcompiler -fopenmp -Xcompiler -fPIC -Xcompiler -mavx2 -Xcompiler -O3 -O3 -arch=$(CUDA_ARCH) -O3 $< -dc --output-file $@
 
 main_generator: $(BUILD_DIR)/$(TARGET_MNG)
 
@@ -112,7 +144,8 @@ $(BUILD_DIR)/$(TARGET_PLD): ./src/pols_diff/pols_diff.cpp
 .PHONY: clean
 
 clean:
-	$(RM) -r $(BUILD_DIR)
+	$(RM) -rf $(BUILD_DIR)
+	$(RM) -rf $(BUILD_DIR_GPU)
 	find . -name main_exec_generated*pp -delete
 
 -include $(DEPS_ZKP)
