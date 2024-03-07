@@ -32,6 +32,37 @@
 #include "zklog.hpp"
 #include "exit_process.hpp"
 
+#ifdef __USE_CUDA__
+#include "cuda_utils.hpp"
+#include "ntt_goldilocks.hpp"
+#include <pthread.h>
+
+int asynctask(void* (*task)(void* args), void* arg)
+{
+	pthread_t th;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	return pthread_create(&th, &attr, task, arg);
+}
+
+void* warmup_task(void* arg)
+{
+    warmup_all_gpus();
+    return NULL;
+}
+
+void warmup_gpu()
+{
+    asynctask(warmup_task, NULL);
+}
+#endif
+
+#ifndef __AVX512__
+#define NROWS_STEPS_ 4
+#else
+#define NROWS_STEPS_ 8
+#endif
 
 Prover::Prover(Goldilocks &fr,
                PoseidonGoldilocks &poseidon,
@@ -105,7 +136,12 @@ Prover::Prover(Goldilocks &fr,
             }
             else
             {
+#ifdef __USE_CUDA__
+                pAddress = alloc_pinned_mem(polsSize);
+                warmup_gpu();
+#else
                 pAddress = calloc(polsSize, 1);
+#endif
                 if (pAddress == NULL)
                 {
                     zklog.error("Prover::genBatchProof() failed calling malloc() of size " + to_string(polsSize));
@@ -165,7 +201,11 @@ Prover::~Prover()
         }
         else
         {
+#ifdef __USE_CUDA__
+            free_pinned_mem(pAddress);
+#else
             free(pAddress);
+#endif
         }
         free(pAddressStarksRecursiveF);
 

@@ -48,14 +48,44 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     //--------------------------------
     TimerStart(STARK_STEP_1);
     TimerStart(STARK_STEP_1_LDE_AND_MERKLETREE);
-    TimerStart(STARK_STEP_1_LDE);
 
+#ifdef __USE_CUDA__
+    uint64_t ncols = starkInfo.mapSectionsN.section[eSection::cm1_n];
+    ntt.setUseGPU(true);
+    if (ncols > 0)
+    {
+        /*
+        if (ncols > 300)
+        {
+            ntt.LDE_MerkleTree_MultiGPU_v3_viaCPU(treesGL[0]->get_nodes_ptr(), p_cm1_n, N, NExtended, ncols, p_cm1_2ns);
+        }
+        else
+        {
+        */
+        if (ncols > 100)
+        {
+            ntt.LDE_MerkleTree_MultiGPU_v3(treesGL[0]->get_nodes_ptr(), p_cm1_n, N, NExtended, ncols, p_cm1_2ns);
+        }
+        else
+        {
+            ntt.LDE_MerkleTree_GPU_v3(treesGL[0]->get_nodes_ptr(), p_cm1_n, N, NExtended, ncols, p_cm1_2ns);
+        }
+        // }
+    }
+    else
+    {
+        treesGL[0]->merkelize();
+    }
+#else
+    TimerStart(STARK_STEP_1_LDE);
     ntt.extendPol(p_cm1_2ns, p_cm1_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm1_n], p_cm2_2ns);
     TimerStopAndLog(STARK_STEP_1_LDE);
     TimerStart(STARK_STEP_1_MERKLETREE);
     treesGL[0]->merkelize();
-    treesGL[0]->getRoot(root0.address());
     TimerStopAndLog(STARK_STEP_1_MERKLETREE);
+#endif
+
+    treesGL[0]->getRoot(root0.address());
     zklog.info("MerkleTree rootGL 0: [ " + root0.toString(4) + " ]");
     transcript.put(root0.address(), HASH_SIZE);
     TimerStopAndLog(STARK_STEP_1_LDE_AND_MERKLETREE);
@@ -130,13 +160,33 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     TimerStopAndLog(STARK_STEP_2_CALCULATEH1H2_TRANSPOSE_2);
 
     TimerStart(STARK_STEP_2_LDE_AND_MERKLETREE);
+#ifdef __USE_CUDA__
+    ncols = starkInfo.mapSectionsN.section[eSection::cm2_n];
+    if (ncols > 0)
+    {
+        if (ncols > 100)
+        {
+            ntt.LDE_MerkleTree_MultiGPU_v3(treesGL[1]->get_nodes_ptr(), p_cm2_n, N, NExtended, ncols, p_cm2_2ns);
+        }
+        else
+        {
+            ntt.LDE_MerkleTree_GPU_v3(treesGL[1]->get_nodes_ptr(), p_cm2_n, N, NExtended, ncols, p_cm2_2ns);
+        }
+    }
+    else
+    {
+        treesGL[1]->merkelize();
+    }
+#else
     TimerStart(STARK_STEP_2_LDE);
     ntt.extendPol(p_cm2_2ns, p_cm2_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm2_n], pBuffer);
     TimerStopAndLog(STARK_STEP_2_LDE);
     TimerStart(STARK_STEP_2_MERKLETREE);
     treesGL[1]->merkelize();
-    treesGL[1]->getRoot(root1.address());
     TimerStopAndLog(STARK_STEP_2_MERKLETREE);
+#endif
+
+    treesGL[1]->getRoot(root1.address());
     zklog.info("MerkleTree rootGL 1: [ " + root1.toString(4) + " ]");
     transcript.put(root1.address(), HASH_SIZE);
 
@@ -211,13 +261,42 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     }
 
     TimerStart(STARK_STEP_3_LDE_AND_MERKLETREE);
+#ifdef __USE_CUDA__
+    ncols = starkInfo.mapSectionsN.section[eSection::cm3_n];
+    if (ncols > 0)
+    {
+        /*
+        if (ncols > 300)
+        {
+            ntt.LDE_MerkleTree_MultiGPU_v3_viaCPU(treesGL[2]->get_nodes_ptr(), p_cm3_n, N, NExtended, ncols, p_cm3_2ns);
+        }
+        else
+        {
+        */
+        if (ncols > 70)
+        {
+            ntt.LDE_MerkleTree_MultiGPU_v3(treesGL[2]->get_nodes_ptr(), p_cm3_n, N, NExtended, ncols, p_cm3_2ns);
+        }
+        else
+        {
+            ntt.LDE_MerkleTree_GPU_v3(treesGL[2]->get_nodes_ptr(), p_cm3_n, N, NExtended, ncols, p_cm3_2ns);
+        }
+        // }
+    }
+    else
+    {
+        treesGL[2]->merkelize();
+    }
+#else
     TimerStart(STARK_STEP_3_LDE);
     ntt.extendPol(p_cm3_2ns, p_cm3_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm3_n], pBuffer);
     TimerStopAndLog(STARK_STEP_3_LDE);
     TimerStart(STARK_STEP_3_MERKLETREE);
     treesGL[2]->merkelize();
-    treesGL[2]->getRoot(root2.address());
     TimerStopAndLog(STARK_STEP_3_MERKLETREE);
+#endif
+
+    treesGL[2]->getRoot(root2.address());
     zklog.info("MerkleTree rootGL 2: [ " + root2.toString(4) + " ]");
     transcript.put(root2.address(), HASH_SIZE);
     TimerStopAndLog(STARK_STEP_3_LDE_AND_MERKLETREE);
