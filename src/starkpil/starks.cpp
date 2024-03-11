@@ -323,6 +323,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     else if (nrowsStepBatch == 8)
     {
         TimerStart(STARK_STEP_4_CALCULATE_EXPS_2NS_AVX512);
+        printf("nrowsStepBatch:%lu\n", nrowsStepBatch);
         steps->step42ns_parser_first_avx512(params, NExtended, nrowsStepBatch);
         TimerStopAndLog(STARK_STEP_4_CALCULATE_EXPS_2NS_AVX512);
     }
