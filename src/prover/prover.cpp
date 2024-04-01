@@ -31,6 +31,7 @@
 #include "recursive2Steps.hpp"
 #include "zklog.hpp"
 #include "exit_process.hpp"
+#include "memory.cuh"
 
 #ifdef __USE_CUDA__
 #include "cuda_utils.hpp"
@@ -136,12 +137,7 @@ Prover::Prover(Goldilocks &fr,
             }
             else
             {
-#ifdef __USE_CUDA__
-                pAddress = alloc_pinned_mem(polsSize);
-                warmup_gpu();
-#else
-                pAddress = calloc(polsSize, 1);
-#endif
+                pAddress = calloc2(polsSize, 1);
                 if (pAddress == NULL)
                 {
                     zklog.error("Prover::genBatchProof() failed calling malloc() of size " + to_string(polsSize));
@@ -149,6 +145,10 @@ Prover::Prover(Goldilocks &fr,
                 }
                 zklog.info("Prover::genBatchProof() successfully allocated " + to_string(polsSize) + " bytes");
             }
+
+#ifdef __USE_CUDA__
+            warmup_gpu();
+#endif
 
             prover = new Fflonk::FflonkProver<AltBn128::Engine>(AltBn128::Engine::engine, pAddress, polsSize);
             prover->setZkey(zkey.get());
@@ -201,11 +201,7 @@ Prover::~Prover()
         }
         else
         {
-#ifdef __USE_CUDA__
-            free_pinned_mem(pAddress);
-#else
-            free(pAddress);
-#endif
+            free2(pAddress);
         }
         free(pAddressStarksRecursiveF);
 
@@ -1076,7 +1072,7 @@ void Prover::execute(ProverRequest *pProverRequest)
     }
     else
     {
-        pExecuteAddress = calloc(polsSize, 1);
+        pExecuteAddress = calloc2(polsSize, 1);
         if (pExecuteAddress == NULL)
         {
             zklog.error("Prover::execute() failed calling malloc() of size " + to_string(polsSize));
