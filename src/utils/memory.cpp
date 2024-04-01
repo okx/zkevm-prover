@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <cstdlib>
 
 #ifndef __USE_CUDA__
 void *calloc2(uint64_t count, uint64_t size) { return calloc(count, size); }
