@@ -64,7 +64,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
         */
         if (ncols > 100)
         {
-            ntt.LDE_MerkleTree_MultiGPU_v3(treesGL[0]->get_nodes_ptr(), p_cm1_n, N, NExtended, ncols, p_cm1_2ns);
+            ntt.LDE_MerkleTree_MultiGPU_v3_um(treesGL[0]->get_nodes_ptr(), p_cm1_n, N, NExtended, ncols, p_cm1_2ns);
         }
         else
         {
