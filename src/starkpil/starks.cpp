@@ -54,23 +54,21 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     ntt.setUseGPU(true);
     if (ncols > 0)
     {
-        /*
-        if (ncols > 300)
+        if (ncols > 660)
         {
             ntt.LDE_MerkleTree_MultiGPU_v3_viaCPU(treesGL[0]->get_nodes_ptr(), p_cm1_n, N, NExtended, ncols, p_cm1_2ns);
         }
         else
         {
-        */
         if (ncols > 100)
         {
-            ntt.LDE_MerkleTree_MultiGPU_v3_um(treesGL[0]->get_nodes_ptr(), p_cm1_n, N, NExtended, ncols, p_cm1_2ns);
+            ntt.LDE_MerkleTree_MultiGPU_v3(treesGL[0]->get_nodes_ptr(), p_cm1_n, N, NExtended, ncols, p_cm1_2ns);
         }
         else
         {
             ntt.LDE_MerkleTree_GPU_v3(treesGL[0]->get_nodes_ptr(), p_cm1_n, N, NExtended, ncols, p_cm1_2ns);
         }
-        // }
+        }
     }
     else
     {
