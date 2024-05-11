@@ -52,7 +52,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     uint64_t ncols = starkInfo.mapSectionsN.section[eSection::cm1_n];
     if (ncols > 0)
     {
-        ntt.LDE_MerkleTree_Auto(treesGL[0]->get_nodes_ptr(), p_cm1_n, N, NExtended, ncols, p_cm1_2ns);
+        ntt.LDE_MerkleTree_MultiGPU_v3(treesGL[0]->get_nodes_ptr(), p_cm1_n, N, NExtended, ncols, p_cm1_2ns);
     }
     else
     {
@@ -147,7 +147,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     ncols = starkInfo.mapSectionsN.section[eSection::cm2_n];
     if (ncols > 0)
     {
-        ntt.LDE_MerkleTree_Auto(treesGL[1]->get_nodes_ptr(), p_cm2_n, N, NExtended, ncols, p_cm2_2ns);
+        ntt.LDE_MerkleTree_MultiGPU_v3(treesGL[1]->get_nodes_ptr(), p_cm2_n, N, NExtended, ncols, p_cm2_2ns);
     }
     else
     {
@@ -241,7 +241,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     ncols = starkInfo.mapSectionsN.section[eSection::cm3_n];
     if (ncols > 0)
     {
-        ntt.LDE_MerkleTree_Auto(treesGL[2]->get_nodes_ptr(), p_cm3_n, N, NExtended, ncols, p_cm3_2ns);
+        ntt.LDE_MerkleTree_MultiGPU_v3(treesGL[2]->get_nodes_ptr(), p_cm3_n, N, NExtended, ncols, p_cm3_2ns);
     }
     else
     {
