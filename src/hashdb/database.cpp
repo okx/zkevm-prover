@@ -644,7 +644,8 @@ zkresult Database::readTreeRemote(const string &key, bool *keys, uint64_t level,
         // Prepare the query
         string query = "SELECT get_tree (E\'\\\\x" + key + "\', E\'\\\\x" + rkey + "\');";
         errorQuery = query
-        if myt.tv_sec % 20 == 0{
+        if (myt.tv_sec % 20 == 0)
+        {
             zklog.info("giskook query " + query);
         }
 
