@@ -309,14 +309,14 @@ void Prover::preGenBatchProof(ProverRequest *pProverRequest)
     /************/
     TimerStart(EXECUTOR_EXECUTE_INITIALIZATION);
 
-    PROVER_FORK_NAMESPACE::CommitPols cmPols(pProver->pAddress2, PROVER_FORK_NAMESPACE::CommitPols::pilDegree());
+    PROVER_FORK_NAMESPACE::CommitPols cmPols(pAddress2, PROVER_FORK_NAMESPACE::CommitPols::pilDegree());
     Goldilocks::parSetZero((Goldilocks::Element*)cmPols.address(), cmPols.size()/sizeof(Goldilocks::Element), omp_get_max_threads()/2);
 
 
     TimerStopAndLog(EXECUTOR_EXECUTE_INITIALIZATION);
     // Execute all the State Machines
     TimerStart(EXECUTOR_EXECUTE_BATCH_PROOF);
-    pProver->executor.execute(*pProverRequest, cmPols);
+    executor.execute(*pProverRequest, cmPols);
     TimerStopAndLog(EXECUTOR_EXECUTE_BATCH_PROOF);
 
     uint64_t lastN = cmPols.pilDegree() - 1;
@@ -333,9 +333,9 @@ void Prover::preGenBatchProof(ProverRequest *pProverRequest)
                " lastN=" + to_string(lastN));
 
     // Save commit pols to file zkevm.commit
-    if (pProver->config.zkevmCmPolsAfterExecutor != "")
+    if (config.zkevmCmPolsAfterExecutor != "")
     {
-        void *pointerCmPols = mapFile(pProver->config.zkevmCmPolsAfterExecutor, cmPols.size(), true);
+        void *pointerCmPols = mapFile(config.zkevmCmPolsAfterExecutor, cmPols.size(), true);
         memcpy(pointerCmPols, cmPols.address(), cmPols.size());
         unmapFile(pointerCmPols, cmPols.size());
     }
@@ -372,7 +372,6 @@ void *executorThread(void *arg)
 
         if (pProverRequest == NULL)
         {
-            zklog.info("executorThread() found no batch proof request, so ignoring");
             sleep(1);
             continue;
         }
