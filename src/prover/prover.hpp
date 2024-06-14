@@ -51,6 +51,7 @@ public:
     ProverRequest *executedRequest;
 
 private:
+    pthread_t executorPthread;// Executor thread
     pthread_t proverPthread;  // Prover thread
     pthread_t cleanerPthread; // Garbage collector
     pthread_mutex_t mutex;    // Mutex to protect the requests queues
@@ -83,8 +84,9 @@ public:
     void unlock(void) { pthread_mutex_unlock(&mutex); };
 };
 
-void *proverThread(void *arg);
+
 void *executorThread(void *arg);
+void *proverThread(void *arg);
 void *cleanerThread(void *arg);
 
 #endif

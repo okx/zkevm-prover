@@ -120,6 +120,7 @@ Prover::Prover(Goldilocks &fr,
             sem_init(&pendingRequestSem, 0, 0);
             pthread_mutex_init(&mutex, NULL);
             pCurrentRequest = NULL;
+            pthread_create(&executorPthread, NULL, executorThread, this);
             pthread_create(&proverPthread, NULL, proverThread, this);
             pthread_create(&cleanerPthread, NULL, cleanerThread, this);
 
