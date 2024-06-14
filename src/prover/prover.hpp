@@ -49,6 +49,7 @@ public:
     ProverRequest *pCurrentRequest;            // Request currently being processed by the prover thread in server mode
     vector<ProverRequest *> completedRequests; // Map uuid -> ProveRequest pointer
     ProverRequest *executedRequest;
+    bool waitCopy = false;
 
 private:
     pthread_t executorPthread;// Executor thread

@@ -255,7 +255,6 @@ void *proverThread(void *arg)
         // Extract the first pending request (first in, first out)
         pProver->pCurrentRequest = pProver->pendingRequests[0];
         pProver->pCurrentRequest->startTime = time(NULL);
-        pProver->pendingRequests.erase(pProver->pendingRequests.begin());
 
         zklog.info("proverThread() starting to process request with UUID: " + pProver->pCurrentRequest->uuid);
 
@@ -284,6 +283,8 @@ void *proverThread(void *arg)
         // Move to completed requests
         pProver->lock();
         ProverRequest *pProverRequest = pProver->pCurrentRequest;
+        zkassert(pProver->pendingRequests[0]->uuid == pProverRequest->uuid);
+        pProver->pendingRequests.erase(pProver->pendingRequests.begin());
         pProverRequest->endTime = time(NULL);
         pProver->lastComputedRequestId = pProverRequest->uuid;
         pProver->lastComputedRequestEndTime = pProverRequest->endTime;
@@ -351,7 +352,7 @@ void *executorThread(void *arg)
     {
         pProver->lock();
 
-        if (pProver->executedRequest != NULL)
+        if (pProver->waitCopy)
         {
             pProver->unlock();
             sleep(1);
@@ -362,7 +363,7 @@ void *executorThread(void *arg)
         // find the first batch proof request
         for (uint64_t i = 0; i < pProver->pendingRequests.size(); i++)
         {
-            if (pProver->pendingRequests[i]->type == prt_genBatchProof) {
+            if (pProver->pendingRequests[i]->type == prt_genBatchProof && (pProver->executedRequest == NULL || pProver->pendingRequests[i]->uuid != pProver->executedRequest->uuid)) {
                 pProverRequest = pProver->pendingRequests[i];
                 break;
             }
@@ -391,6 +392,7 @@ void *executorThread(void *arg)
         // Push to executed requests
         pProver->lock();
         pProver->executedRequest = pProverRequest;
+        pProver->waitCopy = true;
         pProver->unlock();
 
         zklog.info("executorThread() done processing request with UUID: " + pProverRequest->uuid);
@@ -572,10 +574,10 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
     TimerStart(PROVER_WAIT_EXECUTOR);
     while(true) {
         lock();
-        if(executedRequest != NULL) {
+        if(waitCopy) {
             zkassert(executedRequest->uuid == pProverRequest->uuid);
             copyFromExecutor();
-            executedRequest = NULL;
+            waitCopy = false;
             unlock();
             break;
         }
