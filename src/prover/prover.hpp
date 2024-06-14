@@ -48,12 +48,14 @@ public:
     vector<ProverRequest *> pendingRequests;   // Queue of pending requests
     ProverRequest *pCurrentRequest;            // Request currently being processed by the prover thread in server mode
     vector<ProverRequest *> completedRequests; // Map uuid -> ProveRequest pointer
+    ProverRequest *executedRequest;
 
 private:
     pthread_t proverPthread;  // Prover thread
     pthread_t cleanerPthread; // Garbage collector
     pthread_mutex_t mutex;    // Mutex to protect the requests queues
     void *pAddress = NULL;
+    void *pAddress2 = NULL;
     void *pAddressStarksRecursiveF = NULL;
     int protocolId;
 public:
@@ -82,6 +84,7 @@ public:
 };
 
 void *proverThread(void *arg);
+void *executorThread(void *arg);
 void *cleanerThread(void *arg);
 
 #endif
