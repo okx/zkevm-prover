@@ -71,6 +71,8 @@ public:
 
     ~Prover();
 
+    void preGenBatchProof(ProverRequest *pProverRequest);
+    void copyFromExecutor();
     void genBatchProof(ProverRequest *pProverRequest);
     void genAggregatedProof(ProverRequest *pProverRequest);
     void genFinalProof(ProverRequest *pProverRequest);

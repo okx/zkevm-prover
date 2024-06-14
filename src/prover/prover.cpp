@@ -148,7 +148,7 @@ Prover::Prover(Goldilocks &fr,
                     zklog.error("Prover::genBatchProof() failed calling malloc() of size " + to_string(polsSize));
                     exitProcess();
                 }
-                pAddress2 = calloc2(uint64_t(1<<23)*751*8, 1)
+                pAddress2 = calloc2(uint64_t(1<<23)*751*8, 1);
                 zklog.info("Prover::genBatchProof() successfully allocated " + to_string(polsSize) + " bytes");
             }
 
@@ -301,6 +301,45 @@ void *proverThread(void *arg)
     return NULL;
 }
 
+void Prover::preGenBatchProof(ProverRequest *pProverRequest)
+{
+    /************/
+    /* Executor */
+    /************/
+    TimerStart(EXECUTOR_EXECUTE_INITIALIZATION);
+
+    PROVER_FORK_NAMESPACE::CommitPols cmPols(pProver->pAddress2, PROVER_FORK_NAMESPACE::CommitPols::pilDegree());
+    Goldilocks::parSetZero((Goldilocks::Element*)cmPols.address(), cmPols.size()/sizeof(Goldilocks::Element), omp_get_max_threads()/2);
+
+
+    TimerStopAndLog(EXECUTOR_EXECUTE_INITIALIZATION);
+    // Execute all the State Machines
+    TimerStart(EXECUTOR_EXECUTE_BATCH_PROOF);
+    pProver->executor.execute(*pProverRequest, cmPols);
+    TimerStopAndLog(EXECUTOR_EXECUTE_BATCH_PROOF);
+
+    uint64_t lastN = cmPols.pilDegree() - 1;
+
+    zklog.info("Prover::genBatchProof() called executor.execute() oldStateRoot=" + pProverRequest->input.publicInputsExtended.publicInputs.oldStateRoot.get_str(16) +
+               " newStateRoot=" + pProverRequest->pFullTracer->get_new_state_root() +
+               " pols.B[0]=" + fea2string(fr, cmPols.Main.B0[0], cmPols.Main.B1[0], cmPols.Main.B2[0], cmPols.Main.B3[0], cmPols.Main.B4[0], cmPols.Main.B5[0], cmPols.Main.B6[0], cmPols.Main.B7[0]) +
+               " pols.SR[lastN]=" + fea2string(fr, cmPols.Main.SR0[lastN], cmPols.Main.SR1[lastN], cmPols.Main.SR2[lastN], cmPols.Main.SR3[lastN], cmPols.Main.SR4[lastN], cmPols.Main.SR5[lastN], cmPols.Main.SR6[lastN], cmPols.Main.SR7[lastN]) +
+               " lastN=" + to_string(lastN));
+    zklog.info("Prover::genBatchProof() called executor.execute() oldAccInputHash=" + pProverRequest->input.publicInputsExtended.publicInputs.oldAccInputHash.get_str(16) +
+               " newAccInputHash=" + pProverRequest->pFullTracer->get_new_acc_input_hash() +
+               " pols.C[0]=" + fea2string(fr, cmPols.Main.C0[0], cmPols.Main.C1[0], cmPols.Main.C2[0], cmPols.Main.C3[0], cmPols.Main.C4[0], cmPols.Main.C5[0], cmPols.Main.C6[0], cmPols.Main.C7[0]) +
+               " pols.D[lastN]=" + fea2string(fr, cmPols.Main.D0[lastN], cmPols.Main.D1[lastN], cmPols.Main.D2[lastN], cmPols.Main.D3[lastN], cmPols.Main.D4[lastN], cmPols.Main.D5[lastN], cmPols.Main.D6[lastN], cmPols.Main.D7[lastN]) +
+               " lastN=" + to_string(lastN));
+
+    // Save commit pols to file zkevm.commit
+    if (pProver->config.zkevmCmPolsAfterExecutor != "")
+    {
+        void *pointerCmPols = mapFile(pProver->config.zkevmCmPolsAfterExecutor, cmPols.size(), true);
+        memcpy(pointerCmPols, cmPols.address(), cmPols.size());
+        unmapFile(pointerCmPols, cmPols.size());
+    }
+}
+
 void *executorThread(void *arg)
 {
     Prover *pProver = (Prover *)arg;
@@ -347,42 +386,7 @@ void *executorThread(void *arg)
             json2file(inputJson, pProverRequest->inputFile());
         }
 
-        /************/
-        /* Executor */
-        /************/
-        TimerStart(EXECUTOR_EXECUTE_INITIALIZATION);
-
-        PROVER_FORK_NAMESPACE::CommitPols cmPols(pProver->pAddress2, PROVER_FORK_NAMESPACE::CommitPols::pilDegree());
-        Goldilocks::parSetZero((Goldilocks::Element*)cmPols.address(), cmPols.size()/sizeof(Goldilocks::Element), omp_get_max_threads()/2);
-
-
-        TimerStopAndLog(EXECUTOR_EXECUTE_INITIALIZATION);
-        // Execute all the State Machines
-        TimerStart(EXECUTOR_EXECUTE_BATCH_PROOF);
-        pProver->executor.execute(*pProverRequest, cmPols);
-        TimerStopAndLog(EXECUTOR_EXECUTE_BATCH_PROOF);
-
-        uint64_t lastN = cmPols.pilDegree() - 1;
-
-        zklog.info("Prover::genBatchProof() called executor.execute() oldStateRoot=" + pProverRequest->input.publicInputsExtended.publicInputs.oldStateRoot.get_str(16) +
-                   " newStateRoot=" + pProverRequest->pFullTracer->get_new_state_root() +
-                   " pols.B[0]=" + fea2string(fr, cmPols.Main.B0[0], cmPols.Main.B1[0], cmPols.Main.B2[0], cmPols.Main.B3[0], cmPols.Main.B4[0], cmPols.Main.B5[0], cmPols.Main.B6[0], cmPols.Main.B7[0]) +
-                   " pols.SR[lastN]=" + fea2string(fr, cmPols.Main.SR0[lastN], cmPols.Main.SR1[lastN], cmPols.Main.SR2[lastN], cmPols.Main.SR3[lastN], cmPols.Main.SR4[lastN], cmPols.Main.SR5[lastN], cmPols.Main.SR6[lastN], cmPols.Main.SR7[lastN]) +
-                   " lastN=" + to_string(lastN));
-        zklog.info("Prover::genBatchProof() called executor.execute() oldAccInputHash=" + pProverRequest->input.publicInputsExtended.publicInputs.oldAccInputHash.get_str(16) +
-                   " newAccInputHash=" + pProverRequest->pFullTracer->get_new_acc_input_hash() +
-                   " pols.C[0]=" + fea2string(fr, cmPols.Main.C0[0], cmPols.Main.C1[0], cmPols.Main.C2[0], cmPols.Main.C3[0], cmPols.Main.C4[0], cmPols.Main.C5[0], cmPols.Main.C6[0], cmPols.Main.C7[0]) +
-                   " pols.D[lastN]=" + fea2string(fr, cmPols.Main.D0[lastN], cmPols.Main.D1[lastN], cmPols.Main.D2[lastN], cmPols.Main.D3[lastN], cmPols.Main.D4[lastN], cmPols.Main.D5[lastN], cmPols.Main.D6[lastN], cmPols.Main.D7[lastN]) +
-                   " lastN=" + to_string(lastN));
-
-        // Save commit pols to file zkevm.commit
-        if (pProver->config.zkevmCmPolsAfterExecutor != "")
-        {
-            void *pointerCmPols = mapFile(pProver->config.zkevmCmPolsAfterExecutor, cmPols.size(), true);
-            memcpy(pointerCmPols, cmPols.address(), cmPols.size());
-            unmapFile(pointerCmPols, cmPols.size());
-        }
-
+        pProver->preGenBatchProof(pProverRequest);
 
         // Push to executed requests
         pProver->lock();
@@ -583,6 +587,7 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
     if (pProverRequest->result == ZKR_SUCCESS)
     {
         PROVER_FORK_NAMESPACE::CommitPols cmPols(pAddress, PROVER_FORK_NAMESPACE::CommitPols::pilDegree());
+        uint64_t lastN = cmPols.pilDegree() - 1;
         /*************************************/
         /*  Generate publics input           */
         /*************************************/
