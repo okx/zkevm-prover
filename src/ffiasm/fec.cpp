@@ -322,3 +322,57 @@ static bool init = Fec_init();
 
 RawFec RawFec::field;
 
+#ifdef __aarch64__
+FecElement Fec_q = {
+    .shortVal = Fec_SHORT,
+    .type = Fec_LONG
+};
+FecElement Fec_R3 = {
+    .shortVal = Fec_SHORT,
+    .type = Fec_LONG
+};
+FecRawElement Fec_rawq = {0xfffffffefffffc2f,0xffffffffffffffff,0xffffffffffffffff,0xffffffffffffffff};
+FecRawElement Fec_rawR3 = {0x002bb1e33795f671,0x0000000100000b73,0x0000000000000000,0x0000000000000000};
+
+void Fec_copy(PFecElement r, PFecElement a){}
+void Fec_copyn(PFecElement r, PFecElement a, int n){}
+void Fec_add(PFecElement r, PFecElement a, PFecElement b){}
+void Fec_sub(PFecElement r, PFecElement a, PFecElement b){}
+void Fec_neg(PFecElement r, PFecElement a){}
+void Fec_mul(PFecElement r, PFecElement a, PFecElement b){}
+void Fec_square(PFecElement r, PFecElement a){}
+void Fec_band(PFecElement r, PFecElement a, PFecElement b){}
+void Fec_bor(PFecElement r, PFecElement a, PFecElement b){}
+void Fec_bxor(PFecElement r, PFecElement a, PFecElement b){}
+void Fec_bnot(PFecElement r, PFecElement a){}
+void Fec_shl(PFecElement r, PFecElement a, PFecElement b){}
+void Fec_shr(PFecElement r, PFecElement a, PFecElement b){}
+void Fec_eq(PFecElement r, PFecElement a, PFecElement b){}
+void Fec_neq(PFecElement r, PFecElement a, PFecElement b){}
+void Fec_lt(PFecElement r, PFecElement a, PFecElement b){}
+void Fec_gt(PFecElement r, PFecElement a, PFecElement b){}
+void Fec_leq(PFecElement r, PFecElement a, PFecElement b){}
+void Fec_geq(PFecElement r, PFecElement a, PFecElement b){}
+void Fec_land(PFecElement r, PFecElement a, PFecElement b){}
+void Fec_lor(PFecElement r, PFecElement a, PFecElement b){}
+void Fec_lnot(PFecElement r, PFecElement a){}
+void Fec_toNormal(PFecElement r, PFecElement a){}
+void Fec_toLongNormal(PFecElement r, PFecElement a){}
+void Fec_toMontgomery(PFecElement r, PFecElement a){}
+
+int Fec_isTrue(PFecElement pE){return 0;}
+int Fec_toInt(PFecElement pE){return 0;}
+
+void Fec_rawCopy(FecRawElement pRawResult, const FecRawElement pRawA){}
+void Fec_rawSwap(FecRawElement pRawResult, FecRawElement pRawA){}
+void Fec_rawAdd(FecRawElement pRawResult, const FecRawElement pRawA, const FecRawElement pRawB){}
+void Fec_rawSub(FecRawElement pRawResult, const FecRawElement pRawA, const FecRawElement pRawB){}
+void Fec_rawNeg(FecRawElement pRawResult, const FecRawElement pRawA){}
+void Fec_rawMMul(FecRawElement pRawResult, const FecRawElement pRawA, const FecRawElement pRawB){}
+void Fec_rawMSquare(FecRawElement pRawResult, const FecRawElement pRawA){}
+void Fec_rawMMul1(FecRawElement pRawResult, const FecRawElement pRawA, uint64_t pRawB){}
+void Fec_rawToMontgomery(FecRawElement pRawResult, const FecRawElement &pRawA){}
+void Fec_rawFromMontgomery(FecRawElement pRawResult, const FecRawElement &pRawA){}
+int Fec_rawIsEq(const FecRawElement pRawA, const FecRawElement pRawB){return 0;}
+int Fec_rawIsZero(const FecRawElement pRawB){return 0;}
+#endif

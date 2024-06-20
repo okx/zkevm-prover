@@ -322,3 +322,57 @@ static bool init = Fq_init();
 
 RawFq RawFq::field;
 
+#ifdef __aarch64__
+FqElement Fq_q = {
+    .shortVal = Fq_SHORT,
+    .type = Fq_LONG
+};
+FqElement Fq_R3 = {
+    .shortVal = Fq_SHORT,
+    .type = Fq_LONG
+};
+FqRawElement Fq_rawq = {0x3c208c16d87cfd47,0x97816a916871ca8d,0xb85045b68181585d,0x30644e72e131a029};
+FqRawElement Fq_rawR3 = {0xb1cd6dafda1530df,0x62f210e6a7283db6,0xef7f0b0c0ada0afb,0x20fd6e902d592544};
+
+void Fq_copy(PFqElement r, PFqElement a){}
+void Fq_copyn(PFqElement r, PFqElement a, int n){}
+void Fq_add(PFqElement r, PFqElement a, PFqElement b){}
+void Fq_sub(PFqElement r, PFqElement a, PFqElement b){}
+void Fq_neg(PFqElement r, PFqElement a){}
+void Fq_mul(PFqElement r, PFqElement a, PFqElement b){}
+void Fq_square(PFqElement r, PFqElement a){}
+void Fq_band(PFqElement r, PFqElement a, PFqElement b){}
+void Fq_bor(PFqElement r, PFqElement a, PFqElement b){}
+void Fq_bxor(PFqElement r, PFqElement a, PFqElement b){}
+void Fq_bnot(PFqElement r, PFqElement a){}
+void Fq_shl(PFqElement r, PFqElement a, PFqElement b){}
+void Fq_shr(PFqElement r, PFqElement a, PFqElement b){}
+void Fq_eq(PFqElement r, PFqElement a, PFqElement b){}
+void Fq_neq(PFqElement r, PFqElement a, PFqElement b){}
+void Fq_lt(PFqElement r, PFqElement a, PFqElement b){}
+void Fq_gt(PFqElement r, PFqElement a, PFqElement b){}
+void Fq_leq(PFqElement r, PFqElement a, PFqElement b){}
+void Fq_geq(PFqElement r, PFqElement a, PFqElement b){}
+void Fq_land(PFqElement r, PFqElement a, PFqElement b){}
+void Fq_lor(PFqElement r, PFqElement a, PFqElement b){}
+void Fq_lnot(PFqElement r, PFqElement a){}
+void Fq_toNormal(PFqElement r, PFqElement a){}
+void Fq_toLongNormal(PFqElement r, PFqElement a){}
+void Fq_toMontgomery(PFqElement r, PFqElement a){}
+
+int Fq_isTrue(PFqElement pE){return 0;}
+int Fq_toInt(PFqElement pE){return 0;}
+
+void Fq_rawCopy(FqRawElement pRawResult, const FqRawElement pRawA){}
+void Fq_rawSwap(FqRawElement pRawResult, FqRawElement pRawA){}
+void Fq_rawAdd(FqRawElement pRawResult, const FqRawElement pRawA, const FqRawElement pRawB){}
+void Fq_rawSub(FqRawElement pRawResult, const FqRawElement pRawA, const FqRawElement pRawB){}
+void Fq_rawNeg(FqRawElement pRawResult, const FqRawElement pRawA){}
+void Fq_rawMMul(FqRawElement pRawResult, const FqRawElement pRawA, const FqRawElement pRawB){}
+void Fq_rawMSquare(FqRawElement pRawResult, const FqRawElement pRawA){}
+void Fq_rawMMul1(FqRawElement pRawResult, const FqRawElement pRawA, uint64_t pRawB){}
+void Fq_rawToMontgomery(FqRawElement pRawResult, const FqRawElement &pRawA){}
+void Fq_rawFromMontgomery(FqRawElement pRawResult, const FqRawElement &pRawA){}
+int Fq_rawIsEq(const FqRawElement pRawA, const FqRawElement pRawB){return 0;}
+int Fq_rawIsZero(const FqRawElement pRawB){return 0;}
+#endif

@@ -78,7 +78,7 @@
 
 //#define MULTI_ROM_TEST
 
-#define USE_CHELPERS_PARSER
+//#define USE_CHELPERS_PARSER
 
 /* chelpers defines */
 #ifdef USE_CHELPERS_PARSER

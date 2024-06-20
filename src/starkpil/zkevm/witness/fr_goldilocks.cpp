@@ -327,3 +327,57 @@ static bool init = FrG_init();
 
 RawFrG RawFrG::field;
 
+#ifdef __aarch64__
+FrGElement FrG_q = {
+    .shortVal = FrG_SHORT,
+    .type = FrG_LONG
+};
+FrGElement FrG_R3 = {
+    .shortVal = FrG_SHORT,
+    .type = FrG_LONG
+};
+FrGRawElement FrG_rawq = {0xffffffff00000001};
+FrGRawElement FrG_rawR3 = {0x0000000000000001};
+
+void FrG_copy(PFrGElement r, PFrGElement a){}
+void FrG_copyn(PFrGElement r, PFrGElement a, int n){}
+void FrG_add(PFrGElement r, PFrGElement a, PFrGElement b){}
+void FrG_sub(PFrGElement r, PFrGElement a, PFrGElement b){}
+void FrG_neg(PFrGElement r, PFrGElement a){}
+void FrG_mul(PFrGElement r, PFrGElement a, PFrGElement b){}
+void FrG_square(PFrGElement r, PFrGElement a){}
+void FrG_band(PFrGElement r, PFrGElement a, PFrGElement b){}
+void FrG_bor(PFrGElement r, PFrGElement a, PFrGElement b){}
+void FrG_bxor(PFrGElement r, PFrGElement a, PFrGElement b){}
+void FrG_bnot(PFrGElement r, PFrGElement a){}
+void FrG_shl(PFrGElement r, PFrGElement a, PFrGElement b){}
+void FrG_shr(PFrGElement r, PFrGElement a, PFrGElement b){}
+void FrG_eq(PFrGElement r, PFrGElement a, PFrGElement b){}
+void FrG_neq(PFrGElement r, PFrGElement a, PFrGElement b){}
+void FrG_lt(PFrGElement r, PFrGElement a, PFrGElement b){}
+void FrG_gt(PFrGElement r, PFrGElement a, PFrGElement b){}
+void FrG_leq(PFrGElement r, PFrGElement a, PFrGElement b){}
+void FrG_geq(PFrGElement r, PFrGElement a, PFrGElement b){}
+void FrG_land(PFrGElement r, PFrGElement a, PFrGElement b){}
+void FrG_lor(PFrGElement r, PFrGElement a, PFrGElement b){}
+void FrG_lnot(PFrGElement r, PFrGElement a){}
+void FrG_toNormal(PFrGElement r, PFrGElement a){}
+void FrG_toLongNormal(PFrGElement r, PFrGElement a){}
+void FrG_toMontgomery(PFrGElement r, PFrGElement a){}
+
+int FrG_isTrue(PFrGElement pE){return 0;}
+int FrG_toInt(PFrGElement pE){return 0;}
+
+void FrG_rawCopy(FrGRawElement pRawResult, const FrGRawElement pRawA){}
+void FrG_rawSwap(FrGRawElement pRawResult, FrGRawElement pRawA){}
+void FrG_rawAdd(FrGRawElement pRawResult, const FrGRawElement pRawA, const FrGRawElement pRawB){}
+void FrG_rawSub(FrGRawElement pRawResult, const FrGRawElement pRawA, const FrGRawElement pRawB){}
+void FrG_rawNeg(FrGRawElement pRawResult, const FrGRawElement pRawA){}
+void FrG_rawMMul(FrGRawElement pRawResult, const FrGRawElement pRawA, const FrGRawElement pRawB){}
+void FrG_rawMSquare(FrGRawElement pRawResult, const FrGRawElement pRawA){}
+void FrG_rawMMul1(FrGRawElement pRawResult, const FrGRawElement pRawA, uint64_t pRawB){}
+void FrG_rawToMontgomery(FrGRawElement pRawResult, const FrGRawElement &pRawA){}
+void FrG_rawFromMontgomery(FrGRawElement pRawResult, const FrGRawElement &pRawA){}
+int FrG_rawIsEq(const FrGRawElement pRawA, const FrGRawElement pRawB){return 0;}
+int FrG_rawIsZero(const FrGRawElement pRawB){return 0;}
+#endif

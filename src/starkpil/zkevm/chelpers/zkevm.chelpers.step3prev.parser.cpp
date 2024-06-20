@@ -4,8 +4,11 @@
 #include "constant_pols_starks.hpp"
 #include "zkevmSteps.hpp"
 #include "zkevm.chelpers.step3prev.parser.hpp"
+#if defined(__AVX256__) || defined(__AVX512__)
 #include <immintrin.h>
+#endif
 
+#ifdef __AVX256__
 void ZkevmSteps::step3prev_parser_first_avx(StepsParams &params, uint64_t nrows, uint64_t nrowsBatch)
 {
 #pragma omp parallel for
@@ -958,6 +961,7 @@ void ZkevmSteps::step3prev_parser_first_avx(StepsParams &params, uint64_t nrows,
           // delete (tmp3);
      }
 }
+#endif
 
 #ifdef __AVX512__
 void ZkevmSteps::step3prev_parser_first_avx512(StepsParams &params, uint64_t nrows, uint64_t nrowsBatch)

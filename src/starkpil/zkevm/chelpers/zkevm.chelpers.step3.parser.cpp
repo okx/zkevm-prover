@@ -4,10 +4,17 @@
 #include "constant_pols_starks.hpp"
 #include "zkevmSteps.hpp"
 #include "zkevm.chelpers.step3.parser.hpp"
+#if defined(__AVX256__) || defined(__AVX512__)
 #include <immintrin.h>
+#endif
 
 #define AVX_SIZE_ 4
 
+void ZkevmSteps::step3_parser_first(StepsParams &params, uint64_t nrows, uint64_t nrowsBatch)
+{
+}
+
+#ifdef __AVX256__
 void ZkevmSteps::step3_parser_first_avx(StepsParams &params, uint64_t nrows, uint64_t nrowsBatch)
 {
 #pragma omp parallel for
@@ -971,9 +978,6 @@ void ZkevmSteps::step3_parser_first_avx(StepsParams &params, uint64_t nrows, uin
           // delete (tmp3);
      }
 }
-void ZkevmSteps::step3_parser_first(StepsParams &params, uint64_t nrows, uint64_t nrowsBatch)
-{
-}
 
 void ZkevmSteps::step3_parser_first_avx_jump(StepsParams &params, uint64_t nrows, uint64_t nrowsBatch)
 {
@@ -1885,6 +1889,7 @@ void ZkevmSteps::step3_parser_first_avx_jump(StepsParams &params, uint64_t nrows
      double t2 = omp_get_wtime();
      std::cout << "time= " << t2 - t1 << std::endl;
 }
+#endif
 
 #ifdef __AVX512__
 void ZkevmSteps::step3_parser_first_avx512(StepsParams &params, uint64_t nrows, uint64_t nrowsBatch)

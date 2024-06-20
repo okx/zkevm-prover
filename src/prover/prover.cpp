@@ -62,13 +62,6 @@ void warmup_gpu()
 }
 #endif
 
-#ifndef __AVX512__
-#define NROWS_STEPS_ 4
-#else
-#define NROWS_STEPS_ 8
-#endif
-
-
 Prover::Prover(Goldilocks &fr,
                PoseidonGoldilocks &poseidon,
                const Config &config) : fr(fr),

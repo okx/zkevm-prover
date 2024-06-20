@@ -322,3 +322,57 @@ static bool init = Fnec_init();
 
 RawFnec RawFnec::field;
 
+#ifdef __aarch64__
+FnecElement Fnec_q = {
+    .shortVal = Fnec_SHORT,
+    .type = Fnec_LONG
+};
+FnecElement Fnec_R3  = {
+    .shortVal = Fnec_SHORT,
+    .type = Fnec_LONG
+};
+FnecRawElement Fnec_rawq = {0xbfd25e8cd0364141,0xbaaedce6af48a03b,0xfffffffffffffffe,0xffffffffffffffff};
+FnecRawElement Fnec_rawR3 = {0x7bc0cfe0e9ff41ed,0x0017648444d4322c,0xb1b31347f1d0b2da,0x555d800c18ef116d};
+
+void Fnec_copy(PFnecElement r, PFnecElement a){}
+void Fnec_copyn(PFnecElement r, PFnecElement a, int n){}
+void Fnec_add(PFnecElement r, PFnecElement a, PFnecElement b){}
+void Fnec_sub(PFnecElement r, PFnecElement a, PFnecElement b){}
+void Fnec_neg(PFnecElement r, PFnecElement a){}
+void Fnec_mul(PFnecElement r, PFnecElement a, PFnecElement b){}
+void Fnec_square(PFnecElement r, PFnecElement a){}
+void Fnec_band(PFnecElement r, PFnecElement a, PFnecElement b){}
+void Fnec_bor(PFnecElement r, PFnecElement a, PFnecElement b){}
+void Fnec_bxor(PFnecElement r, PFnecElement a, PFnecElement b){}
+void Fnec_bnot(PFnecElement r, PFnecElement a){}
+void Fnec_shl(PFnecElement r, PFnecElement a, PFnecElement b){}
+void Fnec_shr(PFnecElement r, PFnecElement a, PFnecElement b){}
+void Fnec_eq(PFnecElement r, PFnecElement a, PFnecElement b){}
+void Fnec_neq(PFnecElement r, PFnecElement a, PFnecElement b){}
+void Fnec_lt(PFnecElement r, PFnecElement a, PFnecElement b){}
+void Fnec_gt(PFnecElement r, PFnecElement a, PFnecElement b){}
+void Fnec_leq(PFnecElement r, PFnecElement a, PFnecElement b){}
+void Fnec_geq(PFnecElement r, PFnecElement a, PFnecElement b){}
+void Fnec_land(PFnecElement r, PFnecElement a, PFnecElement b){}
+void Fnec_lor(PFnecElement r, PFnecElement a, PFnecElement b){}
+void Fnec_lnot(PFnecElement r, PFnecElement a){}
+void Fnec_toNormal(PFnecElement r, PFnecElement a){}
+void Fnec_toLongNormal(PFnecElement r, PFnecElement a){}
+void Fnec_toMontgomery(PFnecElement r, PFnecElement a){}
+
+int Fnec_isTrue(PFnecElement pE){return 0;}
+int Fnec_toInt(PFnecElement pE){return 0;}
+
+void Fnec_rawCopy(FnecRawElement pRawResult, const FnecRawElement pRawA){}
+void Fnec_rawSwap(FnecRawElement pRawResult, FnecRawElement pRawA){}
+void Fnec_rawAdd(FnecRawElement pRawResult, const FnecRawElement pRawA, const FnecRawElement pRawB){}
+void Fnec_rawSub(FnecRawElement pRawResult, const FnecRawElement pRawA, const FnecRawElement pRawB){}
+void Fnec_rawNeg(FnecRawElement pRawResult, const FnecRawElement pRawA){}
+void Fnec_rawMMul(FnecRawElement pRawResult, const FnecRawElement pRawA, const FnecRawElement pRawB){}
+void Fnec_rawMSquare(FnecRawElement pRawResult, const FnecRawElement pRawA){}
+void Fnec_rawMMul1(FnecRawElement pRawResult, const FnecRawElement pRawA, uint64_t pRawB){}
+void Fnec_rawToMontgomery(FnecRawElement pRawResult, const FnecRawElement &pRawA){}
+void Fnec_rawFromMontgomery(FnecRawElement pRawResult, const FnecRawElement &pRawA){}
+int Fnec_rawIsEq(const FnecRawElement pRawA, const FnecRawElement pRawB){return 0;}
+int Fnec_rawIsZero(const FnecRawElement pRawB){return 0;}
+#endif

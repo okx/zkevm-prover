@@ -4,8 +4,11 @@
 #include "constant_pols_starks.hpp"
 #include "zkevmSteps.hpp"
 #include "zkevm.chelpers.step52ns.parser.hpp"
+#if defined(__AVX256__) || defined(__AVX512__)
 #include <immintrin.h>
+#endif
 
+#ifdef __AVX256__
 void ZkevmSteps::step52ns_parser_first_avx(StepsParams &params, uint64_t nrows, uint64_t nrowsBatch)
 {
 
@@ -224,6 +227,7 @@ void ZkevmSteps::step52ns_parser_first_avx(StepsParams &params, uint64_t nrows, 
           assert(i_args == NARGS_);
      }
 }
+#endif
 
 void ZkevmSteps::step52ns_parser_first(StepsParams &params, uint64_t nrows, uint64_t nrowsBatch)
 {
