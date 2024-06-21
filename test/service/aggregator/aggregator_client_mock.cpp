@@ -50,7 +50,6 @@ bool AggregatorClientMock::GetStatus (::aggregator::v1::GetStatusResponse &getSt
 
     getStatusResponse.set_last_computed_request_id(lastAggregatorUUID);
     for (uint64_t i=0; i<pendingRequests.size(); i++) {
-        pendingRequests.back()
         if (pendingRequests[i]->bCompleted) {
             pendingRequests.erase(pendingRequests.begin() + i);
         } else {
@@ -138,7 +137,7 @@ bool AggregatorClientMock::GenAggregatedProof (const aggregator::v1::GenAggregat
     // Build the response as Ok, returning the UUID assigned by the prover to this request
     genAggregatedProofResponse.set_result(aggregator::v1::Result::RESULT_OK);
     ProverRequest * pProverRequest = new ProverRequest(fr, config, prt_genAggregatedProof);
-    genBatchProofResponse.set_id(pProverRequest->uuid);
+    genAggregatedProofResponse.set_id(pProverRequest->uuid);
     pthread_mutex_lock(&mutex);
     lastAggregatorUUID = pProverRequest->uuid;
     gettimeofday(&lastAggregatorGenProof,NULL);
@@ -160,7 +159,7 @@ bool AggregatorClientMock::GenFinalProof (const aggregator::v1::GenFinalProofReq
     // Build the response as Ok, returning the UUID assigned by the prover to this request
     genFinalProofResponse.set_result(aggregator::v1::Result::RESULT_OK);
     ProverRequest * pProverRequest = new ProverRequest(fr, config, prt_genFinalProof);
-    genBatchProofResponse.set_id(pProverRequest->uuid);
+    genFinalProofResponse.set_id(pProverRequest->uuid);
     pthread_mutex_lock(&mutex);
     lastAggregatorUUID = pProverRequest->uuid;
     gettimeofday(&lastAggregatorGenProof,NULL);
@@ -206,10 +205,12 @@ bool AggregatorClientMock::GetProof (const aggregator::v1::GetProofRequest &getP
     pthread_mutex_lock(&mutex);
     for (uint64_t i = 0; i < pendingRequests.size(); i++)
     {
-        if (uuid == pendingRequests[i].uuid)
+        if (uuid == pendingRequests[i]->uuid)
         {
             found = true;
-            if (time(NULL) - pendingRequests[i]->startTime > config.aggregatorClientMockTimeout) {
+            time_t now = time(NULL);
+            assert(now > pendingRequests[i]->startTime)
+            if (now - pendingRequests[i]->startTime > config.aggregatorClientMockTimeout) {
                 pendingRequests[i]->bCompleted = true;
                 // Request is completed
                 getProofResponse.set_id(uuid);
