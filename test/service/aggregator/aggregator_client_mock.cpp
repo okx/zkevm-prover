@@ -174,6 +174,8 @@ bool AggregatorClientMock::GenFinalProof (const aggregator::v1::GenFinalProofReq
 
 bool AggregatorClientMock::Cancel (const aggregator::v1::CancelRequest &cancelRequest, aggregator::v1::CancelResponse &cancelResponse)
 {
+    string uuid = cancelRequest.id();
+
     cancelResponse.set_result(aggregator::v1::Result::RESULT_ERROR);
 
     pthread_mutex_lock(&mutex);
