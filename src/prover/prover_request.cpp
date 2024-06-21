@@ -43,6 +43,7 @@ ProverRequest::ProverRequest (Goldilocks &fr, const Config &config, tProverReque
     {
 
         timestamp = getTimestamp();
+        startTime = time(NULL);
         filePrefix = config.outputPath + "/" + timestamp + "_" + uuid + ".";
     }
 

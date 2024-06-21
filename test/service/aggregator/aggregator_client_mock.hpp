@@ -18,6 +18,8 @@ public:
     const Config &config;
     aggregator::v1::AggregatorService::Stub * stub;
     pthread_t t; // Client thread
+    vector<ProverRequest *> pendingRequests;   // Queue of pending requests
+    pthread_mutex_t mutex;    // Mutex to protect the requests queues
 
 public:
     AggregatorClientMock (Goldilocks &fr, const Config &config);

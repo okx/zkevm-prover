@@ -6,7 +6,6 @@ using namespace std;
 using json = nlohmann::json;
 
 struct timeval lastAggregatorGenProof = {0, 0};
-tProverRequestType requestType;
 string lastAggregatorUUID;
 
 AggregatorClientMock::AggregatorClientMock (Goldilocks &fr, const Config &config) :
@@ -21,6 +20,8 @@ AggregatorClientMock::AggregatorClientMock (Goldilocks &fr, const Config &config
 
     // Create stub (i.e. client)
     stub = new aggregator::v1::AggregatorService::Stub(channel);
+
+    pthread_mutex_init(&mutex, NULL);
 }
 
 void AggregatorClientMock::runThread (void)
@@ -36,15 +37,8 @@ void AggregatorClientMock::waitForThread (void)
 
 bool AggregatorClientMock::GetStatus (::aggregator::v1::GetStatusResponse &getStatusResponse)
 {
-    bool bComputing = (TimeDiff(lastAggregatorGenProof) < config.aggregatorClientMockTimeout); //·
-
     // Set last computed request data
-    getStatusResponse.set_last_computed_request_id(bComputing ? getUUID() : lastAggregatorUUID);
     getStatusResponse.set_last_computed_end_time(time(NULL));
-
-    // If computing, set the current request data
-    getStatusResponse.set_status(bComputing ? aggregator::v1::GetStatusResponse_Status_STATUS_COMPUTING : aggregator::v1::GetStatusResponse_Status_STATUS_IDLE);
-    getStatusResponse.set_current_computing_request_id(bComputing ? lastAggregatorUUID : "");
     getStatusResponse.set_current_computing_start_time(time(NULL));
 
     // Set the versions
@@ -52,9 +46,24 @@ bool AggregatorClientMock::GetStatus (::aggregator::v1::GetStatusResponse &getSt
     getStatusResponse.set_version_server("0.0.1");
 
     // Set the list of pending requests uuids
-    getStatusResponse.add_pending_request_queue_ids(getUUID());
-    getStatusResponse.add_pending_request_queue_ids(getUUID());
-    getStatusResponse.add_pending_request_queue_ids(getUUID());
+    pthread_mutex_lock(&mutex);
+
+    getStatusResponse.set_last_computed_request_id(lastAggregatorUUID);
+    for (uint64_t i=0; i<pendingRequests.size(); i++) {
+        pendingRequests.back()
+        if (pendingRequests[i]->bCompleted) {
+            pendingRequests.erase(pendingRequests.begin() + i);
+        } else {
+            getStatusResponse.add_pending_request_queue_ids(pendingRequests[i]->uuid);
+        }
+    }
+
+    bool bComputing = pendingRequests.size() > 4;
+    // If computing, set the current request data
+    getStatusResponse.set_status(bComputing ? aggregator::v1::GetStatusResponse_Status_STATUS_COMPUTING : aggregator::v1::GetStatusResponse_Status_STATUS_IDLE);
+    getStatusResponse.set_current_computing_request_id(bComputing ? lastAggregatorUUID : "");
+
+    pthread_mutex_unlock(&mutex);
 
     // Set the prover id
     getStatusResponse.set_prover_id(config.proverID);
@@ -83,12 +92,15 @@ bool AggregatorClientMock::GenBatchProof (const aggregator::v1::GenBatchProofReq
 #ifdef LOG_SERVICE
     cout << "AggregatorClientMock::GenBatchProof() called with request: " << genBatchProofRequest.DebugString() << endl;
 #endif
-    requestType = prt_genBatchProof;
     // Build the response as Ok, returning the UUID assigned by the prover to this request
     genBatchProofResponse.set_result(aggregator::v1::Result::RESULT_OK);
-    lastAggregatorUUID = getUUID();
-    genBatchProofResponse.set_id(lastAggregatorUUID);
+    ProverRequest * pProverRequest = new ProverRequest(fr, config, prt_genBatchProof);
+    genBatchProofResponse.set_id(pProverRequest->uuid);
+    pthread_mutex_lock(&mutex);
+    lastAggregatorUUID = pProverRequest->uuid;
     gettimeofday(&lastAggregatorGenProof,NULL);
+    pendingRequests.push_back(pProverRequest);
+    pthread_mutex_unlock(&mutex);
 
 #ifdef LOG_SERVICE
     cout << "AggregatorClientMock::GenBatchProof() returns: " << genBatchProofResponse.DebugString() << endl;
@@ -101,12 +113,15 @@ bool AggregatorClientMock::GenStatelessBatchProof (const aggregator::v1::GenStat
 #ifdef LOG_SERVICE
     cout << "AggregatorClientMock::GenStatelessBatchProof() called with request: " << genStatelessBatchProofRequest.DebugString() << endl;
 #endif
-    requestType = prt_genBatchProof;
     // Build the response as Ok, returning the UUID assigned by the prover to this request
     genBatchProofResponse.set_result(aggregator::v1::Result::RESULT_OK);
-    lastAggregatorUUID = getUUID();
-    genBatchProofResponse.set_id(lastAggregatorUUID);
+    ProverRequest * pProverRequest = new ProverRequest(fr, config, prt_genBatchProof);
+    genBatchProofResponse.set_id(pProverRequest->uuid);
+    pthread_mutex_lock(&mutex);
+    lastAggregatorUUID = pProverRequest->uuid;
     gettimeofday(&lastAggregatorGenProof,NULL);
+    pendingRequests.push_back(pProverRequest);
+    pthread_mutex_unlock(&mutex);
 
 #ifdef LOG_SERVICE
     cout << "AggregatorClientMock::GenStatelessBatchProof() returns: " << genBatchProofResponse.DebugString() << endl;
@@ -119,13 +134,16 @@ bool AggregatorClientMock::GenAggregatedProof (const aggregator::v1::GenAggregat
 #ifdef LOG_SERVICE
     cout << "AggregatorClientMock::GenAggregatedProof() called with request: " << genAggregatedProofRequest.DebugString() << endl;
 #endif
-    requestType = prt_genAggregatedProof;
 
     // Build the response as Ok, returning the UUID assigned by the prover to this request
     genAggregatedProofResponse.set_result(aggregator::v1::Result::RESULT_OK);
-    lastAggregatorUUID = getUUID();
-    genAggregatedProofResponse.set_id(lastAggregatorUUID);
+    ProverRequest * pProverRequest = new ProverRequest(fr, config, prt_genAggregatedProof);
+    genBatchProofResponse.set_id(pProverRequest->uuid);
+    pthread_mutex_lock(&mutex);
+    lastAggregatorUUID = pProverRequest->uuid;
     gettimeofday(&lastAggregatorGenProof,NULL);
+    pendingRequests.push_back(pProverRequest);
+    pthread_mutex_unlock(&mutex);
 
 #ifdef LOG_SERVICE
     cout << "AggregatorClientMock::GenAggregatedProof() returns: " << genAggregatedProofResponse.DebugString() << endl;
@@ -139,13 +157,15 @@ bool AggregatorClientMock::GenFinalProof (const aggregator::v1::GenFinalProofReq
     cout << "AggregatorClientMock::GenFinalProof() called with request: " << genFinalProofRequest.DebugString() << endl;
 #endif
 
-    requestType = prt_genFinalProof;
-
     // Build the response as Ok, returning the UUID assigned by the prover to this request
     genFinalProofResponse.set_result(aggregator::v1::Result::RESULT_OK);
-    lastAggregatorUUID = getUUID();
-    genFinalProofResponse.set_id(lastAggregatorUUID);
+    ProverRequest * pProverRequest = new ProverRequest(fr, config, prt_genFinalProof);
+    genBatchProofResponse.set_id(pProverRequest->uuid);
+    pthread_mutex_lock(&mutex);
+    lastAggregatorUUID = pProverRequest->uuid;
     gettimeofday(&lastAggregatorGenProof,NULL);
+    pendingRequests.push_back(pProverRequest);
+    pthread_mutex_unlock(&mutex);
 
 #ifdef LOG_SERVICE
     cout << "AggregatorClientMock::GenFinalProof() returns: " << genFinalProofResponse.DebugString() << endl;
@@ -179,75 +199,83 @@ bool AggregatorClientMock::GetProof (const aggregator::v1::GetProofRequest &getP
     cout << "AggregatorClientMock::GetProof() received request: " << getProofRequest.DebugString();
 #endif
 
-    bool bComputing = (TimeDiff(lastAggregatorGenProof) < config.aggregatorClientMockTimeout);
-
     // Get the prover request UUID from the request
     string uuid = getProofRequest.id();
+    bool found = false;
 
-    if (!bComputing && (uuid == lastAggregatorUUID))
+    pthread_mutex_lock(&mutex);
+    for (uint64_t i = 0; i < pendingRequests.size(); i++)
     {
-        // Request is completed
-        getProofResponse.set_id(uuid);
-        getProofResponse.set_result(aggregator::v1::GetProofResponse_Result_RESULT_COMPLETED_OK);
-        getProofResponse.set_result_string("completed");
-        switch (requestType)
+        if (uuid == pendingRequests[i].uuid)
         {
-            case prt_genFinalProof:
-            {
-                // Convert the returned Proof to aggregator::Proof
-                aggregator::v1::FinalProof * pFinalProof = new aggregator::v1::FinalProof();
+            found = true;
+            if (time(NULL) - pendingRequests[i]->startTime > config.aggregatorClientMockTimeout) {
+                pendingRequests[i]->bCompleted = true;
+                // Request is completed
+                getProofResponse.set_id(uuid);
+                getProofResponse.set_result(aggregator::v1::GetProofResponse_Result_RESULT_COMPLETED_OK);
+                getProofResponse.set_result_string("completed");
+                switch (pendingRequests[i]->type)
+                {
+                    case prt_genFinalProof:
+                    {
+                        // Convert the returned Proof to aggregator::Proof
+                        aggregator::v1::FinalProof * pFinalProof = new aggregator::v1::FinalProof();
 
-                pFinalProof->set_proof("0x20227cbcef731b6cbdc0edd5850c63dc7fbc27fb58d12cd4d08298799cf66a0512c230867d3375a1f4669e7267dad2c31ebcddbaccea6abd67798ceae35ae7611c665b6069339e6812d015e239594aa71c4e217288e374448c358f6459e057c91ad2ef514570b5dea21508e214430daadabdd23433820000fe98b1c6fa81d5c512b86fbf87bd7102775f8ef1da7e8014dc7aab225503237c7927c032e589e9a01a0eab9fda82ffe834c2a4977f36cc9bcb1f2327bdac5fb48ffbeb9656efcdf70d2656c328903e9fb96e4e3f470c447b3053cc68d68cf0ad317fe10aa7f254222e47ea07f3c1c3aacb74e5926a67262f261c1ed3120576ab877b49a81fb8aac51431858662af6b1a8138a44e9d0812d032340369459ccc98b109347cc874c7202dceecc3dbb09d7f9e5658f1ca3a92d22be1fa28f9945205d853e2c866d9b649301ac9857b07b92e4865283d3d5e2b711ea5f85cb2da71965382ece050508d3d008bbe4df5458f70bd3e1bfcc50b34222b43cd28cbe39a3bab6e464664a742161df99c607638e415ced49d0cd719518539ed5f561f81d07fe40d3ce85508e0332465313e60ad9ae271d580022ffca4fbe4d72d38d18e7a6e20d020a1d1e5a8f411291ab95521386fa538ddfe6a391d4a3669cc64c40f07895f031550b32f7d73205a69c214a8ef3cdf996c495e3fd24c00873f30ea6b2bfabfd38de1c3da357d1fefe203573fdad22f675cb5cfabbec0a041b1b31274f70193da8e90cfc4d6dc054c7cd26d09c1dadd064ec52b6ddcfa0cb144d65d9e131c0c88f8004f90d363034d839aa7760167b5302c36d2c2f6714b41782070b10c51c178bd923182d28502f36e19b079b190008c46d19c399331fd60b6b6bde898bd1dd0a71ee7ec7ff7124cc3d374846614389e7b5975b77c4059bc42b810673dbb6f8b951e5b636bdf24afd2a3cbe96ce8600e8a79731b4a56c697596e0bff7b73f413bdbc75069b002b00d713fae8d6450428246f1b794d56717050fdb77bbe094ac2ee6af54a153e2fb8ce1d31a86c4fdd523783b910bedf7db58a46ba6ce48ac3ca194f3cf2275e");
+                        pFinalProof->set_proof("0x20227cbcef731b6cbdc0edd5850c63dc7fbc27fb58d12cd4d08298799cf66a0512c230867d3375a1f4669e7267dad2c31ebcddbaccea6abd67798ceae35ae7611c665b6069339e6812d015e239594aa71c4e217288e374448c358f6459e057c91ad2ef514570b5dea21508e214430daadabdd23433820000fe98b1c6fa81d5c512b86fbf87bd7102775f8ef1da7e8014dc7aab225503237c7927c032e589e9a01a0eab9fda82ffe834c2a4977f36cc9bcb1f2327bdac5fb48ffbeb9656efcdf70d2656c328903e9fb96e4e3f470c447b3053cc68d68cf0ad317fe10aa7f254222e47ea07f3c1c3aacb74e5926a67262f261c1ed3120576ab877b49a81fb8aac51431858662af6b1a8138a44e9d0812d032340369459ccc98b109347cc874c7202dceecc3dbb09d7f9e5658f1ca3a92d22be1fa28f9945205d853e2c866d9b649301ac9857b07b92e4865283d3d5e2b711ea5f85cb2da71965382ece050508d3d008bbe4df5458f70bd3e1bfcc50b34222b43cd28cbe39a3bab6e464664a742161df99c607638e415ced49d0cd719518539ed5f561f81d07fe40d3ce85508e0332465313e60ad9ae271d580022ffca4fbe4d72d38d18e7a6e20d020a1d1e5a8f411291ab95521386fa538ddfe6a391d4a3669cc64c40f07895f031550b32f7d73205a69c214a8ef3cdf996c495e3fd24c00873f30ea6b2bfabfd38de1c3da357d1fefe203573fdad22f675cb5cfabbec0a041b1b31274f70193da8e90cfc4d6dc054c7cd26d09c1dadd064ec52b6ddcfa0cb144d65d9e131c0c88f8004f90d363034d839aa7760167b5302c36d2c2f6714b41782070b10c51c178bd923182d28502f36e19b079b190008c46d19c399331fd60b6b6bde898bd1dd0a71ee7ec7ff7124cc3d374846614389e7b5975b77c4059bc42b810673dbb6f8b951e5b636bdf24afd2a3cbe96ce8600e8a79731b4a56c697596e0bff7b73f413bdbc75069b002b00d713fae8d6450428246f1b794d56717050fdb77bbe094ac2ee6af54a153e2fb8ce1d31a86c4fdd523783b910bedf7db58a46ba6ce48ac3ca194f3cf2275e");
 
-                // Set public inputs extended
-                aggregator::v1::PublicInputs* pPublicInputs = new(aggregator::v1::PublicInputs);
-                pPublicInputs->set_old_state_root(string2ba("0x090bcaf734c4f06c93954a827b45a6e8c67b8e0fd1e0a35a1c5982d6961828f9"));
-                pPublicInputs->set_old_acc_input_hash(string2ba("0x090bcaf734c4f06c93954a827b45a6e8c67b8e0fd1e0a35a1c5982d6961828f9"));
-                pPublicInputs->set_old_batch_num(1);
-                pPublicInputs->set_chain_id(1000);
-                pPublicInputs->set_batch_l2_data(string2ba("0x617b3a3528F9cDd6630fd3301B9c8911F7Bf063D"));
-                pPublicInputs->set_l1_info_root(string2ba("0x617b3a3528F9cDd6630fd3301B9c8911F7Bf063D"));
-                pPublicInputs->set_timestamp_limit(1000000);
-                pPublicInputs->set_forced_blockhash_l1(string2ba("0x617b3a3528F9cDd6630fd3301B9c8911F7Bf063D"));
-                pPublicInputs->set_sequencer_addr("0x617b3a3528F9cDd6630fd3301B9c8911F7Bf063D");
-                pPublicInputs->set_aggregator_addr("0x617b3a3528F9cDd6630fd3301B9c8911F7Bf063D");
-                aggregator::v1::PublicInputsExtended* pPublicInputsExtended = new(aggregator::v1::PublicInputsExtended);
-                pPublicInputsExtended->set_allocated_public_inputs(pPublicInputs);
-                pPublicInputsExtended->set_new_state_root("0x090bcaf734c4f06c93954a827b45a6e8c67b8e0fd1e0a35a1c5982d6961828f9");
-                pPublicInputsExtended->set_new_acc_input_hash("0x1afd6eaf13538380d99a245c2acc4a25481b54556ae080cf07d1facc0638cd8e");
-                pPublicInputsExtended->set_new_local_exit_root("0x17c04c3760510b48c6012742c540a81aba4bca2f78b9d14bfd2f123e2e53ea3e");
-                pPublicInputsExtended->set_new_batch_num(2);
-                pFinalProof->set_allocated_public_(pPublicInputsExtended);
-                getProofResponse.set_allocated_final_proof(pFinalProof);
-                break; 
+                        // Set public inputs extended
+                        aggregator::v1::PublicInputs* pPublicInputs = new(aggregator::v1::PublicInputs);
+                        pPublicInputs->set_old_state_root(string2ba("0x090bcaf734c4f06c93954a827b45a6e8c67b8e0fd1e0a35a1c5982d6961828f9"));
+                        pPublicInputs->set_old_acc_input_hash(string2ba("0x090bcaf734c4f06c93954a827b45a6e8c67b8e0fd1e0a35a1c5982d6961828f9"));
+                        pPublicInputs->set_old_batch_num(1);
+                        pPublicInputs->set_chain_id(1000);
+                        pPublicInputs->set_batch_l2_data(string2ba("0x617b3a3528F9cDd6630fd3301B9c8911F7Bf063D"));
+                        pPublicInputs->set_l1_info_root(string2ba("0x617b3a3528F9cDd6630fd3301B9c8911F7Bf063D"));
+                        pPublicInputs->set_timestamp_limit(1000000);
+                        pPublicInputs->set_forced_blockhash_l1(string2ba("0x617b3a3528F9cDd6630fd3301B9c8911F7Bf063D"));
+                        pPublicInputs->set_sequencer_addr("0x617b3a3528F9cDd6630fd3301B9c8911F7Bf063D");
+                        pPublicInputs->set_aggregator_addr("0x617b3a3528F9cDd6630fd3301B9c8911F7Bf063D");
+                        aggregator::v1::PublicInputsExtended* pPublicInputsExtended = new(aggregator::v1::PublicInputsExtended);
+                        pPublicInputsExtended->set_allocated_public_inputs(pPublicInputs);
+                        pPublicInputsExtended->set_new_state_root("0x090bcaf734c4f06c93954a827b45a6e8c67b8e0fd1e0a35a1c5982d6961828f9");
+                        pPublicInputsExtended->set_new_acc_input_hash("0x1afd6eaf13538380d99a245c2acc4a25481b54556ae080cf07d1facc0638cd8e");
+                        pPublicInputsExtended->set_new_local_exit_root("0x17c04c3760510b48c6012742c540a81aba4bca2f78b9d14bfd2f123e2e53ea3e");
+                        pPublicInputsExtended->set_new_batch_num(2);
+                        pFinalProof->set_allocated_public_(pPublicInputsExtended);
+                        getProofResponse.set_allocated_final_proof(pFinalProof);
+                        break;
+                    }
+                    case prt_genBatchProof:
+                    {
+                        getProofResponse.set_recursive_proof("88888670604050723159190639550237390237901487387303122609079617855313706601738");
+                        break;
+                    }
+                    case prt_genAggregatedProof:
+                    {
+                        getProofResponse.set_recursive_proof("99999670604050723159190639550237390237901487387303122609079617855313706601738");
+                        break;
+                    }
+                    default:
+                    {
+                        cerr << "AggregatorClient::GetProof() invalid pProverRequest->type=" << pendingRequests[i]->type << endl;
+                        exitProcess();
+                    }
+                }
+            } else {
+                // Request is being computed
+                getProofResponse.set_id(uuid);
+                getProofResponse.set_result(aggregator::v1::GetProofResponse_Result_RESULT_PENDING);
+                getProofResponse.set_result_string("pending");
             }
-            case prt_genBatchProof:
-            {
-                getProofResponse.set_recursive_proof("88888670604050723159190639550237390237901487387303122609079617855313706601738");
-                break;
-            }
-            case prt_genAggregatedProof:
-            {
-                getProofResponse.set_recursive_proof("99999670604050723159190639550237390237901487387303122609079617855313706601738");
-                break;
-            }
-            default:
-            {
-                cerr << "AggregatorClient::GetProof() invalid pProverRequest->type=" << requestType << endl;
-                exitProcess();
-            }
+
+            break;
         }
     }
-    else if (bComputing && (uuid == lastAggregatorUUID))
+    pthread_mutex_unlock(&mutex);
+
+    if (!found)
     {
-        // Request is being computed
-        getProofResponse.set_id(uuid);
-        getProofResponse.set_result(aggregator::v1::GetProofResponse_Result_RESULT_PENDING);
-        getProofResponse.set_result_string("pending");
-    }
-    else
-    {
-        // Request is being computed
         getProofResponse.set_id(uuid);
         getProofResponse.set_result(aggregator::v1::GetProofResponse_Result_RESULT_ERROR);
         getProofResponse.set_result_string("pending");
