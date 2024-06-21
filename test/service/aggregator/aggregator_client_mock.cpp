@@ -210,7 +210,7 @@ bool AggregatorClientMock::GetProof (const aggregator::v1::GetProofRequest &getP
             found = true;
             time_t now = time(NULL);
             assert(now > pendingRequests[i]->startTime);
-            if (now - pendingRequests[i]->startTime > config.aggregatorClientMockTimeout) {
+            if (uint64_t(now - pendingRequests[i]->startTime) > config.aggregatorClientMockTimeout) {
                 pendingRequests[i]->bCompleted = true;
                 // Request is completed
                 getProofResponse.set_id(uuid);
