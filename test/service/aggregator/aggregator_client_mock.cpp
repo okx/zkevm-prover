@@ -57,7 +57,7 @@ bool AggregatorClientMock::GetStatus (::aggregator::v1::GetStatusResponse &getSt
         }
     }
 
-    bool bComputing = pendingRequests.size() > 4;
+    bool bComputing = pendingRequests.size() > 100;
     // If computing, set the current request data
     getStatusResponse.set_status(bComputing ? aggregator::v1::GetStatusResponse_Status_STATUS_COMPUTING : aggregator::v1::GetStatusResponse_Status_STATUS_IDLE);
     getStatusResponse.set_current_computing_request_id(bComputing ? lastAggregatorUUID : "");
@@ -174,16 +174,18 @@ bool AggregatorClientMock::GenFinalProof (const aggregator::v1::GenFinalProofReq
 
 bool AggregatorClientMock::Cancel (const aggregator::v1::CancelRequest &cancelRequest, aggregator::v1::CancelResponse &cancelResponse)
 {
-    bool bComputing = (TimeDiff(lastAggregatorGenProof) < config.aggregatorClientMockTimeout);
+    cancelResponse.set_result(aggregator::v1::Result::RESULT_ERROR);
 
-    if (bComputing && (cancelRequest.id() == lastAggregatorUUID ))
+    pthread_mutex_lock(&mutex);
+    for (uint64_t i = 0; i < pendingRequests.size(); i++)
     {
-        cancelResponse.set_result(aggregator::v1::Result::RESULT_OK);
-        lastAggregatorGenProof = {0,0};
-    }
-    else
-    {
-        cancelResponse.set_result(aggregator::v1::Result::RESULT_ERROR);
+        if (uuid == pendingRequests[i]->uuid)
+        {
+            if (uint64_t(time(NULL) - pendingRequests[i]->startTime) < config.aggregatorClientMockTimeout) {
+                cancelResponse.set_result(aggregator::v1::Result::RESULT_OK);
+            }
+            break;
+        }
     }
 
 #ifdef LOG_SERVICE
@@ -210,7 +212,7 @@ bool AggregatorClientMock::GetProof (const aggregator::v1::GetProofRequest &getP
             found = true;
             time_t now = time(NULL);
             assert(now >= pendingRequests[i]->startTime);
-            if (uint64_t(now - pendingRequests[i]->startTime) > config.aggregatorClientMockTimeout) {
+            if (uint64_t(now - pendingRequests[i]->startTime) >= config.aggregatorClientMockTimeout) {
                 pendingRequests[i]->bCompleted = true;
                 // Request is completed
                 getProofResponse.set_id(uuid);
@@ -279,7 +281,7 @@ bool AggregatorClientMock::GetProof (const aggregator::v1::GetProofRequest &getP
     {
         getProofResponse.set_id(uuid);
         getProofResponse.set_result(aggregator::v1::GetProofResponse_Result_RESULT_ERROR);
-        getProofResponse.set_result_string("pending");
+        getProofResponse.set_result_string("invalid UUID");
     }
 
 #ifdef LOG_SERVICE
