@@ -4,7 +4,6 @@
 #include <vector>
 #include <algorithm>
 #include "scalar.hpp"
-#include "XKCP/Keccak-more-compact.hpp"
 #include "config.hpp"
 #include "utils.hpp"
 #include "zklog.hpp"
@@ -35,92 +34,6 @@ mpz_class ScalarTwoTo259("800000000000000000000000000000000000000000000000000000
 
 mpz_class ScalarZero    ("0", 16);
 mpz_class ScalarOne     ("1", 16);
-mpz_class ScalarGoldilocksPrime = (uint64_t)GOLDILOCKS_PRIME;
-mpz_class Scalar4xGoldilocksPrime ("FFFFFFFF00000001FFFFFFFF00000001FFFFFFFF00000001FFFFFFFF00000001", 16);
-
-/* Scalar to/from a Sparse Merkle Tree key, interleaving bits */
-
-void scalar2key (Goldilocks &fr, mpz_class &s, Goldilocks::Element (&key)[4])
-{
-    mpz_class auxk[4] = {0, 0, 0, 0};
-    mpz_class r = s;
-    mpz_class one = 1;
-    uint64_t i = 0;
-
-    while (r != 0)
-    {
-        if ((r&1) != 0)
-        {
-            auxk[i%4] = auxk[i%4] + (one << i/4);
-        }
-        r = r >> 1;
-        i++;
-    }
-
-    for (uint64_t j=0; j<4; j++) key[j] = fr.fromU64(auxk[j].get_ui());
-}
-
-/* Hexa string to/from field element (array) conversion */
-
-void string2fe (Goldilocks &fr, const string &s, Goldilocks::Element &fe)
-{
-    fr.fromString(fe, Remove0xIfPresent(s), 16);
-}
-
-void string2fea(Goldilocks &fr, const string&os, vector<Goldilocks::Element> &fea)
-{
-    Goldilocks::Element fe;
-    for (uint64_t i = 0; i < os.size(); i += 16)
-    {
-        if (i + 16 > os.size())
-        {
-            zklog.error("string2fea() found incorrect DATA column size: " + to_string(os.size()));
-            exitProcess();
-        }
-        string2fe(fr, os.substr(i, 16), fe);
-        fea.push_back(fe);
-    }
-}
-void string2fea(Goldilocks &fr, const string& os, Goldilocks::Element (&fea)[4])
-{
-    Goldilocks::Element fe;
-    if (os.size() != 64)
-    {
-        zklog.error("string2fea() found incorrect DATA column size: " + to_string(os.size()));
-        exitProcess();
-    }
-    int ii=0;
-    for (uint64_t i = 0; i < 64; i += 16)
-    {  
-        string2fe(fr, os.substr(i, 16), fe);
-        fea[3-ii]=fe;
-        ++ii;
-    }
-}
-
-string fea2string (Goldilocks &fr, const Goldilocks::Element(&fea)[4])
-{
-    mpz_class auxScalar;
-    fea2scalar(fr, auxScalar, fea);
-    string s = auxScalar.get_str(16);
-    PrependZerosNoCopy(s, 64);
-    return s;
-}
-
-string fea2string (Goldilocks &fr, const Goldilocks::Element &fea0, const Goldilocks::Element &fea1, const Goldilocks::Element &fea2, const Goldilocks::Element &fea3)
-{
-    const Goldilocks::Element fea[4] = {fea0, fea1, fea2, fea3};
-    return fea2string(fr, fea);
-}
-
-string fea2string (Goldilocks &fr, const Goldilocks::Element &fea0, const Goldilocks::Element &fea1, const Goldilocks::Element &fea2, const Goldilocks::Element &fea3, const Goldilocks::Element &fea4, const Goldilocks::Element &fea5, const Goldilocks::Element &fea6, const Goldilocks::Element &fea7)
-{
-    mpz_class auxScalar;
-    fea2scalar(fr, auxScalar, fea0, fea1, fea2, fea3, fea4, fea5, fea6, fea7);
-    string s = auxScalar.get_str(16);
-    PrependZerosNoCopy(s, 64);
-    return s;
-}
 
 /* Normalized strings */
 
@@ -307,42 +220,6 @@ bool stringIs0xHex (const string &s)
         if (!charIsHex(s.at(i))) return false;
     }
     return true;
-}
-
-/* Keccak */
-
-
-void keccak256 (const uint8_t *pInputData, uint64_t inputDataSize, uint8_t (&hash)[32])
-{
-    Keccak(1088, 512, pInputData, inputDataSize, 0x1, hash, 32);
-}
-
-void keccak256 (const uint8_t *pInputData, uint64_t inputDataSize, mpz_class &hash)
-{
-    uint8_t hashBytes[32] = {0};
-    keccak256(pInputData, inputDataSize, hashBytes);
-    ba2scalar(hash, hashBytes);
-}
-
-string keccak256 (const uint8_t *pInputData, uint64_t inputDataSize)
-{
-    uint8_t hash[32] = {0};
-    keccak256(pInputData, inputDataSize, hash);
-
-    string s;
-    ba2string(s, hash, 32);
-    return "0x" + s;
-}
-
-void keccak256 (const vector<uint8_t> &input, mpz_class &hash)
-{
-    string baString;
-    uint64_t inputSize = input.size();
-    for (uint64_t i=0; i<inputSize; i++)
-    {
-        baString.push_back(input[i]);
-    }
-    keccak256((uint8_t *)baString.c_str(), baString.size(), hash);
 }
 
 /* Byte to/from char conversion */
@@ -810,72 +687,6 @@ void bits2byte(const uint8_t *pBits, uint8_t &byte)
             byte |= 1;
         }
     }
-}
-
-/* 8 fe to/from 4 fe conversion */
-
-void sr8to4 ( Goldilocks &fr,
-              Goldilocks::Element a0,
-              Goldilocks::Element a1,
-              Goldilocks::Element a2,
-              Goldilocks::Element a3,
-              Goldilocks::Element a4,
-              Goldilocks::Element a5,
-              Goldilocks::Element a6,
-              Goldilocks::Element a7,
-              Goldilocks::Element &r0,
-              Goldilocks::Element &r1,
-              Goldilocks::Element &r2,
-              Goldilocks::Element &r3 )
-{
-    r0 = fr.fromU64(fr.toU64(a0) + (fr.toU64(a1)<<32));
-    r1 = fr.fromU64(fr.toU64(a2) + (fr.toU64(a3)<<32));
-    r2 = fr.fromU64(fr.toU64(a4) + (fr.toU64(a5)<<32));
-    r3 = fr.fromU64(fr.toU64(a6) + (fr.toU64(a7)<<32));
-}
-
-void sr4to8 ( Goldilocks &fr,
-              Goldilocks::Element a0,
-              Goldilocks::Element a1,
-              Goldilocks::Element a2,
-              Goldilocks::Element a3,
-              Goldilocks::Element &r0,
-              Goldilocks::Element &r1,
-              Goldilocks::Element &r2,
-              Goldilocks::Element &r3,
-              Goldilocks::Element &r4,
-              Goldilocks::Element &r5,
-              Goldilocks::Element &r6,
-              Goldilocks::Element &r7 )
-{
-    uint64_t aux;
-
-    aux = fr.toU64(a0);
-    r0 = fr.fromU64( aux & 0xFFFFFFFF );
-    r1 = fr.fromU64( aux >> 32 );
-
-    aux = fr.toU64(a1);
-    r2 = fr.fromU64( aux & 0xFFFFFFFF );
-    r3 = fr.fromU64( aux >> 32 );
-
-    aux = fr.toU64(a2);
-    r4 = fr.fromU64( aux & 0xFFFFFFFF );
-    r5 = fr.fromU64( aux >> 32 );
-
-    aux = fr.toU64(a3);
-    r6 = fr.fromU64( aux & 0xFFFFFFFF );
-    r7 = fr.fromU64( aux >> 32 );
-}
-
-/* Scalar to/from fec conversion */
-
-void fec2scalar (RawFec &fec, const RawFec::Element &fe, mpz_class &s)
-{
-    s.set_str(fec.toString(fe,16),16);
-}
-void scalar2fec (RawFec &fec, RawFec::Element &fe, const mpz_class &s)
-{
-    fec.fromMpz(fe, s.get_mpz_t());
 }
 
 void u642bytes (uint64_t input, uint8_t * pOutput, bool bBigEndian)

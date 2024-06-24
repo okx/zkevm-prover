@@ -4,6 +4,7 @@
 #include <string>
 #include <pthread.h>
 #include <vector>
+#include <gmpxx.h>
 
 using namespace std;
 

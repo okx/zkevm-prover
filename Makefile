@@ -1,7 +1,3 @@
-INFO := $(shell cd src/goldilocks && ./configure.sh && cd ../.. && sleep 2)
-include src/goldilocks/CudaArch.mk
-NVCC := /usr/local/cuda/bin/nvcc
-
 TARGET_ZKP := zkProver
 TARGET_ZKP_GPU := zkProver
 TARGET_BCT := bctree
@@ -22,8 +18,8 @@ endif
 
 CXX := g++
 AS := nasm
-CXXFLAGS := -std=c++17 -Wall -pthread -flarge-source-files -Wno-unused-label -rdynamic -mavx2 $(GRPCPP_FLAGS) #-Wfatal-errors
-LDFLAGS_GPU := -lprotobuf -lsodium -lgpr -lpthread -lpqxx -lpq -lgmp -lstdc++ -lgmpxx -lsecp256k1 -lcrypto -luuid -liomp5 $(GRPCPP_LIBS)
+CXXFLAGS := -std=c++17 -Wall -pthread -flarge-source-files -Wno-unused-label -rdynamic $(GRPCPP_FLAGS) #-Wfatal-errors
+LDFLAGS_GPU := -lstdc++ -lprotobuf -lpthread -luuid -lgmp $(GRPCPP_LIBS) #-lcrypto -lgmpxx -lsodium -lgpr -lpqxx -lpq -lsecp256k1 -liomp5
 LDFLAGS := $(LDFLAGS_GPU) -fopenmp
 CFLAGS := -fopenmp
 ASFLAGS := -felf64
@@ -54,7 +50,7 @@ GRPC_CPP_PLUGIN_PATH ?= `which $(GRPC_CPP_PLUGIN)`
 INC_DIRS := $(shell find $(SRC_DIRS) -type d) $(sort $(dir))
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
-SRCS_ZKP := $(shell find $(SRC_DIRS) ! -path "./tools/starkpil/bctree/*" ! -path "./test/prover/*" ! -path "./src/goldilocks/benchs/*" ! -path "./src/goldilocks/benchs/*" ! -path "./src/goldilocks/tests/*" ! -path "./src/main_generator/*" ! -path "./src/pols_generator/*" ! -path "./src/pols_diff/*" ! -path "./src/goldilocks/utils/timer.cpp" -name *.cpp -or -name *.c -or -name *.asm -or -name *.cc)
+SRCS_ZKP := src/main.cpp src/config/config.cpp test/service/aggregator/aggregator_client_mock.cpp src/prover/prover_request_type.cpp src/grpc/gen/aggregator.grpc.pb.cc src/grpc/gen/aggregator.pb.cc src/utils/utils.cpp src/utils/zklog.cpp src/utils/timer.cpp src/utils/exit_process.cpp src/utils/scalar.cpp
 SRCS_ZKP_GPU := $(shell find $(SRC_DIRS) ! -path "./tools/starkpil/bctree/*" ! -path "./test/prover/*" ! -path "./src/goldilocks/benchs/*" ! -path "./src/goldilocks/benchs/*" ! -path "./src/goldilocks/tests/*" ! -path "./src/main_generator/*" ! -path "./src/pols_generator/*" ! -path "./src/pols_diff/*" ! -path "./src/goldilocks/utils/timer.cpp" -name *.cpp -or -name *.c -or -name *.asm -or -name *.cc -or -name *.cu ! -path "./src/goldilocks/utils/deviceQuery.cu" ! -path "./src/goldilocks/tests/*.cu")
 OBJS_ZKP := $(SRCS_ZKP:%=$(BUILD_DIR)/%.o)
 OBJS_ZKP_GPU := $(SRCS_ZKP_GPU:%=$(BUILD_DIR_GPU)/%.o)

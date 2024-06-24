@@ -2,11 +2,9 @@
 #define UTILS_HPP
 
 #include <sys/time.h>
-#include "goldilocks_base_field.hpp"
 #include "config.hpp"
-#include "input.hpp"
-#include "proof_fflonk.hpp"
 #include "definitions.hpp"
+#include "exit_process.hpp"
 
 using json = nlohmann::json;
 using ordered_json = nlohmann::ordered_json;
@@ -101,8 +99,4 @@ void getIPAddress (string &ipAddress);
 void getStringIncrement (const string &oldString, const string &newString, uint64_t &offset, uint64_t &length);
 
 extern string emptyString;
-
-// Calculates the Poseidon linear hash of a buffer
-void poseidonLinearHash (const vector<uint8_t> &_data, Goldilocks::Element (&result)[4]);
-
 #endif

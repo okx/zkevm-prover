@@ -10,16 +10,15 @@
 #include <unistd.h>
 #include "utils.hpp"
 #include "scalar.hpp"
-#include <openssl/md5.h>
 #include <execinfo.h>
-#include <openssl/evp.h>
-#include <openssl/sha.h>
-#include <openssl/crypto.h>
+//#include <openssl/evp.h>
+//#include <openssl/sha.h>
+//#include <openssl/crypto.h>
 #include <ifaddrs.h>
 #include <net/if.h>
 #include <arpa/inet.h>
 #include "zklog.hpp"
-#include "memory.cuh"
+#include <omp.h>
 
 using namespace std;
 using namespace std::filesystem;
@@ -390,7 +389,7 @@ void *mapFileInternal(const string &fileName, uint64_t size, bool bOutput, bool 
         return pAddress;
 
     // Allocate memory
-    void *pMemAddress = malloc2(size);
+    void *pMemAddress = malloc(size);
     if (pMemAddress == NULL)
     {
         zklog.error("mapFile() failed calling malloc() of size: " + to_string(size));
@@ -424,26 +423,6 @@ void unmapFile(void *pAddress, uint64_t size)
         zklog.error("unmapFile() failed calling munmap() of address=" + to_string(uint64_t(pAddress)) + " size=" + to_string(size));
         exitProcess();
     }
-}
-
-string sha256(string str)
-{
-    long len = 0;
-    unsigned char *bin = OPENSSL_hexstr2buf(str.c_str(), &len);
-
-    // digest the blob
-    const EVP_MD *md_algo = EVP_sha256();
-    unsigned int md_len = EVP_MD_size(md_algo);
-    std::vector<unsigned char> md(md_len);
-    EVP_Digest(bin, len, md.data(), &md_len, md_algo, nullptr);
-
-    // free the input data.
-    OPENSSL_free(bin);
-    char mdString[SHA256_DIGEST_LENGTH * 2 + 1];
-    int i;
-    for (i = 0; i < SHA256_DIGEST_LENGTH; i++)
-        sprintf(&mdString[i * 2], "%02x", (unsigned int)md[i]);
-    return mdString;
 }
 
 vector<string> getFolderFiles (string folder, bool sorted)
@@ -674,40 +653,3 @@ void getStringIncrement(const string &oldString, const string &newString, uint64
 }
 
 string emptyString;
-
-void poseidonLinearHash (const vector<uint8_t> &_data, Goldilocks::Element (&result)[4])
-{
-    // Get a local copy of the bytes vector
-    vector<uint8_t> data = _data;
-
-    // Add padding = 0b1000...00001  up to a length of 56xN (7x8xN)
-    data.push_back(0x01);
-    while((data.size() % 56) != 0) data.push_back(0);
-    data[data.size()-1] |= 0x80;
-
-    // Create a FE buffer to store the transformed bytes into fe
-    uint64_t bufferSize = data.size()/7;
-    Goldilocks::Element * pBuffer = new Goldilocks::Element[bufferSize];
-    if (pBuffer == NULL)
-    {
-        zklog.error("poseidonLinearHash() failed allocating memory of " + to_string(bufferSize) + " field elements");
-        exitProcess();
-    }
-
-    // Init to zero
-    for (uint64_t j=0; j<bufferSize; j++) pBuffer[j] = fr.zero();
-
-    // Copy the bytes into the fe lower 7 sections
-    for (uint64_t j=0; j<data.size(); j++)
-    {
-        uint64_t fePos = j/7;
-        uint64_t shifted = uint64_t(data[j]) << ((j%7)*8);
-        pBuffer[fePos] = fr.add(pBuffer[fePos], fr.fromU64(shifted));
-    }
-
-    // Call poseidon linear hash
-    poseidon.linear_hash(result, pBuffer, bufferSize);
-
-    // Free allocated memory
-    delete[] pBuffer;
-}

@@ -7,20 +7,22 @@
 #include <grpcpp/create_channel.h>
 #include <grpcpp/security/credentials.h>
 #include "aggregator.grpc.pb.h"
-#include "proof_fflonk.hpp"
-#include "goldilocks_base_field.hpp"
-#include "prover.hpp"
+#include "prover_request_type.hpp"
+#include "utils.hpp"
+#include "config.hpp"
+#include "zkassert.hpp"
+#include "timer.hpp"
+#include "scalar.hpp"
 
 class AggregatorClientMock
 {
 public:
-    Goldilocks &fr;
     const Config &config;
     aggregator::v1::AggregatorService::Stub * stub;
     pthread_t t; // Client thread
 
 public:
-    AggregatorClientMock (Goldilocks &fr, const Config &config);
+    AggregatorClientMock (const Config &config);
 
     void runThread (void);
     void waitForThread (void);

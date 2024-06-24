@@ -9,8 +9,7 @@ struct timeval lastAggregatorGenProof = {0, 0};
 tProverRequestType requestType;
 string lastAggregatorUUID;
 
-AggregatorClientMock::AggregatorClientMock (Goldilocks &fr, const Config &config) :
-    fr(fr),
+AggregatorClientMock::AggregatorClientMock (const Config &config) :
     config(config)
 {
     grpc::ChannelArguments channelArguments;
