@@ -68,6 +68,9 @@ cpu: $(BUILD_DIR)/$(TARGET_ZKP)
 
 gpu: $(BUILD_DIR_GPU)/$(TARGET_ZKP_GPU)
 
+build-docker:
+	docker build -t xzavier2048/zkevm-mock-prover -f Dockerfile-GHA .
+
 bctree: $(BUILD_DIR)/$(TARGET_BCT)
 
 test: $(BUILD_DIR)/$(TARGET_TEST)
