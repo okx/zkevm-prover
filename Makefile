@@ -1,5 +1,5 @@
 #INFO := $(shell cd src/goldilocks && ./configure.sh && cd ../.. && sleep 2)
-#include src/goldilocks/CudaArch.mk
+include src/goldilocks/CudaArch.mk
 NVCC := /usr/local/cuda/bin/nvcc
 
 TARGET_ZKP := zkProver
@@ -44,6 +44,8 @@ ifeq ($(dbg),1)
 else
       CXXFLAGS += -O3
 endif
+
+PROVER_FORK_ID=10
 
 ifdef PROVER_FORK_ID
 	  CXXFLAGS += -DPROVER_FORK_ID=$(PROVER_FORK_ID)
