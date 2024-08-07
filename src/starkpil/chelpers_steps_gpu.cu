@@ -321,7 +321,7 @@ void CHelpersStepsGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &p
     for (uint64_t i=0; i<mysize; i++) {
         printf("%lu\n", mybuffer[i]);
     }
-    CHECKCUDAERR(cudaMemcpy(mybuffer, stepPointers_d.nColsStages_d, mysize * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    CHECKCUDAERR(cudaMemcpy(mybuffer, stepPointers_d->nColsStages_d, mysize * sizeof(uint64_t), cudaMemcpyDeviceToHost));
     printf("stepPointers_d.nColsStages_d:\n");
     for (uint64_t i=0; i<mysize; i++) {
         printf("%lu\n", mybuffer[i]);
