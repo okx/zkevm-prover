@@ -159,7 +159,7 @@ $(BUILD_DIR_GPU)/%.asm.o: %.asm
 # c++ source
 $(BUILD_DIR_GPU)/%.cpp.o: %.cpp
 	$(MKDIR_P) $(dir $@)
-	$(CXX) -D__USE_CUDA__ $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+	$(CXX) -DENABLE_EXPERIMENTAL_CODE -D__USE_CUDA__ $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
 $(BUILD_DIR_GPU)/%.cc.o: %.cc
 	$(MKDIR_P) $(dir $@)
@@ -168,7 +168,7 @@ $(BUILD_DIR_GPU)/%.cc.o: %.cc
 # cuda source
 $(BUILD_DIR_GPU)/%.cu.o: %.cu
 	$(MKDIR_P) $(dir $@)
-	$(NVCC) -D__USE_CUDA__ $(INC_FLAGS) -Isrc/goldilocks/utils -Xcompiler -fopenmp -Xcompiler -fPIC -Xcompiler -mavx2 -Xcompiler -O3 -O3 -arch=$(CUDA_ARCH) -O3 $< -dc --output-file $@
+	$(NVCC) -DENABLE_EXPERIMENTAL_CODE -D__USE_CUDA__ $(INC_FLAGS) -Isrc/goldilocks/utils -Xcompiler -fopenmp -Xcompiler -fPIC -Xcompiler -mavx2 -Xcompiler -O3 -O3 -arch=$(CUDA_ARCH) -O3 $< -dc --output-file $@
 
 main_generator: $(BUILD_DIR)/$(TARGET_MNG)
 

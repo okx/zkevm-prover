@@ -138,7 +138,7 @@ Prover::Prover(Goldilocks &fr,
             }
 
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
-            alloc_pinned_mem(uint64_t(1<<24) * _starkInfo.mapSectionsN.section[eSection::cm1_n]);
+            alloc_pinned_mem(uint64_t(1<<25) * 100);
             warmup_gpu();
 #endif
             
