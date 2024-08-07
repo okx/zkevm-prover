@@ -340,7 +340,8 @@ void CHelpersStepsGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &p
         printf("%lu\n", mybuffer[i]);
     }
 
-    printf("nCols:%lu\n", stepPointers_h.nCols);
+    printf("nCols:%lu\n", nCols);
+    printf("nrowsPack:%lu\n", nrowsPack);
     printf("domainSize:%lu\n", stepPointers_h.domainSize);
     printf("nConstants:%lu\n", stepPointers_h.nConstants);
     printf("nextStride:%lu\n", stepPointers_h.nextStride);
