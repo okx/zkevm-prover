@@ -321,11 +321,18 @@ void CHelpersStepsGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &p
     for (uint64_t i=0; i<mysize; i++) {
         printf("%lu\n", mybuffer[i]);
     }
-    CHECKCUDAERR(cudaMemcpy(mybuffer, stepPointers_d->nColsStages_d, mysize * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-    printf("stepPointers_d.nColsStages_d:\n");
+
+    myadd<<<1, 64>>>(stepPointers_h.nColsStages_d);
+
+    StepsPointers *tmpPointer = (StepsPointers *)malloc(sizeof(StepsPointers));
+    CHECKCUDAERR(cudaMemcpy(tmpPointer, stepPointers_d, sizeof(StepsPointers), cudaMemcpyDeviceToHost));
+
+    CHECKCUDAERR(cudaMemcpy(mybuffer, tmpPointer->nColsStages_d, mysize * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    printf("stepPointers_h.nColsStages_d:\n");
     for (uint64_t i=0; i<mysize; i++) {
         printf("%lu\n", mybuffer[i]);
     }
+
 
     cudaStream_t *streams = new cudaStream_t[nstreams];
     for (int i = 0; i < nstreams; i++)
@@ -1043,6 +1050,13 @@ __global__ void _transposeFromBuffer(StepsPointers *stepPointers_d, uint64_t row
             }
             offset_pols_d += stepPointers_d->nColsStages_d[s]*blockDim.x;
         }
+    }
+}
+
+__global__ void myadd(uint64_t *in) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < 12) {
+        in[i]++;
     }
 }
 #endif
