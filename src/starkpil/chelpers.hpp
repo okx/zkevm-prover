@@ -46,6 +46,11 @@ struct ParserArgs
     uint16_t* args;
     uint64_t* numbers;
     uint8_t* storePols;
+
+    uint32_t nOps;
+    uint32_t nArgs;
+    uint32_t nNumbers;
+    uint32_t nStorePols;
 };
 
 class CHelpers

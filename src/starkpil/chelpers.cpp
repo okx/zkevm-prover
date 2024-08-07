@@ -9,6 +9,11 @@ void CHelpers::loadCHelpers(BinFileUtils::BinFile *cHelpersBin) {
     uint32_t nNumbers = cHelpersBin->readU32LE();
     uint32_t nStorePols = cHelpersBin->readU32LE();
 
+    printf("ParserArgs.nOps:%u\n", nOps);
+    printf("ParserArgs.nArgs:%u\n", nArgs);
+    printf("ParserArgs.nNumbers:%u\n", nNumbers);
+    printf("ParserArgs.nStorePols:%u\n", nStorePols);
+
     cHelpersArgs.ops = new uint8_t[nOps];
     cHelpersArgs.args = new uint16_t[nArgs];
     cHelpersArgs.numbers = new uint64_t[nNumbers];

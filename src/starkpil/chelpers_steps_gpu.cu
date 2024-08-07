@@ -207,10 +207,10 @@ void CHelpersStepsGPU::dataSetup(StarkInfo &starkInfo, StepsParams &params, Pars
     }
     stepPointers_h.dimBufferPols += nColsStages[10]; //for the store
     stepPointers_h.dimBufferPols = stepPointers_h.dimBufferPols * (nrowsPack+nextStride);
-    CHECKCUDAERR(cudaMallocHost((void **)&(stepPointers_h.bufferPols_d), stepPointers_h.dimBufferPols * nstreams * sizeof(gl64_t)));
+    CHECKCUDAERR(cudaMalloc((void **)&(stepPointers_h.bufferPols_d), stepPointers_h.dimBufferPols * nstreams * sizeof(gl64_t)));
 
     stepPointers_h.dimBufferConsts = starkInfo.nConstants * (nrowsPack+nextStride);
-    CHECKCUDAERR(cudaMallocHost((void **)&(stepPointers_h.bufferConsts_d), stepPointers_h.dimBufferConsts * nstreams * sizeof(gl64_t)));
+    CHECKCUDAERR(cudaMalloc((void **)&(stepPointers_h.bufferConsts_d), stepPointers_h.dimBufferConsts * nstreams * sizeof(gl64_t)));
     
     stepPointers_h.dimTmp1 = parserParams.nTemp1 * nrowsPack;
     CHECKCUDAERR(cudaMalloc((void **)&(stepPointers_h.tmp1_d), stepPointers_h.dimTmp1 * nstreams * sizeof(gl64_t)));
@@ -288,7 +288,6 @@ void CHelpersStepsGPU::storeData(StarkInfo &starkInfo, StepsParams &params, Pars
 
 void CHelpersStepsGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams)
 {
-
     nrowsPack = 64;
     nstreams = 16;
     int nDevices;    
