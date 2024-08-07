@@ -225,10 +225,10 @@ void CHelpersStepsGPU::dataSetup(StarkInfo &starkInfo, StepsParams &params, Pars
     CHECKCUDAERR(cudaMemcpy(stepPointers_d, &stepPointers_h, sizeof(StepsPointers), cudaMemcpyHostToDevice));
 }
 
-__global__ void myadd(uint64_t *in) {
+__global__ void myadd(StepsPointers *in) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < 12) {
-        in[i]++;
+        in->nColsStages_d[i]++;
     }
 }
 
@@ -329,7 +329,7 @@ void CHelpersStepsGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &p
         printf("%lu\n", mybuffer[i]);
     }
 
-    myadd<<<1, 64>>>(stepPointers_h.nColsStages_d);
+    myadd<<<1, 64>>>(stepPointers_d);
 
     StepsPointers *tmpPointer = (StepsPointers *)malloc(sizeof(StepsPointers));
     CHECKCUDAERR(cudaMemcpy(tmpPointer, stepPointers_d, sizeof(StepsPointers), cudaMemcpyDeviceToHost));
