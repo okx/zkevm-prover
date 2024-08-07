@@ -75,4 +75,9 @@ void CHelpers::loadCHelpers(BinFileUtils::BinFile *cHelpersBin) {
     }
 
     cHelpersBin->endReadSection();
+
+    cHelpersArgs.nOps = nOps;
+    cHelpersArgs.nArgs = nArgs;
+    cHelpersArgs.nNumbers = nNumbers;
+    cHelpersArgs.nStorePols = nStorePols;
 };
