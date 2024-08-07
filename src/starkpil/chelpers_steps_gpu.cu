@@ -340,6 +340,16 @@ void CHelpersStepsGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &p
         printf("%lu\n", mybuffer[i]);
     }
 
+    printf("nCols:%lu\n", stepPointers_h.nCols);
+    printf("domainSize:%lu\n", stepPointers_h.domainSize);
+    printf("nConstants:%lu\n", stepPointers_h.nConstants);
+    printf("nextStride:%lu\n", stepPointers_h.nextStride);
+
+    printf("dimBufferT:%u\n", stepPointers_h.dimBufferT);
+    printf("dimBufferPols:%u\n", stepPointers_h.dimBufferPols);
+    printf("dimBufferConsts:%u\n", stepPointers_h.dimBufferConsts);
+    printf("dimTmp1:%u\n", stepPointers_h.dimTmp1);
+    printf("dimTmp3:%u\n", stepPointers_h.dimTmp3);
 
     cudaStream_t *streams = new cudaStream_t[nstreams];
     for (int i = 0; i < nstreams; i++)
