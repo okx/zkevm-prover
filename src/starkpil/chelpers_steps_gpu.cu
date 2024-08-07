@@ -309,6 +309,24 @@ void CHelpersStepsGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &p
 
     //Rest of packs are copmuted in the GPU...
     dataSetup(starkInfo, params, parserArgs, parserParams);
+
+    uint64_t mysize = nColsStages.size();
+    printf("nColsStages size%lu:\n", mysize);
+    for (uint64_t i=0; i<mysize; i++) {
+        printf("%lu\n", nColsStages[i]);
+    }
+    uint64_t *mybuffer = (uint64_t *)malloc(mysize * sizeof(uint64_t));
+    CHECKCUDAERR(cudaMemcpy(mybuffer, stepPointers_h.nColsStages_d, mysize * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    printf("stepPointers_h.nColsStages_d:\n");
+    for (uint64_t i=0; i<mysize; i++) {
+        printf("%lu\n", mybuffer[i]);
+    }
+    CHECKCUDAERR(cudaMemcpy(mybuffer, stepPointers_d.nColsStages_d, mysize * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    printf("stepPointers_d.nColsStages_d:\n");
+    for (uint64_t i=0; i<mysize; i++) {
+        printf("%lu\n", mybuffer[i]);
+    }
+
     cudaStream_t *streams = new cudaStream_t[nstreams];
     for (int i = 0; i < nstreams; i++)
     {
