@@ -352,6 +352,17 @@ void CHelpersStepsGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &p
     printf("dimTmp1:%u\n", stepPointers_h.dimTmp1);
     printf("dimTmp3:%u\n", stepPointers_h.dimTmp3);
 
+    printf("nConstants:%lu\n", starkInfo.nConstants);
+    printf("nPublics:%lu\n", starkInfo.nPublics);
+    printf("nCm1:%lu\n", starkInfo.nCm1);
+    printf("nCm2:%lu\n", starkInfo.nCm2);
+    printf("nCm3:%lu\n", starkInfo.nCm3);
+    printf("nCm4:%lu\n", starkInfo.nCm4);
+    printf("qDeg:%lu\n", starkInfo.qDeg);
+    printf("qDim:%lu\n", starkInfo.qDim);
+    printf("friExpId:%lu\n", starkInfo.friExpId);
+    printf("merkleTreeArity:%lu\n", starkInfo.merkleTreeArity);
+
     cudaStream_t *streams = new cudaStream_t[nstreams];
     for (int i = 0; i < nstreams; i++)
     {
