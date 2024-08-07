@@ -225,6 +225,13 @@ void CHelpersStepsGPU::dataSetup(StarkInfo &starkInfo, StepsParams &params, Pars
     CHECKCUDAERR(cudaMemcpy(stepPointers_d, &stepPointers_h, sizeof(StepsPointers), cudaMemcpyHostToDevice));
 }
 
+__global__ void myadd(uint64_t *in) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < 12) {
+        in[i]++;
+    }
+}
+
 void CHelpersStepsGPU::loadData(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams, uint64_t row, cudaStream_t& stream){
 
     bool domainExtended = parserParams.stage > 3 ? true : false;
@@ -1050,13 +1057,6 @@ __global__ void _transposeFromBuffer(StepsPointers *stepPointers_d, uint64_t row
             }
             offset_pols_d += stepPointers_d->nColsStages_d[s]*blockDim.x;
         }
-    }
-}
-
-__global__ void myadd(uint64_t *in) {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < 12) {
-        in[i]++;
     }
 }
 #endif
