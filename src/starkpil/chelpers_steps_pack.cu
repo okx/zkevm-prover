@@ -630,8 +630,7 @@ __global__ void pack_kernel(uint64_t nrowsPack,
                 break;
             }
             default: {
-                std::cout << " Wrong operation!" << std::endl;
-                exit(1);
+                assert(false);
             }
         }
     }
