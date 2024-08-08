@@ -1,5 +1,3 @@
-
-
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
 
 #include "chelpers_steps_pack.cuh"
@@ -73,3 +71,5 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
 
 }
+
+#endif

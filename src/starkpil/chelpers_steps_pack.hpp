@@ -186,7 +186,7 @@ public:
 
         printf("nrowsPack:%lu\n", nrowsPack);
         printf("params.challenges.degree():%lu\n", params.challenges.degree());
-        printf("parserParams.nNumbers:%lu\n", parserParams.nNumbers);
+        printf("parserParams.nNumbers:%u\n", parserParams.nNumbers);
         printf("starkInfo.nPublics:%lu\n", starkInfo.nPublics);
         printf("params.evals.degree():%lu\n", params.evals.degree());
 
