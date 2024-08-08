@@ -161,6 +161,7 @@ public:
     }
 
     virtual void calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams){
+        printf("into pack calculateExpressions...\n");
         bool domainExtended = parserParams.stage > 3 ? true : false;
         uint64_t domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;   
         calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, 0, domainSize);
