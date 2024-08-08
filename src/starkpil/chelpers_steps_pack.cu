@@ -64,6 +64,12 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
         }
     }
 
+    writeDataToFile("challenges2.txt", (uint64_t *)challenges, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
+    writeDataToFile("challenges_ops2.txt", (uint64_t *)challenges_ops, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
+    writeDataToFile("numbers_2.txt", (uint64_t *)numbers_, parserParams.nNumbers*nrowsPack);
+    writeDataToFile("publics2.txt", (uint64_t *)publics, starkInfo.nPublics*nrowsPack);
+    writeDataToFile("evals2.txt", (uint64_t *)evals, params.evals.degree()*FIELD_EXTENSION*nrowsPack);
+
     CHECKCUDAERR(cudaMalloc(&nColsStagesAcc_d, nColsStagesAcc.size() * sizeof(uint8_t)));
     CHECKCUDAERR(cudaMemcpy(nColsStagesAcc_d, nColsStagesAcc.data(), nColsStagesAcc.size() * sizeof(uint8_t), cudaMemcpyHostToDevice));
 

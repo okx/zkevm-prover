@@ -11,6 +11,24 @@
 #include <fstream>
 #include <cstdint>
 
+bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t size) {
+    // 打开文件
+    std::ofstream file(filename);
+    if (file.is_open()) {
+        // 逐行写入数据
+        for (size_t i = 0; i < size; i++) {
+            file << data[i] << std::endl;
+        }
+        // 关闭文件
+        file.close();
+        std::cout << "Data written to file successfully!" << std::endl;
+        return true;
+    } else {
+        std::cerr << "Unable to open file." << std::endl;
+        return false;
+    }
+}
+
 class CHelpersStepsPack : public CHelpersSteps {
 public:
     uint64_t nrowsPack = 4;
@@ -70,6 +88,20 @@ public:
         }
         nColsStagesAcc[11] = nColsStagesAcc[10] + nColsStages[10]; // xDivXSubXi
         nCols = nColsStagesAcc[11] + 6; // 3 for xDivXSubXi and 3 for xDivXSubWxi
+
+        printf("nCols:%lu\n", nCols);
+        printf("nColsStages:\n");
+        for (uint64_t i=0; i<12; i++) {
+            printf("%lu\n", nColsStages[i])
+        }
+        printf("nColsStagesAcc:\n");
+        for (uint64_t i=0; i<12; i++) {
+            printf("%lu\n", nColsStagesAcc[i])
+        }
+        printf("offsetsStages:\n");
+        for (uint64_t i=0; i<12; i++) {
+            printf("%lu\n", offsetsStages[i])
+        }
     }
 
     inline virtual void storePolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint8_t* storePol, uint64_t row, uint64_t nrowsPack, uint64_t domainExtended) {
@@ -227,12 +259,14 @@ public:
             }
         }
 
+
         Goldilocks::Element publics[starkInfo.nPublics*nrowsPack];
         for(uint64_t i = 0; i < starkInfo.nPublics; ++i) {
             for(uint64_t j = 0; j < nrowsPack; ++j) {
                 publics[i*nrowsPack + j] = params.publicInputs[i];
             }
         }
+
 
         Goldilocks::Element evals[params.evals.degree()*FIELD_EXTENSION*nrowsPack];
         for(uint64_t i = 0; i < params.evals.degree(); ++i) {
@@ -242,6 +276,12 @@ public:
                 evals[(i*FIELD_EXTENSION + 2)*nrowsPack + j] = params.evals[i][2];
             }
         }
+
+        writeDataToFile("challenges.txt", (uint64_t *)challenges, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
+        writeDataToFile("challenges_ops.txt", (uint64_t *)challenges_ops, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
+        writeDataToFile("numbers_.txt", (uint64_t *)numbers_, parserParams.nNumbers*nrowsPack);
+        writeDataToFile("publics.txt", (uint64_t *)publics, starkInfo.nPublics*nrowsPack);
+        writeDataToFile("evals.txt", (uint64_t *)evals, params.evals.degree()*FIELD_EXTENSION*nrowsPack);
 
     
     //#pragma omp parallel for
