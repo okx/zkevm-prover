@@ -46,8 +46,11 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
         }
     }
 
-    CHECKCUDAERR(cudaMalloc(&ops_d, parserArgs.nOps * sizeof(uint8)));
-    CHECKCUDAERR(cudaMemcpy(ops_d, parserArgs.ops, parserArgs.nOps * sizeof(uint8), cudaMemcpyHostToDevice));
+    CHECKCUDAERR(cudaMalloc(&nColsStagesAcc_d, nColsStagesAcc.size() * sizeof(uint8_t)));
+    CHECKCUDAERR(cudaMemcpy(nColsStagesAcc_d, nColsStagesAcc.data(), nColsStagesAcc.size() * sizeof(uint8_t), cudaMemcpyHostToDevice));
+
+    CHECKCUDAERR(cudaMalloc(&ops_d, parserArgs.nOps * sizeof(uint8_t)));
+    CHECKCUDAERR(cudaMemcpy(ops_d, parserArgs.ops, parserArgs.nOps * sizeof(uint8_t), cudaMemcpyHostToDevice));
 
     CHECKCUDAERR(cudaMalloc(&args_d, parserArgs.nArgs * sizeof(uint16_t)));
     CHECKCUDAERR(cudaMemcpy(args_d, parserArgs.args, parserArgs.nArgs * sizeof(uint16_t), cudaMemcpyHostToDevice));
@@ -69,6 +72,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 }
 
 void CHelpersStepsPackGPU::cleanupGPU() {
+    cudaFree(nColsStagesAcc_d);
     cudaFree(ops_d);
     cudaFree(args_d);
     cudaFree(challenges_d);
@@ -125,7 +129,7 @@ __global__ void pack_kernel(uint64_t nrowsPack,
                             gl64_t *bufferT_,
                             gl64_t *challenges,
                             gl64_t *challenges_ops,
-                            gl64_t *numbers,
+                            gl64_t *numbers_,
                             gl64_t *publics,
                             gl64_t *evals)
 {

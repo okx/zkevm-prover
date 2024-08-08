@@ -7,12 +7,14 @@
 class gl64_t;
 class CHelpersStepsPackGPU: public CHelpersStepsPack {
 public:
+
+    uint64_t *nColsStagesAcc_d;
+
     uint8_t *ops_d;
     uint16_t *args_d;
 
     gl64_t *challenges_d;
     gl64_t *challenges_ops_d;
-
     gl64_t *numbers_d;
     gl64_t *publics_d;
     gl64_t *evals_d;
@@ -22,6 +24,17 @@ public:
     void prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams);
     void cleanupGPU();
 };
+
+__global__ void pack_kernel(uint64_t nrowsPack,
+                            ParserParams &parserParams,
+                            uint8_t *ops,
+                            uint16_t *args,
+                            gl64_t *bufferT_,
+                            gl64_t *challenges,
+                            gl64_t *challenges_ops,
+                            gl64_t *numbers,
+                            gl64_t *publics,
+                            gl64_t *evals);
 
 #endif
 #endif
