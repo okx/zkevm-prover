@@ -244,7 +244,7 @@ public:
         }
 
     
-    #pragma omp parallel for
+    //#pragma omp parallel for
         for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack) {
             uint64_t i_args = 0;
 
@@ -253,6 +253,19 @@ public:
             Goldilocks::Element tmp3[parserParams.nTemp3*nrowsPack*FIELD_EXTENSION];
 
             loadPolinomials(starkInfo, params, bufferT_, i, parserParams.stage, nrowsPack, domainExtended);
+
+            uint64_t size = 2*nCols*nrowsPack;
+            std::ofstream file("input.txt");
+            if (file.is_open()) {
+                for (size_t i = 0; i < size; i++) {
+                    file << Goldilocks::toU64(bufferT_[i]) << std::endl;
+                }
+                file.close();
+                std::cout << "Data written to file successfully!" << std::endl;
+            } else {
+                std::cerr << "Unable to open file." << std::endl;
+                assert(0);
+            }
 
             for (uint64_t kk = 0; kk < parserParams.nOps; ++kk) {
                 switch (ops[kk]) {
@@ -743,7 +756,6 @@ public:
                 }
             }
 
-            uint64_t size = 2*nCols*nrowsPack;
             std::ofstream file("output.txt");
             if (file.is_open()) {
                 for (size_t i = 0; i < size; i++) {
