@@ -7,7 +7,7 @@
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
 class CHelpersStepsPackGPU: public CHelpersStepsPack {
 public:
-    uint8 *ops_d;
+    uint8_t *ops_d;
     uint16_t *args_d;
 
     gl64_t *challenges_d;
