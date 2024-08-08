@@ -22,3 +22,4 @@ config/config.json
 runtime/*
 !runtime/README.md
 MyLogFile.log
+.idea

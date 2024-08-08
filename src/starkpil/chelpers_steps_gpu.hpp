@@ -1,7 +1,7 @@
 
 #ifndef CHELPERS_STEPS_GPU_HPP
 #define CHELPERS_STEPS_GPU_HPP
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE) && defined(YXQ)
 
 #include "definitions.hpp"
 #include "chelpers.hpp"
