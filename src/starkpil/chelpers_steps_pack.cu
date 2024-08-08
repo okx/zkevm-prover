@@ -115,7 +115,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack) {
         loadPolinomials(starkInfo, params, bufferT_, i, parserParams.stage, nrowsPack, domainExtended);
         CHECKCUDAERR(cudaMemcpy(bufferT_d, bufferT_, 2*nCols*nrowsPack * sizeof(uint16_t), cudaMemcpyHostToDevice));
-        pack_kernel<<<1,1>>>(nrowsPack, parserArgs.nTemp1, parserArgs.nTemp3, parserArgs.nOps, parserArgs.nArgs, nColsStagesAcc_d, ops_d, args_d, bufferT_d, challenges_d, challenges_ops_d, numbers_d, publics_d, evals_d);
+        pack_kernel<<<1,1>>>(nrowsPack, parserParams.nTemp1, parserParams.nTemp3, parserParams.nOps, parserParams.nArgs, nColsStagesAcc_d, ops_d, args_d, bufferT_d, challenges_d, challenges_ops_d, numbers_d, publics_d, evals_d);
         CHECKCUDAERR(cudaMemcpy(bufferT_, bufferT_d, 2*nCols*nrowsPack * sizeof(uint16_t), cudaMemcpyDeviceToHost));
         storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
     }
