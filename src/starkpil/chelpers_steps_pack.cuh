@@ -1,9 +1,9 @@
 #ifndef CHELPERS_STEPS_GPU_CUH
 #define CHELPERS_STEPS_GPU_CUH
 
-#include "chelpers_steps_pack.hpp"
-
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+
+#include "chelpers_steps_pack.hpp"
 
 class CHelpersStepsPackGPU: public CHelpersStepsPack {
 public:
