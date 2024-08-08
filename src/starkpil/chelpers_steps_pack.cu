@@ -1,4 +1,4 @@
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE) && defined(__YXQ__)
 
 #include "chelpers_steps_pack.cuh"
 #include "zklog.hpp"
