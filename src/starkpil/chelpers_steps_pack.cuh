@@ -27,6 +27,7 @@ public:
 
 __global__ void pack_kernel(uint64_t nrowsPack,
                             ParserParams &parserParams,
+                            uint64_t *nColsStagesAcc,
                             uint8_t *ops,
                             uint16_t *args,
                             gl64_t *bufferT_,
