@@ -54,6 +54,7 @@
 #include "cuda_utils.hpp"
 #include "ntt_goldilocks.hpp"
 #include <pthread.h>
+#include "chelpers_steps_pack.cuh"
 
 int asynctask(void* (*task)(void* args), void* arg)
 {
