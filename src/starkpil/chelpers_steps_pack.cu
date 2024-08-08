@@ -93,7 +93,7 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     cleanupGPU();
 }
 
-const int64_t parallel = 64;
+const int64_t parallel = 1;
 
 void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams,
     uint64_t rowIni, uint64_t rowEnd){
@@ -114,6 +114,8 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     printf("buffer:%lu\n", 2*nCols*nrowsPack);
     printf("tmp1:%lu\n", parserParams.nTemp1*nrowsPack);
     printf("tmp3:%lu\n", parserParams.nTemp3*FIELD_EXTENSION*nrowsPack);
+
+    CHECKCUDAERR(cudaSetDevice(0));
 
     Goldilocks::Element bufferT_[2*nCols*nrowsPack*parallel];
     gl64_t *bufferT_d;
