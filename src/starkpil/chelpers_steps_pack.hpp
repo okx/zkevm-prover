@@ -11,23 +11,7 @@
 #include <fstream>
 #include <cstdint>
 
-bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t size) {
-    // 打开文件
-    std::ofstream file(filename);
-    if (file.is_open()) {
-        // 逐行写入数据
-        for (size_t i = 0; i < size; i++) {
-            file << data[i] << std::endl;
-        }
-        // 关闭文件
-        file.close();
-        std::cout << "Data written to file successfully!" << std::endl;
-        return true;
-    } else {
-        std::cerr << "Unable to open file." << std::endl;
-        return false;
-    }
-}
+bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t size);
 
 class CHelpersStepsPack : public CHelpersSteps {
 public:
