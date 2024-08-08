@@ -112,6 +112,9 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
 }
 
 const int64_t parallel = 1 << 16;
+#include <iostream>
+#include <fstream>
+#include <cstdint>
 
 void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams,
     uint64_t rowIni, uint64_t rowEnd){
@@ -159,6 +162,21 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         CHECKCUDAERR(cudaMemcpy(bufferT_d, bufferT_, 2*nCols*nrowsPack * sizeof(uint16_t) *parallel, cudaMemcpyHostToDevice));
         pack_kernel<<<parallel/16,16>>>(nrowsPack, parserParams.nOps, parserParams.nArgs, 2*nCols*nrowsPack, parserParams.nTemp1*nrowsPack, parserParams.nTemp3*FIELD_EXTENSION*nrowsPack, tmp1_d, tmp3_d, nColsStagesAcc_d, &ops_d[parserParams.opsOffset], &args_d[parserParams.argsOffset], bufferT_d, challenges_d, challenges_ops_d, numbers_d, publics_d, evals_d);
         CHECKCUDAERR(cudaMemcpy(bufferT_, bufferT_d, 2*nCols*nrowsPack * sizeof(uint16_t) *parallel, cudaMemcpyDeviceToHost));
+
+        uint64_t size = 2*nCols*nrowsPack;
+        std::ofstream file("output2.txt");
+        if (file.is_open()) {
+            for (size_t i = 0; i < size; i++) {
+                file << Goldilocks::toU64(bufferT_[i]) << std::endl;
+            }
+            file.close();
+            std::cout << "Data written to file successfully!" << std::endl;
+        } else {
+            std::cerr << "Unable to open file." << std::endl;
+        }
+
+        assert(0);
+
 #pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
             storePolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, storePol, i+nrowsPack*j, nrowsPack, domainExtended);

@@ -7,6 +7,10 @@
 #include "zklog.hpp"
 #include "exit_process.hpp"
 
+#include <iostream>
+#include <fstream>
+#include <cstdint>
+
 class CHelpersStepsPack : public CHelpersSteps {
 public:
     uint64_t nrowsPack = 4;
@@ -738,6 +742,21 @@ public:
                     }
                 }
             }
+
+            uint64_t size = 2*nCols*nrowsPack;
+            std::ofstream file("output.txt");
+            if (file.is_open()) {
+                for (size_t i = 0; i < size; i++) {
+                    file << Goldilocks::toU64(bufferT_[i]) << std::endl;
+                }
+                file.close();
+                std::cout << "Data written to file successfully!" << std::endl;
+            } else {
+                std::cerr << "Unable to open file." << std::endl;
+            }
+
+            assert(0);
+
             storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
             if (i_args != parserParams.nArgs) std::cout << " " << i_args << " - " << parserParams.nArgs << std::endl;
             assert(i_args == parserParams.nArgs);
