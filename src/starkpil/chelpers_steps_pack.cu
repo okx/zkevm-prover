@@ -112,21 +112,29 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     gl64_t *bufferT_d;
     CHECKCUDAERR(cudaMalloc(&bufferT_d, 2*nCols*nrowsPack * sizeof(uint64_t)));
 
+    gl64_t *tmp1_d;
+    gl64_t *tmp3_d;
+    CHECKCUDAERR(cudaMalloc(&tmp1_d, parserParams.nTemp1*nrowsPack * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMalloc(&tmp3_d, parserParams.nTemp3*FIELD_EXTENSION*nrowsPack * sizeof(uint64_t)));
+
     for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack) {
         loadPolinomials(starkInfo, params, bufferT_, i, parserParams.stage, nrowsPack, domainExtended);
         CHECKCUDAERR(cudaMemcpy(bufferT_d, bufferT_, 2*nCols*nrowsPack * sizeof(uint16_t), cudaMemcpyHostToDevice));
-        pack_kernel<<<1,1>>>(nrowsPack, parserParams.nTemp1, parserParams.nTemp3, parserParams.nOps, parserParams.nArgs, nColsStagesAcc_d, ops_d, args_d, bufferT_d, challenges_d, challenges_ops_d, numbers_d, publics_d, evals_d);
+        pack_kernel<<<1,1>>>(nrowsPack, parserParams.nOps, parserParams.nArgs, tmp1_d, tmp3_d, nColsStagesAcc_d, ops_d, args_d, bufferT_d, challenges_d, challenges_ops_d, numbers_d, publics_d, evals_d);
         CHECKCUDAERR(cudaMemcpy(bufferT_, bufferT_d, 2*nCols*nrowsPack * sizeof(uint16_t), cudaMemcpyDeviceToHost));
         storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
     }
 
+    cudaFree(bufferT_d);
+    cudaFree(tmp1_d);
+    cudaFree(tmp3_d);
 }
 
 __global__ void pack_kernel(uint64_t nrowsPack,
-                            uint32_t nTemp1,
-                            uint32_t nTemp3,
                             uint32_t nOps,
                             uint32_t nArgs,
+                            gl64_t *tmp1,
+                            gl64_t *tmp3,
                             uint64_t *nColsStagesAcc,
                             uint8_t *ops,
                             uint16_t *args,
@@ -138,9 +146,6 @@ __global__ void pack_kernel(uint64_t nrowsPack,
                             gl64_t *evals)
 {
     uint64_t i_args = 0;
-
-    gl64_t tmp1[nTemp1*nrowsPack];
-    gl64_t tmp3[nTemp3*nrowsPack*FIELD_EXTENSION];
 
     for (uint64_t kk = 0; kk < nOps; ++kk) {
         switch (ops[kk]) {

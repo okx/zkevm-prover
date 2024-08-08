@@ -26,10 +26,10 @@ public:
 };
 
 __global__ void pack_kernel(uint64_t nrowsPack,
-                            uint32_t nTemp1,
-                            uint32_t nTemp3,
                             uint32_t nOps,
                             uint32_t nArgs,
+                            gl64_t *tmp1,
+                            gl64_t *tmp3,
                             uint64_t *nColsStagesAcc,
                             uint8_t *ops,
                             uint16_t *args,
