@@ -180,6 +180,9 @@ public:
             zklog.info("Invalid range for rowIni and rowEnd");
             exitProcess();
         }
+        printf("rowIni:%lu\n", rowIni);
+        printf("rowEnd:%lu\n", rowEnd);
+        printf("nrowsPack:%lu\n", nrowsPack);
         if(rowEnd -rowIni % nrowsPack != 0) {
            nrowsPack = 1;
         }
