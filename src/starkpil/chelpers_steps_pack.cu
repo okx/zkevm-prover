@@ -147,6 +147,11 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         }
     }
 
+    printf("pols:\n");
+    for (uint64_t i = 0; i < 8; i++) {
+        printf("%lu\n", Goldilocks::toU64(params.pols[i]));
+    }
+
     cudaFree(bufferT_d);
     cudaFree(tmp1_d);
     cudaFree(tmp3_d);
