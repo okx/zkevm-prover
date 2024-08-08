@@ -93,7 +93,7 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     cleanupGPU();
 }
 
-const int64_t parallel = 256;
+const int64_t parallel = 64;
 
 void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams,
     uint64_t rowIni, uint64_t rowEnd){
@@ -110,6 +110,11 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
        nrowsPack = 1;
     }
 
+    printf("nrowsPack:%lu\n", nrowsPack);
+    printf("buffer:%lu\n", 2*nCols*nrowsPack);
+    printf("tmp1:%lu\n", parserParams.nTemp1*nrowsPack);
+    printf("tmp3:%lu\n", parserParams.nTemp3*FIELD_EXTENSION*nrowsPack);
+
     Goldilocks::Element bufferT_[2*nCols*nrowsPack*parallel];
     gl64_t *bufferT_d;
     CHECKCUDAERR(cudaMalloc(&bufferT_d, 2*nCols*nrowsPack * sizeof(uint64_t)*parallel));
@@ -118,11 +123,6 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     gl64_t *tmp3_d;
     CHECKCUDAERR(cudaMalloc(&tmp1_d, parserParams.nTemp1*nrowsPack * sizeof(uint64_t) *parallel));
     CHECKCUDAERR(cudaMalloc(&tmp3_d, parserParams.nTemp3*FIELD_EXTENSION*nrowsPack * sizeof(uint64_t)*parallel));
-
-    printf("buffer:%lu\n", 2*nCols*nrowsPack);
-    printf("tmp1:%lu\n", parserParams.nTemp1*nrowsPack);
-    printf("tmp3:%lu\n", parserParams.nTemp3*FIELD_EXTENSION*nrowsPack);
-
 
     for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack*parallel) {
         printf("rows:%lu\n", i);
