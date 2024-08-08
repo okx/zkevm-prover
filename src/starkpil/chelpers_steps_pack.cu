@@ -108,22 +108,32 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
        nrowsPack = 1;
     }
 
-    Goldilocks::Element bufferT_[2*nCols*nrowsPack];
+    const int64_t parallel = 1024;
+
+    Goldilocks::Element bufferT_[2*nCols*nrowsPack*parallel];
     gl64_t *bufferT_d;
-    CHECKCUDAERR(cudaMalloc(&bufferT_d, 2*nCols*nrowsPack * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMalloc(&bufferT_d, 2*nCols*nrowsPack * sizeof(uint64_t)*parallel));
 
     gl64_t *tmp1_d;
     gl64_t *tmp3_d;
-    CHECKCUDAERR(cudaMalloc(&tmp1_d, parserParams.nTemp1*nrowsPack * sizeof(uint64_t)));
-    CHECKCUDAERR(cudaMalloc(&tmp3_d, parserParams.nTemp3*FIELD_EXTENSION*nrowsPack * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMalloc(&tmp1_d, parserParams.nTemp1*nrowsPack * sizeof(uint64_t) *parallel));
+    CHECKCUDAERR(cudaMalloc(&tmp3_d, parserParams.nTemp3*FIELD_EXTENSION*nrowsPack * sizeof(uint64_t)*parallel));
 
-    for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack) {
+
+    for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack*parallel) {
         printf("rows:%lu\n", i);
-        loadPolinomials(starkInfo, params, bufferT_, i, parserParams.stage, nrowsPack, domainExtended);
-        CHECKCUDAERR(cudaMemcpy(bufferT_d, bufferT_, 2*nCols*nrowsPack * sizeof(uint16_t), cudaMemcpyHostToDevice));
-        pack_kernel<<<1,1>>>(nrowsPack, parserParams.nOps, parserParams.nArgs, tmp1_d, tmp3_d, nColsStagesAcc_d, ops_d, args_d, bufferT_d, challenges_d, challenges_ops_d, numbers_d, publics_d, evals_d);
-        CHECKCUDAERR(cudaMemcpy(bufferT_, bufferT_d, 2*nCols*nrowsPack * sizeof(uint16_t), cudaMemcpyDeviceToHost));
-        storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
+#pragma omp parallel for
+        for (uint64_t j = 0; j < parallel; j++) {
+            loadPolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, i+nrowsPack*j, parserParams.stage, nrowsPack, domainExtended);
+        }
+
+        CHECKCUDAERR(cudaMemcpy(bufferT_d, bufferT_, 2*nCols*nrowsPack * sizeof(uint16_t) *parallel, cudaMemcpyHostToDevice));
+        pack_kernel<<<64,16>>>(nrowsPack, parserParams.nOps, parserParams.nArgs, 2*nCols*nrowsPack, parserParams.nTemp3*FIELD_EXTENSION*nrowsPack, parserParams.nTemp1*nrowsPack,  tmp1_d, tmp3_d, nColsStagesAcc_d, ops_d, args_d, bufferT_d, challenges_d, challenges_ops_d, numbers_d, publics_d, evals_d);
+        CHECKCUDAERR(cudaMemcpy(bufferT_, bufferT_d, 2*nCols*nrowsPack * sizeof(uint16_t) *parallel, cudaMemcpyDeviceToHost));
+#pragma omp parallel for
+        for (uint64_t j = 0; j < parallel; j++) {
+            storePolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, storePol, i+nrowsPack*j, nrowsPack, domainExtended);
+        }
     }
 
     cudaFree(bufferT_d);
@@ -134,6 +144,9 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 __global__ void pack_kernel(uint64_t nrowsPack,
                             uint32_t nOps,
                             uint32_t nArgs,
+                            uint64_t nBufferT,
+                            uint64_t nTemp1,
+                            uint64_t nTemp3,
                             gl64_t *tmp1,
                             gl64_t *tmp3,
                             uint64_t *nColsStagesAcc,
@@ -146,6 +159,15 @@ __global__ void pack_kernel(uint64_t nrowsPack,
                             gl64_t *publics,
                             gl64_t *evals)
 {
+    uint64_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= 1024) {
+        return;
+    }
+
+    bufferT_ = bufferT_ + nBufferT*idx;
+    tmp1 = tmp1 + nTemp1*idx;
+    tmp3 = tmp3 + nTemp3*idx;
+
     uint64_t i_args = 0;
 
     for (uint64_t kk = 0; kk < nOps; ++kk) {
