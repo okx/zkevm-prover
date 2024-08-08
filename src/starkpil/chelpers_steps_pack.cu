@@ -118,6 +118,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     CHECKCUDAERR(cudaMalloc(&tmp3_d, parserParams.nTemp3*FIELD_EXTENSION*nrowsPack * sizeof(uint64_t)));
 
     for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack) {
+        printf("rows:%lu\n", i);
         loadPolinomials(starkInfo, params, bufferT_, i, parserParams.stage, nrowsPack, domainExtended);
         CHECKCUDAERR(cudaMemcpy(bufferT_d, bufferT_, 2*nCols*nrowsPack * sizeof(uint16_t), cudaMemcpyHostToDevice));
         pack_kernel<<<1,1>>>(nrowsPack, parserParams.nOps, parserParams.nArgs, tmp1_d, tmp3_d, nColsStagesAcc_d, ops_d, args_d, bufferT_d, challenges_d, challenges_ops_d, numbers_d, publics_d, evals_d);
