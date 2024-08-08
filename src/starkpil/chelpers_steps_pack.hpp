@@ -185,6 +185,16 @@ public:
            nrowsPack = 1;
         }
 
+        printf("nOps:%u\n", parserArgs.nOps);
+        printf("nArgs:%u\n", parserArgs.nArgs);
+        printf("nNumbers:%u\n", parserArgs.nNumbers);
+        printf("nStorePols:%u\n", parserArgs.nStorePols);
+
+        printf("opsOffset:%u\n", parserParams.opsOffset);
+        printf("argsOffset:%u\n", parserParams.argsOffset);
+        printf("numbersOffset:%lu\n", parserParams.numbersOffset);
+        printf("storePolsOffset:%u\n", parserParams.storePolsOffset);
+
         printf("nrowsPack:%lu\n", nrowsPack);
         printf("params.challenges.degree():%lu\n", params.challenges.degree());
         printf("parserParams.nNumbers:%u\n", parserParams.nNumbers);
