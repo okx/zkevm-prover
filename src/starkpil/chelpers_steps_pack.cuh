@@ -2,9 +2,9 @@
 #define CHELPERS_STEPS_GPU_CUH
 
 #include "chelpers_steps_pack.hpp"
-#include "gl64_t.cuh"
 
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+class gl64_t;
 class CHelpersStepsPackGPU: public CHelpersStepsPack {
 public:
     uint8_t *ops_d;
