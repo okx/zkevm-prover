@@ -701,6 +701,11 @@ public:
             assert(i_args == parserParams.nArgs);
         }
     }
+
+    printf("pols:\n");
+    for (uint64_t i = 0; i < 8; i++) {
+        printf("%lu\n", Goldilocks::toU64(params.pols[i]));
+    }
 };
 
 #endif
