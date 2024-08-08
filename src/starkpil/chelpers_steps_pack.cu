@@ -93,7 +93,7 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     cleanupGPU();
 }
 
-const int64_t parallel = 1;
+const int64_t parallel = 2;
 
 void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams,
     uint64_t rowIni, uint64_t rowEnd){
@@ -138,7 +138,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         }
 
         CHECKCUDAERR(cudaMemcpy(bufferT_d, bufferT_, 2*nCols*nrowsPack * sizeof(uint16_t) *parallel, cudaMemcpyHostToDevice));
-        pack_kernel<<<16,16>>>(nrowsPack, parserParams.nOps, parserParams.nArgs, 2*nCols*nrowsPack, parserParams.nTemp1*nrowsPack, parserParams.nTemp3*FIELD_EXTENSION*nrowsPack, tmp1_d, tmp3_d, nColsStagesAcc_d, ops_d, args_d, bufferT_d, challenges_d, challenges_ops_d, numbers_d, publics_d, evals_d);
+        pack_kernel<<<16,16>>>(nrowsPack, parserParams.nOps, parserParams.nArgs, 2*nCols*nrowsPack, parserParams.nTemp1*nrowsPack, parserParams.nTemp3*FIELD_EXTENSION*nrowsPack, tmp1_d, tmp3_d, nColsStagesAcc_d, &ops_d[parserParams.opsOffset], &args_d[parserParams.argsOffset], bufferT_d, challenges_d, challenges_ops_d, numbers_d, publics_d, evals_d);
         CHECKCUDAERR(cudaMemcpy(bufferT_, bufferT_d, 2*nCols*nrowsPack * sizeof(uint16_t) *parallel, cudaMemcpyDeviceToHost));
 #pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
