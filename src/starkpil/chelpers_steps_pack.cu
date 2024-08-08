@@ -8,6 +8,24 @@
 #include "cuda_utils.cuh"
 #include "cuda_utils.hpp"
 
+__global__ void pack_kernel(uint64_t nrowsPack,
+                            uint32_t nOps,
+                            uint32_t nArgs,
+                            uint64_t nBufferT,
+                            uint64_t nTemp1,
+                            uint64_t nTemp3,
+                            gl64_t *tmp1,
+                            gl64_t *tmp3,
+                            uint64_t *nColsStagesAcc,
+                            uint8_t *ops,
+                            uint16_t *args,
+                            gl64_t *bufferT_,
+                            gl64_t *challenges,
+                            gl64_t *challenges_ops,
+                            gl64_t *numbers,
+                            gl64_t *publics,
+                            gl64_t *evals);
+
 void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
 
     Goldilocks::Element challenges[params.challenges.degree()*FIELD_EXTENSION*nrowsPack];
