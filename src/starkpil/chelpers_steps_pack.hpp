@@ -195,6 +195,8 @@ public:
         printf("starkInfo.nPublics:%lu\n", starkInfo.nPublics);
         printf("params.evals.degree():%lu\n", params.evals.degree());
 
+        exit(1);
+
         setBufferTInfo(starkInfo, parserParams.stage);
         Goldilocks::Element challenges[params.challenges.degree()*FIELD_EXTENSION*nrowsPack];
         Goldilocks::Element challenges_ops[params.challenges.degree()*FIELD_EXTENSION*nrowsPack];
