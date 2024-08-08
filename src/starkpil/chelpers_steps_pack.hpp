@@ -69,7 +69,6 @@ public:
     }
 
     inline virtual void storePolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint8_t* storePol, uint64_t row, uint64_t nrowsPack, uint64_t domainExtended) {
-        printf("into storePolinomials...\n");
         if(domainExtended) {
             // Store either polinomial f or polinomial q
             for(uint64_t k = 0; k < nColsStages[10]; ++k) {
