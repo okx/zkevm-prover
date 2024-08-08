@@ -92,15 +92,15 @@ public:
         printf("nCols:%lu\n", nCols);
         printf("nColsStages:\n");
         for (uint64_t i=0; i<12; i++) {
-            printf("%lu\n", nColsStages[i])
+            printf("%lu\n", nColsStages[i]);
         }
         printf("nColsStagesAcc:\n");
         for (uint64_t i=0; i<12; i++) {
-            printf("%lu\n", nColsStagesAcc[i])
+            printf("%lu\n", nColsStagesAcc[i]);
         }
         printf("offsetsStages:\n");
         for (uint64_t i=0; i<12; i++) {
-            printf("%lu\n", offsetsStages[i])
+            printf("%lu\n", offsetsStages[i]);
         }
     }
 
