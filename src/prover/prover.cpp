@@ -597,16 +597,16 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
         /*  Generate stark proof            */
         /*************************************/
 
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
-        CHelpersStepsGPU cHelpersSteps;
-#elif defined(__AVX512__)
-        CHelpersStepsAvx512 cHelpersSteps;
-#elif defined(__PACK__) 
+//#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+//        CHelpersStepsGPU cHelpersSteps;
+//#elif defined(__AVX512__)
+//        CHelpersStepsAvx512 cHelpersSteps;
+//#elif defined(__PACK__)
         CHelpersStepsPack cHelpersSteps;
         cHelpersSteps.nrowsPack = NROWS_PACK;
-#else
-        CHelpersSteps cHelpersSteps;
-#endif
+//#else
+//        CHelpersSteps cHelpersSteps;
+//#endif
 
         TimerStart(STARK_PROOF_BATCH_PROOF);
 
