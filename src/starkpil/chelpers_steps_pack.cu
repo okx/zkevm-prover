@@ -1,7 +1,7 @@
 #include "zklog.hpp"
 #include <inttypes.h>
 
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE) && defined(__YXQ__)
+#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
 
 #include "chelpers_steps_pack.cuh"
 #include "goldilocks_cubic_extension.cuh"
