@@ -180,12 +180,8 @@ public:
             zklog.info("Invalid range for rowIni and rowEnd");
             exitProcess();
         }
-        printf("rowIni:%lu\n", rowIni);
-        printf("rowEnd:%lu\n", rowEnd);
-        printf("nrowsPack:%lu\n", nrowsPack);
-        printf("result:%lu\n", rowEnd -rowIni % nrowsPack);
-        printf("result:%lu\n", (rowEnd -rowIni) % nrowsPack);
-        if(rowEnd -rowIni % nrowsPack != 0) {
+
+        if((rowEnd -rowIni) % nrowsPack != 0) {
            nrowsPack = 1;
         }
 
@@ -194,8 +190,6 @@ public:
         printf("parserParams.nNumbers:%u\n", parserParams.nNumbers);
         printf("starkInfo.nPublics:%lu\n", starkInfo.nPublics);
         printf("params.evals.degree():%lu\n", params.evals.degree());
-
-        exit(1);
 
         setBufferTInfo(starkInfo, parserParams.stage);
         Goldilocks::Element challenges[params.challenges.degree()*FIELD_EXTENSION*nrowsPack];
