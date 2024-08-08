@@ -2,7 +2,6 @@
 
 #include "chelpers_steps_pack.cuh"
 #include "zklog.hpp"
-#include "gl64_t.cuh"
 #include "goldilocks_cubic_extension.cuh"
 #include <inttypes.h>
 #include "cuda_utils.cuh"
