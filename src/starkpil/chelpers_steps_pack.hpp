@@ -183,6 +183,8 @@ public:
         printf("rowIni:%lu\n", rowIni);
         printf("rowEnd:%lu\n", rowEnd);
         printf("nrowsPack:%lu\n", nrowsPack);
+        printf("result:%lu\n", rowEnd -rowIni % nrowsPack);
+        printf("result:%lu\n", (rowEnd -rowIni) % nrowsPack);
         if(rowEnd -rowIni % nrowsPack != 0) {
            nrowsPack = 1;
         }
