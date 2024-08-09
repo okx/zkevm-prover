@@ -125,7 +125,7 @@ public:
     }
 
     inline virtual void loadPolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint64_t row, uint64_t stage, uint64_t nrowsPack, uint64_t domainExtended) {
-        printf("nConstants:%lu, nBits:%lu, nBitsExt:%lu, row:%lu, stage:%lu, nrowsPack:%lu, domainExtended:%lu\n",
+        printf("pack, nConstants:%lu, nBits:%lu, nBitsExt:%lu, row:%lu, stage:%lu, nrowsPack:%lu, domainExtended:%lu\n",
                starkInfo.nConstants, starkInfo.starkStruct.nBits, starkInfo.starkStruct.nBitsExt, row, stage, nrowsPack, domainExtended);
         ConstantPolsStarks *constPols = domainExtended ? params.pConstPols2ns : params.pConstPols;
         uint64_t domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
