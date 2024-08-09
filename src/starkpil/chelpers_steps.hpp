@@ -166,6 +166,7 @@ public:
         uint8_t *storePol = &parserArgs.storePols[parserParams.storePolsOffset];
 
         setBufferTInfo(starkInfo, parserParams.stage);
+        printf("stage:%u, nColsStages:%lu,nColsStagesAcc:%lu,offsetsStages:%lu\n", parserParams.stage, nColsStages[10], nColsStagesAcc[10], offsetsStages[10]);
         Goldilocks3::Element_avx challenges[params.challenges.degree()];
         Goldilocks3::Element_avx challenges_ops[params.challenges.degree()];
         for(uint64_t i = 0; i < params.challenges.degree(); ++i) {
