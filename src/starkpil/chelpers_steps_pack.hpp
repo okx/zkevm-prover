@@ -278,6 +278,23 @@ public:
             Goldilocks::Element tmp1[parserParams.nTemp1*nrowsPack];
             Goldilocks::Element tmp3[parserParams.nTemp3*nrowsPack*FIELD_EXTENSION];
 
+            {
+                printf("debugi:%lu\n", i);
+                uint64_t size = 2*nCols*nrowsPack;
+                std::ofstream file("input-buffer.txt");
+                if (file.is_open()) {
+                    for (size_t i = 0; i < size; i++) {
+                        file << Goldilocks::toU64(bufferT_[i]) << std::endl;
+                        bufferT_[i] = Goldilocks::zero();
+                    }
+                    file.close();
+                    std::cout << "Data written to file successfully!" << std::endl;
+                } else {
+                    std::cerr << "Unable to open file." << std::endl;
+                    assert(0);
+                }
+            }
+
             loadPolinomials(starkInfo, params, bufferT_, i, parserParams.stage, nrowsPack, domainExtended);
 
 
