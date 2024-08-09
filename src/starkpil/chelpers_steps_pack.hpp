@@ -74,20 +74,6 @@ public:
         }
         nColsStagesAcc[11] = nColsStagesAcc[10] + nColsStages[10]; // xDivXSubXi
         nCols = nColsStagesAcc[11] + 6; // 3 for xDivXSubXi and 3 for xDivXSubWxi
-
-        printf("nCols:%lu\n", nCols);
-        printf("nColsStages:\n");
-        for (uint64_t i=0; i<12; i++) {
-            printf("%lu\n", nColsStages[i]);
-        }
-        printf("nColsStagesAcc:\n");
-        for (uint64_t i=0; i<12; i++) {
-            printf("%lu\n", nColsStagesAcc[i]);
-        }
-        printf("offsetsStages:\n");
-        for (uint64_t i=0; i<12; i++) {
-            printf("%lu\n", offsetsStages[i]);
-        }
     }
 
     inline virtual void storePolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint8_t* storePol, uint64_t row, uint64_t nrowsPack, uint64_t domainExtended) {
@@ -265,17 +251,17 @@ public:
             }
         }
 
-        writeDataToFile("challenges.txt", (uint64_t *)challenges, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
-        writeDataToFile("challenges_ops.txt", (uint64_t *)challenges_ops, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
-        writeDataToFile("numbers_.txt", (uint64_t *)numbers_, parserParams.nNumbers*nrowsPack);
-        writeDataToFile("publics.txt", (uint64_t *)publics, starkInfo.nPublics*nrowsPack);
-        writeDataToFile("evals.txt", (uint64_t *)evals, params.evals.degree()*FIELD_EXTENSION*nrowsPack);
-
-        writeData8ToFile("ops.txt", &parserArgs.ops[parserParams.opsOffset], parserArgs.nOps - parserParams.opsOffset);
-        writeData16ToFile("args.txt", &parserArgs.args[parserParams.argsOffset], parserArgs.nArgs - parserParams.argsOffset);
+//        writeDataToFile("challenges.txt", (uint64_t *)challenges, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
+//        writeDataToFile("challenges_ops.txt", (uint64_t *)challenges_ops, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
+//        writeDataToFile("numbers_.txt", (uint64_t *)numbers_, parserParams.nNumbers*nrowsPack);
+//        writeDataToFile("publics.txt", (uint64_t *)publics, starkInfo.nPublics*nrowsPack);
+//        writeDataToFile("evals.txt", (uint64_t *)evals, params.evals.degree()*FIELD_EXTENSION*nrowsPack);
+//
+//        writeData8ToFile("ops.txt", &parserArgs.ops[parserParams.opsOffset], parserArgs.nOps - parserParams.opsOffset);
+//        writeData16ToFile("args.txt", &parserArgs.args[parserParams.argsOffset], parserArgs.nArgs - parserParams.argsOffset);
 
     
-    //#pragma omp parallel for
+    #pragma omp parallel for
         for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack) {
             uint64_t i_args = 0;
 
@@ -283,42 +269,7 @@ public:
             Goldilocks::Element tmp1[parserParams.nTemp1*nrowsPack];
             Goldilocks::Element tmp3[parserParams.nTemp3*nrowsPack*FIELD_EXTENSION];
 
-            {
-                printf("debugi:%lu\n", i);
-                uint64_t size = 2*nCols*nrowsPack;
-                std::ofstream file("input-buffer.txt");
-                if (file.is_open()) {
-                    for (size_t i = 0; i < size; i++) {
-                        file << Goldilocks::toU64(bufferT_[i]) << std::endl;
-                        bufferT_[i] = Goldilocks::zero();
-                    }
-                    file.close();
-                    std::cout << "Data written to file successfully!" << std::endl;
-                } else {
-                    std::cerr << "Unable to open file." << std::endl;
-                    assert(0);
-                }
-            }
-
             loadPolinomials(starkInfo, params, bufferT_, i, parserParams.stage, nrowsPack, domainExtended);
-
-
-            {
-                printf("debugi:%lu\n", i);
-                uint64_t size = 2*nCols*nrowsPack;
-                std::ofstream file("input.txt");
-                if (file.is_open()) {
-                    for (size_t i = 0; i < size; i++) {
-                        file << Goldilocks::toU64(bufferT_[i]) << std::endl;
-                    }
-                    file.close();
-                    std::cout << "Data written to file successfully!" << std::endl;
-                } else {
-                    std::cerr << "Unable to open file." << std::endl;
-                    assert(0);
-                }
-            }
-
 
             for (uint64_t kk = 0; kk < parserParams.nOps; ++kk) {
                 switch (ops[kk]) {
@@ -808,23 +759,6 @@ public:
                     }
                 }
             }
-
-            {
-                uint64_t size = 2*nCols*nrowsPack;
-                std::ofstream file("output.txt");
-                if (file.is_open()) {
-                    for (size_t i = 0; i < size; i++) {
-                        file << Goldilocks::toU64(bufferT_[i]) << std::endl;
-                    }
-                    file.close();
-                    std::cout << "Data written to file successfully!" << std::endl;
-                } else {
-                    std::cerr << "Unable to open file." << std::endl;
-                }
-            }
-
-
-            assert(0);
 
             storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
             if (i_args != parserParams.nArgs) std::cout << " " << i_args << " - " << parserParams.nArgs << std::endl;

@@ -122,11 +122,11 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
         }
     }
 
-    writeDataToFile("challenges2.txt", (uint64_t *)challenges, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
-    writeDataToFile("challenges_ops2.txt", (uint64_t *)challenges_ops, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
-    writeDataToFile("numbers_2.txt", (uint64_t *)numbers_, parserParams.nNumbers*nrowsPack);
-    writeDataToFile("publics2.txt", (uint64_t *)publics, starkInfo.nPublics*nrowsPack);
-    writeDataToFile("evals2.txt", (uint64_t *)evals, params.evals.degree()*FIELD_EXTENSION*nrowsPack);
+//    writeDataToFile("challenges2.txt", (uint64_t *)challenges, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
+//    writeDataToFile("challenges_ops2.txt", (uint64_t *)challenges_ops, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
+//    writeDataToFile("numbers_2.txt", (uint64_t *)numbers_, parserParams.nNumbers*nrowsPack);
+//    writeDataToFile("publics2.txt", (uint64_t *)publics, starkInfo.nPublics*nrowsPack);
+//    writeDataToFile("evals2.txt", (uint64_t *)evals, params.evals.degree()*FIELD_EXTENSION*nrowsPack);
 
     CHECKCUDAERR(cudaMalloc(&nColsStagesAcc_d, nColsStagesAcc.size() * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMemcpy(nColsStagesAcc_d, nColsStagesAcc.data(), nColsStagesAcc.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
@@ -138,8 +138,8 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     CHECKCUDAERR(cudaMalloc(&args_d, parserArgs.nArgs * sizeof(uint16_t)));
     CHECKCUDAERR(cudaMemcpy(args_d, parserArgs.args, parserArgs.nArgs * sizeof(uint16_t), cudaMemcpyHostToDevice));
 
-    writeData8ToFile("ops2.txt", &parserArgs.ops[parserParams.opsOffset], parserArgs.nOps - parserParams.opsOffset);
-    writeData16ToFile("args2.txt", &parserArgs.args[parserParams.argsOffset], parserArgs.nArgs - parserParams.argsOffset);
+//    writeData8ToFile("ops2.txt", &parserArgs.ops[parserParams.opsOffset], parserArgs.nOps - parserParams.opsOffset);
+//    writeData16ToFile("args2.txt", &parserArgs.args[parserParams.argsOffset], parserArgs.nArgs - parserParams.argsOffset);
 
     CHECKCUDAERR(cudaMalloc(&challenges_d, params.challenges.degree()*FIELD_EXTENSION*nrowsPack * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMemcpy(challenges_d, challenges, params.challenges.degree()*FIELD_EXTENSION*nrowsPack * sizeof(uint64_t), cudaMemcpyHostToDevice));
@@ -179,7 +179,7 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     cleanupGPU();
 }
 
-const int64_t parallel = 1;
+const int64_t parallel = 1 << 15;
 #include <iostream>
 #include <fstream>
 #include <cstdint>
@@ -206,9 +206,8 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
     CHECKCUDAERR(cudaSetDevice(0));
 
-    //Goldilocks::Element *bufferT_ = (Goldilocks::Element *)get_pinned_mem();
-    Goldilocks::Element bufferT_[2*nCols*nrowsPack*parallel];
-    printf("ok0\n");
+    Goldilocks::Element *bufferT_ = (Goldilocks::Element *)get_pinned_mem();
+    //Goldilocks::Element bufferT_[2*nCols*nrowsPack*parallel];
     gl64_t *bufferT_d;
     CHECKCUDAERR(cudaMalloc(&bufferT_d, 2*nCols*nrowsPack * sizeof(uint64_t)*parallel));
 
@@ -224,73 +223,19 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack*parallel) {
         printf("rows:%lu\n", i);
 
-        {
-                printf("debugi:%lu\n", i);
-                uint64_t size = 2*nCols*nrowsPack;
-                std::ofstream file("input2-buffer.txt");
-                if (file.is_open()) {
-                    for (size_t i = 0; i < size; i++) {
-                        file << Goldilocks::toU64(bufferT_[i]) << std::endl;
-                        bufferT_[i] = Goldilocks::zero();
-                    }
-                    file.close();
-                    std::cout << "Data written to file successfully!" << std::endl;
-                } else {
-                    std::cerr << "Unable to open file." << std::endl;
-                    assert(0);
-                }
-            }
-//#pragma omp parallel for
+#pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
             loadPolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, i+nrowsPack*j, parserParams.stage, nrowsPack, domainExtended);
-        }
-
-        {
-            printf("debugi:%lu\n", i);
-            uint64_t size = 2*nCols*nrowsPack;
-            std::ofstream file("input2.txt");
-            if (file.is_open()) {
-                for (size_t i = 0; i < size; i++) {
-                    file << Goldilocks::toU64(bufferT_[i]) << std::endl;
-                }
-                file.close();
-                std::cout << "Data written to file successfully!" << std::endl;
-            } else {
-                std::cerr << "Unable to open file." << std::endl;
-                assert(0);
-            }
         }
 
         CHECKCUDAERR(cudaMemcpy(bufferT_d, bufferT_, 2*nCols*nrowsPack * sizeof(uint64_t) *parallel, cudaMemcpyHostToDevice));
         pack_kernel<<<1,16>>>(nrowsPack, parserParams.nOps, parserParams.nArgs, 2*nCols*nrowsPack, parserParams.nTemp1*nrowsPack, parserParams.nTemp3*FIELD_EXTENSION*nrowsPack, tmp1_d, tmp3_d, nColsStagesAcc_d, &ops_d[parserParams.opsOffset], &args_d[parserParams.argsOffset], bufferT_d, challenges_d, challenges_ops_d, numbers_d, publics_d, evals_d);
         CHECKCUDAERR(cudaMemcpy(bufferT_, bufferT_d, 2*nCols*nrowsPack * sizeof(uint64_t) *parallel, cudaMemcpyDeviceToHost));
 
-        {
-            uint64_t size = 2*nCols*nrowsPack;
-            std::ofstream file("output2.txt");
-            if (file.is_open()) {
-                for (size_t i = 0; i < size; i++) {
-                    file << Goldilocks::toU64(bufferT_[i]) << std::endl;
-                }
-                file.close();
-                std::cout << "Data written to file successfully!" << std::endl;
-            } else {
-                std::cerr << "Unable to open file." << std::endl;
-            }
-        }
-
-
-        assert(0);
-
 #pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
             storePolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, storePol, i+nrowsPack*j, nrowsPack, domainExtended);
         }
-    }
-
-    printf("pols:\n");
-    for (uint64_t i = 0; i < 8; i++) {
-        printf("%lu\n", Goldilocks::toU64(params.pols[i]));
     }
 
     cudaFree(bufferT_d);
