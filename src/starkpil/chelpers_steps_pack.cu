@@ -36,7 +36,7 @@ bool writeData8ToFile(const std::string& filename, const uint8_t* data, size_t s
     if (file.is_open()) {
         // 逐行写入数据
         for (size_t i = 0; i < size; i++) {
-            file << data[i] << std::endl;
+            file << uint64_t(data[i]) << std::endl;
         }
         // 关闭文件
         file.close();
@@ -54,7 +54,7 @@ bool writeData16ToFile(const std::string& filename, const uint16_t* data, size_t
     if (file.is_open()) {
         // 逐行写入数据
         for (size_t i = 0; i < size; i++) {
-            file << data[i] << std::endl;
+            file << uint64_t(data[i]) << std::endl;
         }
         // 关闭文件
         file.close();
