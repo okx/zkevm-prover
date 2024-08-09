@@ -9,8 +9,8 @@ public:
 
     uint64_t *nColsStagesAcc_d;
 
-    uint8_t *ops_d;
-    uint16_t *args_d;
+    uint64_t *ops_d;
+    uint64_t *args_d;
 
     gl64_t *challenges_d;
     gl64_t *challenges_ops_d;

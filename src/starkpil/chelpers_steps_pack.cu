@@ -75,8 +75,8 @@ __global__ void pack_kernel(uint64_t nrowsPack,
                             gl64_t *tmp1,
                             gl64_t *tmp3,
                             uint64_t *nColsStagesAcc,
-                            uint8_t *ops,
-                            uint16_t *args,
+                            uint64_t *ops,
+                            uint64_t *args,
                             gl64_t *bufferT_,
                             gl64_t *challenges,
                             gl64_t *challenges_ops,
@@ -128,17 +128,26 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     writeDataToFile("publics2.txt", (uint64_t *)publics, starkInfo.nPublics*nrowsPack);
     writeDataToFile("evals2.txt", (uint64_t *)evals, params.evals.degree()*FIELD_EXTENSION*nrowsPack);
 
-    writeData8ToFile("ops2.txt", &parserArgs.ops[parserParams.opsOffset], parserArgs.nOps - parserParams.opsOffset);
-    writeData16ToFile("args2.txt", &parserArgs.args[parserParams.argsOffset], parserArgs.nArgs - parserParams.argsOffset);
+    CHECKCUDAERR(cudaMalloc(&nColsStagesAcc_d, nColsStagesAcc.size() * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMemcpy(nColsStagesAcc_d, nColsStagesAcc.data(), nColsStagesAcc.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
-    CHECKCUDAERR(cudaMalloc(&nColsStagesAcc_d, nColsStagesAcc.size() * sizeof(uint8_t)));
-    CHECKCUDAERR(cudaMemcpy(nColsStagesAcc_d, nColsStagesAcc.data(), nColsStagesAcc.size() * sizeof(uint8_t), cudaMemcpyHostToDevice));
 
-    CHECKCUDAERR(cudaMalloc(&ops_d, parserArgs.nOps * sizeof(uint8_t)));
-    CHECKCUDAERR(cudaMemcpy(ops_d, parserArgs.ops, parserArgs.nOps * sizeof(uint8_t), cudaMemcpyHostToDevice));
+    uint64_t *ops_u64 = (uint64_t *)malloc(parserArgs.nOps*sizeof(uint64_t));
+    for (uint64_t i = 0; i < parserArgs.nOps; i++) {
+        ops_u64[i] = uint64_t(parserArgs.ops[i]);
+    }
+    CHECKCUDAERR(cudaMalloc(&ops_d, parserArgs.nOps * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMemcpy(ops_d, ops_u64, parserArgs.nOps * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
-    CHECKCUDAERR(cudaMalloc(&args_d, parserArgs.nArgs * sizeof(uint16_t)));
-    CHECKCUDAERR(cudaMemcpy(args_d, parserArgs.args, parserArgs.nArgs * sizeof(uint16_t), cudaMemcpyHostToDevice));
+    uint64_t *args_u64 = (uint64_t *)malloc(parserArgs.nArgs*sizeof(uint64_t));
+    for (uint64_t i = 0; i < parserArgs.nArgs; i++) {
+        args_u64[i] = uint64_t(parserArgs.args[i]);
+    }
+    CHECKCUDAERR(cudaMalloc(&args_d, parserArgs.nArgs * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMemcpy(args_d, args_u64, parserArgs.nArgs * sizeof(uint64_t), cudaMemcpyHostToDevice));
+
+    writeData8ToFile("ops2.txt", &ops_u64[parserParams.opsOffset], parserArgs.nOps - parserParams.opsOffset);
+    writeData16ToFile("args2.txt", &args_u64[parserParams.argsOffset], parserArgs.nArgs - parserParams.argsOffset);
 
     CHECKCUDAERR(cudaMalloc(&challenges_d, params.challenges.degree()*FIELD_EXTENSION*nrowsPack * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMemcpy(challenges_d, challenges, params.challenges.degree()*FIELD_EXTENSION*nrowsPack * sizeof(uint64_t), cudaMemcpyHostToDevice));
@@ -260,9 +269,9 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
             }
         }
 
-        CHECKCUDAERR(cudaMemcpy(bufferT_d, bufferT_, 2*nCols*nrowsPack * sizeof(uint16_t) *parallel, cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(bufferT_d, bufferT_, 2*nCols*nrowsPack * sizeof(uint64_t) *parallel, cudaMemcpyHostToDevice));
         pack_kernel<<<1,16>>>(nrowsPack, parserParams.nOps, parserParams.nArgs, 2*nCols*nrowsPack, parserParams.nTemp1*nrowsPack, parserParams.nTemp3*FIELD_EXTENSION*nrowsPack, tmp1_d, tmp3_d, nColsStagesAcc_d, &ops_d[parserParams.opsOffset], &args_d[parserParams.argsOffset], bufferT_d, challenges_d, challenges_ops_d, numbers_d, publics_d, evals_d);
-        CHECKCUDAERR(cudaMemcpy(bufferT_, bufferT_d, 2*nCols*nrowsPack * sizeof(uint16_t) *parallel, cudaMemcpyDeviceToHost));
+        CHECKCUDAERR(cudaMemcpy(bufferT_, bufferT_d, 2*nCols*nrowsPack * sizeof(uint64_t) *parallel, cudaMemcpyDeviceToHost));
 
         {
             uint64_t size = 2*nCols*nrowsPack;
@@ -306,8 +315,8 @@ __global__ void pack_kernel(uint64_t nrowsPack,
                             gl64_t *tmp1,
                             gl64_t *tmp3,
                             uint64_t *nColsStagesAcc,
-                            uint8_t *ops,
-                            uint16_t *args,
+                            uint64_t *ops,
+                            uint64_t *args,
                             gl64_t *bufferT_,
                             gl64_t *challenges,
                             gl64_t *challenges_ops,
