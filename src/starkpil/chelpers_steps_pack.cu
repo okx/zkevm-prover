@@ -205,6 +205,10 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     printf("tmp1:%lu\n", parserParams.nTemp1*nrowsPack);
     printf("tmp3:%lu\n", parserParams.nTemp3*FIELD_EXTENSION*nrowsPack);
 
+    printf("params.pConstPols, degree:%lu, nCols:%lu\n", params.pConstPols.degree(), params.pConstPols.numPols());
+    printf("params.pConstPols2ns, degree:%lu, nCols:%lu\n", params.pConstPols2ns.degree(), params.pConstPols2ns.numPols());
+
+
     CHECKCUDAERR(cudaSetDevice(0));
 
     Goldilocks::Element *bufferT_ = (Goldilocks::Element *)get_pinned_mem();
