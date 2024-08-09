@@ -12,6 +12,8 @@
 #include <cstdint>
 
 bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t size);
+bool writeData8ToFile(const std::string& filename, const uint8_t* data, size_t size);
+bool writeData16ToFile(const std::string& filename, const uint16_t* data, size_t size);
 
 class CHelpersStepsPack : public CHelpersSteps {
 public:
@@ -268,6 +270,9 @@ public:
         writeDataToFile("numbers_.txt", (uint64_t *)numbers_, parserParams.nNumbers*nrowsPack);
         writeDataToFile("publics.txt", (uint64_t *)publics, starkInfo.nPublics*nrowsPack);
         writeDataToFile("evals.txt", (uint64_t *)evals, params.evals.degree()*FIELD_EXTENSION*nrowsPack);
+
+        writeData8ToFile("ops.txt", &parserArgs.ops[parserParams.opsOffset], parserArgs.nOps - parserParams.opsOffset);
+        writeData16ToFile("args.txt", &parserArgs.args[parserParams.argsOffset], parserArgs.nArgs - parserParams.argsOffset);
 
     
     //#pragma omp parallel for

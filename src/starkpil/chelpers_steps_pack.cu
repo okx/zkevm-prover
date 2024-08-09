@@ -30,6 +30,42 @@ bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t s
     }
 }
 
+bool writeData8ToFile(const std::string& filename, const uint8_t* data, size_t size) {
+    // 打开文件
+    std::ofstream file(filename);
+    if (file.is_open()) {
+        // 逐行写入数据
+        for (size_t i = 0; i < size; i++) {
+            file << data[i] << std::endl;
+        }
+        // 关闭文件
+        file.close();
+        std::cout << "Data8 written to file successfully!" << std::endl;
+        return true;
+    } else {
+        std::cerr << "Unable to open file." << std::endl;
+        return false;
+    }
+}
+
+bool writeData16ToFile(const std::string& filename, const uint16_t* data, size_t size) {
+    // 打开文件
+    std::ofstream file(filename);
+    if (file.is_open()) {
+        // 逐行写入数据
+        for (size_t i = 0; i < size; i++) {
+            file << data[i] << std::endl;
+        }
+        // 关闭文件
+        file.close();
+        std::cout << "Data16 written to file successfully!" << std::endl;
+        return true;
+    } else {
+        std::cerr << "Unable to open file." << std::endl;
+        return false;
+    }
+}
+
 __global__ void pack_kernel(uint64_t nrowsPack,
                             uint32_t nOps,
                             uint32_t nArgs,
@@ -91,6 +127,9 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     writeDataToFile("numbers_2.txt", (uint64_t *)numbers_, parserParams.nNumbers*nrowsPack);
     writeDataToFile("publics2.txt", (uint64_t *)publics, starkInfo.nPublics*nrowsPack);
     writeDataToFile("evals2.txt", (uint64_t *)evals, params.evals.degree()*FIELD_EXTENSION*nrowsPack);
+
+    writeData8ToFile("ops2.txt", &parserArgs.ops[parserParams.opsOffset], parserArgs.nOps - parserParams.opsOffset);
+    writeData16ToFile("args2.txt", &parserArgs.args[parserParams.argsOffset], parserArgs.nArgs - parserParams.argsOffset);
 
     CHECKCUDAERR(cudaMalloc(&nColsStagesAcc_d, nColsStagesAcc.size() * sizeof(uint8_t)));
     CHECKCUDAERR(cudaMemcpy(nColsStagesAcc_d, nColsStagesAcc.data(), nColsStagesAcc.size() * sizeof(uint8_t), cudaMemcpyHostToDevice));
