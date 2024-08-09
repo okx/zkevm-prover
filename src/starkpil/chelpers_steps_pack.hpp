@@ -280,6 +280,7 @@ public:
 
 
             {
+                printf("debugi:%lu\n", i);
                 uint64_t size = 2*nCols*nrowsPack;
                 std::ofstream file("input.txt");
                 if (file.is_open()) {

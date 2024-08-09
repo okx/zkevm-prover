@@ -166,7 +166,8 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
     CHECKCUDAERR(cudaSetDevice(0));
 
-    Goldilocks::Element *bufferT_ = (Goldilocks::Element *)get_pinned_mem();
+    //Goldilocks::Element *bufferT_ = (Goldilocks::Element *)get_pinned_mem();
+    Goldilocks::Element bufferT_[2*nCols*nrowsPack*parallel];
     printf("ok0\n");
     gl64_t *bufferT_d;
     CHECKCUDAERR(cudaMalloc(&bufferT_d, 2*nCols*nrowsPack * sizeof(uint64_t)*parallel));
@@ -182,12 +183,13 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
     for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack*parallel) {
         printf("rows:%lu\n", i);
-#pragma omp parallel for
+//#pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
             loadPolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, i+nrowsPack*j, parserParams.stage, nrowsPack, domainExtended);
         }
 
         {
+            printf("debugi:%lu\n", i);
             uint64_t size = 2*nCols*nrowsPack;
             std::ofstream file("input2.txt");
             if (file.is_open()) {
