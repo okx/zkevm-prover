@@ -264,8 +264,8 @@ public:
             uint64_t i_args = 0;
 
             Goldilocks::Element bufferT_[2*nCols*nrowsPack];
-            for (uint64_t i=0; i<2*nCols*nrowsPack; i++) {
-                bufferT_[i] = Goldilocks::zero();
+            for (uint64_t k=0; k<2*nCols*nrowsPack; k++) {
+                bufferT_[k] = Goldilocks::zero();
             }
             Goldilocks::Element tmp1[parserParams.nTemp1*nrowsPack];
             Goldilocks::Element tmp3[parserParams.nTemp3*nrowsPack*FIELD_EXTENSION];
