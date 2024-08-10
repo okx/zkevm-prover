@@ -15,9 +15,8 @@
 
 bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t size) {
     // 打开文件
-    std::ofstream file(filename);
+    std::ofstream file(filename, std::ios_base::app);
     if (file.is_open()) {
-        file.seekp(0, std::ios::end);
         // 逐行写入数据
         for (size_t i = 0; i < size; i++) {
             file << data[i] << std::endl;
@@ -34,9 +33,8 @@ bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t s
 
 bool writeGoldilocksToFile(const std::string& filename, const Goldilocks::Element* data, size_t size) {
     // 打开文件
-    std::ofstream file(filename);
+    std::ofstream file(filename, std::ios_base::app);
     if (file.is_open()) {
-        file.seekp(0, std::ios::end);
         // 逐行写入数据
         for (size_t i = 0; i < size; i++) {
             file << Goldilocks::toU64(data[i]) << std::endl;
