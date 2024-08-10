@@ -180,7 +180,7 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     cleanupGPU();
 }
 
-const int64_t parallel = 1 << 15;
+const int64_t parallel = 1 << 14;
 #include <iostream>
 #include <fstream>
 #include <cstdint>
@@ -200,6 +200,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
        nrowsPack = 1;
     }
 
+    printf("nCols:%lu\n", nCols);
     printf("nrowsPack:%lu\n", nrowsPack);
     printf("buffer:%lu\n", 2*nCols*nrowsPack);
     printf("tmp1:%lu\n", parserParams.nTemp1*nrowsPack);

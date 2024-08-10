@@ -169,17 +169,17 @@ public:
         printf(">>>>>>>>>>>> stage:%u\n", parserParams.stage);
         printf("domainSize:%lu, nOps:%u\n", domainSize, parserArgs.nOps);
         printf("nConstants:%lu\n", starkInfo.nConstants);
-        printf("offsetsStages:\n");
+        printf("nColsStages:\n");
         for (uint64_t i = 0; i < 12; i++) {
-            printf("%lu\n", offsetsStages[i]);
-        }
-        printf("offsetsStages:\n");
-        for (uint64_t i = 0; i < 12; i++) {
-            printf("%lu\n", offsetsStages[i]);
+            printf("%lu\n", nColsStages[i]);
         }
         printf("nColsStagesAcc:\n");
         for (uint64_t i = 0; i < 12; i++) {
             printf("%lu\n", nColsStagesAcc[i]);
+        }
+        printf("offsetsStages:\n");
+        for (uint64_t i = 0; i < 12; i++) {
+            printf("%lu\n", offsetsStages[i]);
         }
         Goldilocks3::Element_avx challenges[params.challenges.degree()];
         Goldilocks3::Element_avx challenges_ops[params.challenges.degree()];
