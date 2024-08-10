@@ -19,7 +19,7 @@ bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t s
     if (file.is_open()) {
         // 逐行写入数据
         for (size_t i = 0; i < size; i++) {
-            file << data[i] << std::endl;
+            file << (data[i] % 18446744069414584321) << std::endl;
         }
         // 关闭文件
         file.close();
@@ -195,7 +195,6 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     CHECKCUDAERR(cudaSetDevice(0));
 
     Goldilocks::Element *bufferT_ = (Goldilocks::Element *)get_pinned_mem();
-    memset(bufferT_, 0, 2*nCols*nrowsPack*parallel*sizeof(uint64_t));
     //Goldilocks::Element bufferT_[2*nCols*nrowsPack*parallel];
     gl64_t *bufferT_d;
     CHECKCUDAERR(cudaMalloc(&bufferT_d, 2*nCols*nrowsPack * sizeof(uint64_t)*parallel));
@@ -211,7 +210,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
     for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack*parallel) {
         printf("rows:%lu\n", i);
-
+        memset(bufferT_, 0, 2*nCols*nrowsPack*parallel*sizeof(uint64_t));
 #pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
             loadPolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, i+nrowsPack*j, parserParams.stage, nrowsPack, domainExtended);
