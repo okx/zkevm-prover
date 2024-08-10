@@ -259,11 +259,14 @@ public:
 //        writeData16ToFile("args.txt", &parserArgs.args[parserParams.argsOffset], parserArgs.nArgs - parserParams.argsOffset);
 
     
-    #pragma omp parallel for
+    //#pragma omp parallel for
         for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack) {
             uint64_t i_args = 0;
 
             Goldilocks::Element bufferT_[2*nCols*nrowsPack];
+            for (uint64_t i=0; i<2*nCols*nrowsPack; i++) {
+                bufferT_[i] = Goldilocks::zero();
+            }
             Goldilocks::Element tmp1[parserParams.nTemp1*nrowsPack];
             Goldilocks::Element tmp3[parserParams.nTemp3*nrowsPack*FIELD_EXTENSION];
 
@@ -756,6 +759,14 @@ public:
                         exit(1);
                     }
                 }
+            }
+
+            printf("index:%lu\n", i/nrowsPack);
+            char buffer[100];
+            int n = std::snprintf(buffer, sizeof(buffer), "output-%lu.txt", i/nrowsPack);
+            writeDataToFile(std::string(buffer, n), (uint64_t *)bufferT_, 2*nCols*nrowsPack);
+            if ((i/nrowsPack) == 15) {
+                assert(0);
             }
 
             storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);

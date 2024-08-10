@@ -180,7 +180,7 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     cleanupGPU();
 }
 
-const int64_t parallel = 1 << 14;
+const int64_t parallel = 16;
 #include <iostream>
 #include <fstream>
 #include <cstdint>
@@ -213,6 +213,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     CHECKCUDAERR(cudaSetDevice(0));
 
     Goldilocks::Element *bufferT_ = (Goldilocks::Element *)get_pinned_mem();
+    memset(bufferT_, 0, 2*nCols*nrowsPack*parallel*sizeof(uint64_t));
     //Goldilocks::Element bufferT_[2*nCols*nrowsPack*parallel];
     gl64_t *bufferT_d;
     CHECKCUDAERR(cudaMalloc(&bufferT_d, 2*nCols*nrowsPack * sizeof(uint64_t)*parallel));
@@ -246,6 +247,14 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
         //writeDataToFile("output2.txt", (uint64 *)bufferT_, 2*nCols*nrowsPack);
         //assert(0);
+
+        for (uint64_t j = 0; j < parallel; j++) {
+            char buffer[100];
+            int n = std::snprintf(buffer, sizeof(buffer), "output2-%lu.txt", j);
+            writeDataToFile(std::string(buffer, n), (uint64_t *)bufferT_ + 2*nCols*nrowsPack*j, 2*nCols*nrowsPack);
+        }
+
+        assert(0);
 
 #pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
