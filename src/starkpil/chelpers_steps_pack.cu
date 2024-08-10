@@ -233,7 +233,10 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
             writeDataToFile("buffer2.txt", (uint64_t *)bufferT_ + 2*nCols*nrowsPack*j, 2*nCols*nrowsPack);
         }
 
-        assert(0);
+        if (i>0) {
+            assert(0);
+        }
+
 
 #pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
