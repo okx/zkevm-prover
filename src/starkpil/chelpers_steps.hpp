@@ -166,8 +166,21 @@ public:
         uint8_t *storePol = &parserArgs.storePols[parserParams.storePolsOffset];
 
         setBufferTInfo(starkInfo, parserParams.stage);
-        printf("stage:%u, nColsStages:%lu,nColsStagesAcc:%lu,offsetsStages:%lu\n", parserParams.stage, nColsStages[10], nColsStagesAcc[10], offsetsStages[10]);
+        printf(">>>>>>>>>>>> stage:%u\n", parserParams.stage);
         printf("domainSize:%lu, nOps:%u\n", domainSize, parserArgs.nOps);
+        printf("nConstants:%lu\n", starkInfo.nConstants);
+        printf("offsetsStages:\n");
+        for (uint64_t i = 0; i < 12; i++) {
+            printf("%lu\n", offsetsStages[i]);
+        }
+        printf("offsetsStages:\n");
+        for (uint64_t i = 0; i < 12; i++) {
+            printf("%lu\n", offsetsStages[i]);
+        }
+        printf("nColsStagesAcc:\n");
+        for (uint64_t i = 0; i < 12; i++) {
+            printf("%lu\n", nColsStagesAcc[i]);
+        }
         Goldilocks3::Element_avx challenges[params.challenges.degree()];
         Goldilocks3::Element_avx challenges_ops[params.challenges.degree()];
         for(uint64_t i = 0; i < params.challenges.degree(); ++i) {
