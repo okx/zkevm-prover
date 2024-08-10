@@ -610,11 +610,12 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
 //#endif
 
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
-        CHelpersStepsPackGPU cHelpersSteps;
+        CHelpersStepsPackGPU cHelpersStepsZkevm;
 #else
-        CHelpersStepsPack cHelpersSteps;
-        cHelpersSteps.nrowsPack = NROWS_PACK;
+        CHelpersSteps cHelpersStepsZkevm;
 #endif
+
+        CHelpersSteps cHelpersSteps;
 
         TimerStart(STARK_PROOF_BATCH_PROOF);
 
