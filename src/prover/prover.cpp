@@ -611,6 +611,7 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
 
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
         CHelpersStepsPackGPU cHelpersStepsZkevm;
+        //CHelpersSteps cHelpersStepsZkevm;
 #else
         CHelpersSteps cHelpersStepsZkevm;
 #endif
@@ -624,7 +625,7 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
         FRIProof fproof((1 << polBits), FIELD_EXTENSION, starkZkevm->starkInfo.starkStruct.steps.size(), starkZkevm->starkInfo.evMap.size(), starkZkevm->starkInfo.nPublics);
         
         if(USE_GENERIC_PARSER) {
-            starkZkevm->genProof(fproof, &publics[0], zkevmVerkey, &cHelpersSteps);
+            starkZkevm->genProof(fproof, &publics[0], zkevmVerkey, &cHelpersStepsZkevm);
         } else {
             starkZkevm->genProof(fproof, &publics[0], zkevmVerkey, &zkevmChelpersSteps);
         }
