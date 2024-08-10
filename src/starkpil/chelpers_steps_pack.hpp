@@ -12,8 +12,7 @@
 #include <cstdint>
 
 bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t size);
-bool writeData8ToFile(const std::string& filename, const uint8_t* data, size_t size);
-bool writeData16ToFile(const std::string& filename, const uint16_t* data, size_t size);
+bool writeGoldilocksToFile(const std::string& filename, const Goldilocks::Element data, size_t size);
 
 class CHelpersStepsPack : public CHelpersSteps {
 public:
@@ -761,10 +760,7 @@ public:
                 }
             }
 
-            printf("index:%lu\n", i/nrowsPack);
-            char buffer[100];
-            int n = std::snprintf(buffer, sizeof(buffer), "output-%lu.txt", i/nrowsPack);
-            writeDataToFile(std::string(buffer, n), (uint64_t *)bufferT_, 2*nCols*nrowsPack);
+            writeGoldilocksToFile("buffer.txt", bufferT_, 2*nCols*nrowsPack);
             if ((i/nrowsPack) == 15) {
                 assert(0);
             }

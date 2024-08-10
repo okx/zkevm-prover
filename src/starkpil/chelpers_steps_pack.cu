@@ -17,6 +17,7 @@ bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t s
     // 打开文件
     std::ofstream file(filename);
     if (file.is_open()) {
+        file.seekp(0, std::ios::end);
         // 逐行写入数据
         for (size_t i = 0; i < size; i++) {
             file << data[i] << std::endl;
@@ -31,35 +32,18 @@ bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t s
     }
 }
 
-bool writeData8ToFile(const std::string& filename, const uint8_t* data, size_t size) {
+bool writeGoldilocksToFile(const std::string& filename, const Goldilocks::Element* data, size_t size) {
     // 打开文件
     std::ofstream file(filename);
     if (file.is_open()) {
+        file.seekp(0, std::ios::end);
         // 逐行写入数据
         for (size_t i = 0; i < size; i++) {
-            file << uint64_t(data[i]) << std::endl;
+            file << Goldilocks::toU64(data[i]) << std::endl;
         }
         // 关闭文件
         file.close();
         std::cout << "Data8 written to file successfully!" << std::endl;
-        return true;
-    } else {
-        std::cerr << "Unable to open file." << std::endl;
-        return false;
-    }
-}
-
-bool writeData16ToFile(const std::string& filename, const uint16_t* data, size_t size) {
-    // 打开文件
-    std::ofstream file(filename);
-    if (file.is_open()) {
-        // 逐行写入数据
-        for (size_t i = 0; i < size; i++) {
-            file << uint64_t(data[i]) << std::endl;
-        }
-        // 关闭文件
-        file.close();
-        std::cout << "Data16 written to file successfully!" << std::endl;
         return true;
     } else {
         std::cerr << "Unable to open file." << std::endl;
@@ -249,9 +233,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         //assert(0);
 
         for (uint64_t j = 0; j < parallel; j++) {
-            char buffer[100];
-            int n = std::snprintf(buffer, sizeof(buffer), "output2-%lu.txt", j);
-            writeDataToFile(std::string(buffer, n), (uint64_t *)bufferT_ + 2*nCols*nrowsPack*j, 2*nCols*nrowsPack);
+            writeDataToFile("buffer2.txt", (uint64_t *)bufferT_ + 2*nCols*nrowsPack*j, 2*nCols*nrowsPack);
         }
 
         assert(0);
