@@ -234,15 +234,15 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
             loadPolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, i+nrowsPack*j, parserParams.stage, nrowsPack, domainExtended);
         }
 
-        TimerStart(Memcpy_H_to_D);
+        //TimerStart(Memcpy_H_to_D);
         CHECKCUDAERR(cudaMemcpy(bufferT_d, bufferT_, 2*nCols*nrowsPack * sizeof(uint64_t) *parallel, cudaMemcpyHostToDevice));
-        TimerStopAndLog(Memcpy_H_to_D);
-        TimerStart(Kernel_Func);
+        //TimerStopAndLog(Memcpy_H_to_D);
+        //TimerStart(Kernel_Func);
         pack_kernel<<<parallel/16,16>>>(nrowsPack, parserParams.nOps, parserParams.nArgs, 2*nCols*nrowsPack, parserParams.nTemp1*nrowsPack, parserParams.nTemp3*FIELD_EXTENSION*nrowsPack, tmp1_d, tmp3_d, nColsStagesAcc_d, &ops_d[parserParams.opsOffset], &args_d[parserParams.argsOffset], bufferT_d, challenges_d, challenges_ops_d, numbers_d, publics_d, evals_d);
-        TimerStopAndLog(Kernel_Func);
-        TimerStart(Memcpy_D_to_H);
+        //TimerStopAndLog(Kernel_Func);
+        //TimerStart(Memcpy_D_to_H);
         CHECKCUDAERR(cudaMemcpy(bufferT_, bufferT_d, 2*nCols*nrowsPack * sizeof(uint64_t) *parallel, cudaMemcpyDeviceToHost));
-        TimerStopAndLog(Memcpy_D_to_H);
+        //TimerStopAndLog(Memcpy_D_to_H);
 
         //writeDataToFile("output2.txt", (uint64 *)bufferT_, 2*nCols*nrowsPack);
         //assert(0);
