@@ -75,6 +75,9 @@ public:
                 bool isTmpPol = !domainExtended && s == 4;
                 for(uint64_t k = 0; k < nColsStages[s]; ++k) {
                     uint64_t dim = storePol[nColsStagesAcc[s] + k];
+                    if (isTmpPol) {
+                        printf("dim:%lu\n", dim);
+                    }
                     if(storePol[nColsStagesAcc[s] + k]) {
                         __m256i *buffT = &bufferT_[(nColsStagesAcc[s] + k)];
                         if(isTmpPol) {

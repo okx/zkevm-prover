@@ -193,6 +193,7 @@ public:
            nrowsPack = 1;
         }
 
+        printf("stage:%u\n", parserParams.stage);
         printf("nOps:%u\n", parserArgs.nOps);
         printf("nArgs:%u\n", parserArgs.nArgs);
         printf("nNumbers:%u\n", parserArgs.nNumbers);
