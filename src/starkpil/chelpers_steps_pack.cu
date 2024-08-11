@@ -233,7 +233,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
             writeDataToFile("buffer2.txt", (uint64_t *)bufferT_ + 2*nCols*nrowsPack*j, 2*nCols*nrowsPack);
         }
 
-        if (i>0) {
+        if ((i/nrowsPack) == 16) {
             assert(0);
         }
 
