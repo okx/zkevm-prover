@@ -162,7 +162,7 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     cleanupGPU();
 }
 
-const int64_t parallel = 1024;
+const int64_t parallel = 1<<14;
 #include <iostream>
 #include <fstream>
 #include <cstdint>
