@@ -162,7 +162,7 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     cleanupGPU();
 }
 
-const int64_t parallel = 16;
+const int64_t parallel = 1024;
 #include <iostream>
 #include <fstream>
 #include <cstdint>
@@ -233,7 +233,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
             writeDataToFile("buffer2.txt", (uint64_t *)bufferT_ + 2*nCols*nrowsPack*j, 2*nCols*nrowsPack);
         }
 
-        if ((i/nrowsPack) == 16) {
+        if (i == nrowsPack*parallel) {
             assert(0);
         }
 

@@ -761,7 +761,7 @@ public:
             }
 
             writeGoldilocksToFile("buffer.txt", bufferT_, 2*nCols*nrowsPack);
-            if ((i/nrowsPack) == 31) {
+            if ((i/nrowsPack) == 1024*2-1) {
                 assert(0);
             }
 
