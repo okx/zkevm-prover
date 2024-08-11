@@ -11,9 +11,6 @@
 #include <fstream>
 #include <cstdint>
 
-bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t size);
-bool writeGoldilocksToFile(const std::string& filename, const Goldilocks::Element* data, size_t size);
-
 class CHelpersStepsPack : public CHelpersSteps {
 public:
     uint64_t nrowsPack = 4;

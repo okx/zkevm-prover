@@ -247,6 +247,14 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     cudaFree(bufferT_d);
     cudaFree(tmp1_d);
     cudaFree(tmp3_d);
+
+    writeDataToFile("2-stage2.txt", (uint64_t *)params.pols + offsetsStages[2], nColsStages[2] * domainSize);
+    printf("save 2\n");
+    writeDataToFile("2-stage3.txt", (uint64_t *)params.pols + offsetsStages[3], nColsStages[3] * domainSize);
+    printf("save 3\n");
+    writeDataToFile("2-stage4.txt", (uint64_t *)params.pols + offsetsStages[4], nColsStages[4] * domainSize);
+    printf("save 4\n");
+    assert(0);
 }
 
 __global__ void pack_kernel(uint64_t nrowsPack,
