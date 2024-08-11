@@ -18,6 +18,7 @@ bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t s
     std::ofstream file(filename, std::ios_base::app);
     if (file.is_open()) {
         // 逐行写入数据
+        file << std::hex;
         for (size_t i = 0; i < size; i++) {
             file << (data[i] % 18446744069414584321) << std::endl;
         }
