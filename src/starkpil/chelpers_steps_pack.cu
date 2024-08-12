@@ -62,7 +62,7 @@ void check_eq(const std::string& name, const uint64_t *a, const uint64_t *b, siz
 void check_eq(const std::string& name, const uint16_t *a, const uint16_t *b, uint32_t n) {
     for (uint64_t i=0; i<n; i++) {
         if (a[i] != b[i]) {
-            printf("name:%s, i:%lu, left:%lu, right:%lu\n", name, i, a[i], b[i]);
+            printf("name:%s, i:%lu, left:%u, right:%u\n", name, i, a[i], b[i]);
             assert(0);
         }
     }
@@ -71,7 +71,7 @@ void check_eq(const std::string& name, const uint16_t *a, const uint16_t *b, uin
 void check_eq(const std::string& name, const uint8_t *a, const uint8_t *b, uint32_t n) {
     for (uint64_t i=0; i<n; i++) {
         if (a[i] != b[i]) {
-            printf("name:%s, i:%lu, left:%lu, right:%lu\n", name, i, a[i], b[i]);
+            printf("name:%s, i:%lu, left:%u, right:%u\n", name, i, a[i], b[i]);
             assert(0);
         }
     }
