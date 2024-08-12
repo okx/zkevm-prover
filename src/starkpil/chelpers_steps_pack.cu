@@ -98,7 +98,7 @@ __global__ void pack_kernel(uint64_t nrowsPack,
                             gl64_t *publics,
                             gl64_t *evals);
 
-const int64_t parallel = 1;
+const int64_t parallel = 1024;
 
 void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
     prepare(starkInfo, params, parserArgs, parserParams);
@@ -192,19 +192,19 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
 
     bool domainExtended = parserParams.stage > 3 ? true : false;
     uint64_t domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
-    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*parallel);
+    //calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*parallel);
     calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*parallel);
     cleanupGPU();
-    for (uint64_t i = 0; i<2*nCols*nrowsPack; i++) {
-        if (Goldilocks::toU64(input[i]) != Goldilocks::toU64(cudaInput[i])) {
-            printf("input not equal, i:%lu, left:%lu, right:%lu\n", i, Goldilocks::toU64(input[i]), Goldilocks::toU64(cudaInput[i]));
-            assert(0);
-        }
-        if (Goldilocks::toU64(output[i]) != Goldilocks::toU64(cudaOutput[i])) {
-            printf("output not equal, i:%lu, left:%lu, right:%lu\n", i, Goldilocks::toU64(output[i]), Goldilocks::toU64(cudaOutput[i]));
-            assert(0);
-        }
-    }
+//    for (uint64_t i = 0; i<2*nCols*nrowsPack; i++) {
+//        if (Goldilocks::toU64(input[i]) != Goldilocks::toU64(cudaInput[i])) {
+//            printf("input not equal, i:%lu, left:%lu, right:%lu\n", i, Goldilocks::toU64(input[i]), Goldilocks::toU64(cudaInput[i]));
+//            assert(0);
+//        }
+//        if (Goldilocks::toU64(output[i]) != Goldilocks::toU64(cudaOutput[i])) {
+//            printf("output not equal, i:%lu, left:%lu, right:%lu\n", i, Goldilocks::toU64(output[i]), Goldilocks::toU64(cudaOutput[i]));
+//            assert(0);
+//        }
+//    }
     calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*parallel, domainSize);
 }
 
@@ -289,10 +289,14 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
             writeDataToFile("output2.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
         }
 
+        if (change) {
 #pragma omp parallel for
-        for (uint64_t j = 0; j < parallel; j++) {
-            storePolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, storePol, i+nrowsPack*j, nrowsPack, domainExtended);
+            for (uint64_t j = 0; j < parallel; j++) {
+                storePolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, storePol, i+nrowsPack*j, nrowsPack, domainExtended);
+            }
         }
+
+
     }
 
     cudaFree(bufferT_d);

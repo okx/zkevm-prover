@@ -13,6 +13,7 @@
 
 class CHelpersStepsPack : public CHelpersSteps {
 public:
+    bool change = true;
     uint64_t nrowsPack = 4;
     uint64_t nCols;
     vector<uint64_t> nColsStages;
@@ -788,7 +789,7 @@ public:
                 memcpy(output, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
                 writeDataToFile("output.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
             }
-            if (i != 0) {
+            if (change) {
                 storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
             }
 
