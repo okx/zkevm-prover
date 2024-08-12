@@ -84,7 +84,7 @@ public:
 
     inline virtual void prepare(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
         challenges = (Goldilocks::Element *)malloc(params.challenges.degree()*FIELD_EXTENSION*nrowsPack*sizeof(Goldilocks::Element));
-        Gchallenges_ops = (oldilocks::Element *)malloc(params.challenges.degree()*FIELD_EXTENSION*nrowsPack*sizeof(Goldilocks::Element));
+        challenges_ops = (Goldilocks::Element *)malloc(params.challenges.degree()*FIELD_EXTENSION*nrowsPack*sizeof(Goldilocks::Element));
         for(uint64_t i = 0; i < params.challenges.degree(); ++i) {
             for(uint64_t j = 0; j < nrowsPack; ++j) {
                 challenges[(i*FIELD_EXTENSION)*nrowsPack + j] = params.challenges[i][0];
