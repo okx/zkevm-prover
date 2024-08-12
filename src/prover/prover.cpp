@@ -741,6 +741,7 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
     }
 
     TimerStopAndLog(PROVER_BATCH_PROOF);
+    assert(0);
 }
 
 void Prover::genAggregatedProof(ProverRequest *pProverRequest)
