@@ -172,7 +172,22 @@ public:
 
     inline virtual void loadPolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint64_t row, uint64_t stage, uint64_t nrowsPack, uint64_t domainExtended) {
         printf("into loadPolinomials, row:%lu, stage:%lu, nrowsPack:%lu, domainExtended:%lu\n", row, stage, nrowsPack, domainExtended);
+        printf("nConstants:%lu\n", starkInfo.nConstants);
+        printf("nColsStages:\n");
+        for (uint64_t i = 0; i < 12; i++) {
+            printf("%lu\n", nColsStages[i]);
+        }
+        printf("nColsStagesAcc:\n");
+        for (uint64_t i = 0; i < 12; i++) {
+            printf("%lu\n", nColsStagesAcc[i]);
+        }
+        printf("offsetsStages:\n");
+        for (uint64_t i = 0; i < 12; i++) {
+            printf("%lu\n", offsetsStages[i]);
+        }
         ConstantPolsStarks *constPols = domainExtended ? params.pConstPols2ns : params.pConstPols;
+        printf("constPols pointer:%p\n", constPols->address());
+        printf("pols pointer:%p\n", params.pols);
         uint64_t domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
         Polinomial &x = domainExtended ? params.x_2ns : params.x_n;
         uint64_t nStages = 3;
