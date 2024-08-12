@@ -50,6 +50,33 @@ bool writeGoldilocksToFile(const std::string& filename, const Goldilocks::Elemen
     }
 }
 
+void check_eq(std::string& name, const uint64_t *a, const uint64_t *b, uint64_t n) {
+    for (uint64_t i=0; i<n; i++) {
+        if (a[i] != b[i]) {
+            printf("name:%s, i:%lu, left:%lu, right:%lu\n", name, i, a[i], b[i]);
+            assert(0);
+        }
+    }
+}
+
+void check_eq(std::string& name, const uint16_t *a, const uint16_t *b, uint64_t n) {
+    for (uint64_t i=0; i<n; i++) {
+        if (a[i] != b[i]) {
+            printf("name:%s, i:%lu, left:%lu, right:%lu\n", name, i, a[i], b[i]);
+            assert(0);
+        }
+    }
+}
+
+void check_eq(std::string& name, const uint8_t *a, const uint8_t *b, uint64_t n) {
+    for (uint64_t i=0; i<n; i++) {
+        if (a[i] != b[i]) {
+            printf("name:%s, i:%lu, left:%lu, right:%lu\n", name, i, a[i], b[i]);
+            assert(0);
+        }
+    }
+}
+
 __global__ void pack_kernel(uint64_t nrowsPack,
                             uint32_t nOps,
                             uint32_t nArgs,
@@ -106,6 +133,35 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     CHECKCUDAERR(cudaMalloc(&evals_d, evals.size() * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMemcpy(evals_d, evals.data(), evals.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+
+
+    ops2 = (uint8_t *)malloc(parserArgs.nOps *sizeof(uint8_t));
+    CHECKCUDAERR(cudaMemcpy(ops2, ops_d, parserArgs.nOps * sizeof(uint8_t), cudaMemcpyDeviceToHost));
+    check_eq("ops", ops, ops2, parserArgs.nOps);
+
+    args2 = (uint16_t *)malloc(parserArgs.nArgs *sizeof(uint16_t));
+    CHECKCUDAERR(cudaMemcpy(args2, args_d, parserArgs.nArgs * sizeof(uint16_t), cudaMemcpyDeviceToHost));
+    check_eq("args", args, args2, parserArgs.nArgs);
+
+    challenges2.resize(params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
+    CHECKCUDAERR(cudaMemcpy(challenges2.data(), challenges_d, challenges2.size() * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    check_eq("challenges", challenges, challenges2, challenges2.size());
+
+    challenges_ops2.resize(params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
+    CHECKCUDAERR(cudaMemcpy(challenges_ops2.data(), challenges_ops_d, challenges_ops2.size() * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    check_eq("challenges_ops", challenges_ops, challenges_ops2, challenges_ops2.size());
+
+    numbers_2.resize(parserParams.nNumbers*nrowsPack);
+    CHECKCUDAERR(cudaMemcpy(numbers_2.data(), numbers_d, numbers_2.size() * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    check_eq("numbers_", numbers_, numbers_2, numbers_2.size());
+
+    publics2.resize(starkInfo.nPublics*nrowsPack);
+    CHECKCUDAERR(cudaMemcpy(publics2.data(), publics_d, publics2.size() * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    check_eq("publics", publics, publics2, publics2.size());
+
+    evals2.resize(params.evals.degree()*FIELD_EXTENSION*nrowsPack);
+    CHECKCUDAERR(cudaMemcpy(evals2.data(), evals_d, evals2.size() * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    check_eq("evals", evals, evals2, evals2.size());
 }
 
 void CHelpersStepsPackGPU::cleanupGPU() {
