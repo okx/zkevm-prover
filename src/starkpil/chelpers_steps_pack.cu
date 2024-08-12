@@ -159,8 +159,10 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
 
     bool domainExtended = parserParams.stage > 3 ? true : false;
     uint64_t domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
-    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, domainSize);
+    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*parallel);
     cleanupGPU();
+    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*parallel, domainSize);
+
 }
 
 const int64_t parallel = 1<<14;
@@ -249,13 +251,13 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     cudaFree(tmp1_d);
     cudaFree(tmp3_d);
 
-    writeDataToFile("2-stage2.txt", (uint64_t *)params.pols + offsetsStages[2], nColsStages[2] * domainSize);
-    printf("save 2\n");
-    writeDataToFile("2-stage3.txt", (uint64_t *)params.pols + offsetsStages[3], nColsStages[3] * domainSize);
-    printf("save 3\n");
-    writeDataToFile("2-stage4.txt", (uint64_t *)params.pols + offsetsStages[4], nColsStages[4] * domainSize);
-    printf("save 4\n");
-    assert(0);
+//    writeDataToFile("2-stage2.txt", (uint64_t *)params.pols + offsetsStages[2], nColsStages[2] * domainSize);
+//    printf("save 2\n");
+//    writeDataToFile("2-stage3.txt", (uint64_t *)params.pols + offsetsStages[3], nColsStages[3] * domainSize);
+//    printf("save 3\n");
+//    writeDataToFile("2-stage4.txt", (uint64_t *)params.pols + offsetsStages[4], nColsStages[4] * domainSize);
+//    printf("save 4\n");
+//    assert(0);
 }
 
 __global__ void pack_kernel(uint64_t nrowsPack,

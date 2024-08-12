@@ -256,7 +256,7 @@ public:
 //        writeData16ToFile("args.txt", &parserArgs.args[parserParams.argsOffset], parserArgs.nArgs - parserParams.argsOffset);
 
     
-    //#pragma omp parallel for
+    #pragma omp parallel for
         for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack) {
             uint64_t i_args = 0;
 
@@ -758,10 +758,10 @@ public:
                 }
             }
 
-            writeGoldilocksToFile("buffer.txt", bufferT_, 2*nCols*nrowsPack);
-            if ((i/nrowsPack) == 1024*2-1) {
-                assert(0);
-            }
+//            writeGoldilocksToFile("buffer.txt", bufferT_, 2*nCols*nrowsPack);
+//            if ((i/nrowsPack) == 1024*2-1) {
+//                assert(0);
+//            }
 
             storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
             if (i_args != parserParams.nArgs) std::cout << " " << i_args << " - " << parserParams.nArgs << std::endl;
