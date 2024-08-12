@@ -171,7 +171,6 @@ public:
     }
 
     inline virtual void loadPolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint64_t row, uint64_t stage, uint64_t nrowsPack, uint64_t domainExtended) {
-        printf("into loadPolinomials, row:%lu, stage:%lu, nrowsPack:%lu, domainExtended:%lu\n", row, stage, nrowsPack, domainExtended);
         ConstantPolsStarks *constPols = domainExtended ? params.pConstPols2ns : params.pConstPols;
         uint64_t domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
         Polinomial &x = domainExtended ? params.x_2ns : params.x_n;
@@ -289,11 +288,12 @@ public:
             Goldilocks::Element tmp1[parserParams.nTemp1*nrowsPack];
             Goldilocks::Element tmp3[parserParams.nTemp3*nrowsPack*FIELD_EXTENSION];
 
-            printf("loadPolinomials from pack\n");
             loadPolinomials(starkInfo, params, bufferT_, i, parserParams.stage, nrowsPack, domainExtended);
 
-            memcpy(input, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
-            writeDataToFile("input.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
+            if (i == 0) {
+                memcpy(input, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
+                writeDataToFile("input.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
+            }
 
             for (uint64_t kk = 0; kk < parserParams.nOps; ++kk) {
                 switch (ops[kk]) {

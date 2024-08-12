@@ -257,7 +257,6 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         memset(bufferT_, 0, 2*nCols*nrowsPack*parallel*sizeof(uint64_t));
 #pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
-            printf("loadPolinomials from cuda\n");
             loadPolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, i+nrowsPack*j, parserParams.stage, nrowsPack, domainExtended);
         }
 
@@ -288,8 +287,10 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 //            assert(0);
 //        }
 
-        memcpy(cudaOutput, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
-        writeDataToFile("output2.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
+        if (i == 0) {
+            memcpy(cudaOutput, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
+            writeDataToFile("output2.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
+        }
 
 #pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
