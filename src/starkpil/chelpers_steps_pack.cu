@@ -51,30 +51,30 @@ bool writeGoldilocksToFile(const std::string& filename, const Goldilocks::Elemen
 }
 
 void check_eq(const std::string& name, const uint64_t *a, const uint64_t *b, size_t n) {
-    printf("check %s\n", name);
+    printf("check %s, n%lu\n", name.c_str(), n);
     for (uint64_t i=0; i<n; i++) {
         if (a[i] != b[i]) {
-            printf("name:%s, i:%lu, left:%lu, right:%lu\n", name, i, a[i], b[i]);
+            printf("name:%s, i:%lu, left:%lu, right:%lu\n", name.c_str(), i, a[i], b[i]);
             assert(0);
         }
     }
 }
 
 void check_eq(const std::string& name, const uint16_t *a, const uint16_t *b, uint32_t n) {
-    printf("check %s\n", name);
+    printf("check %s, n:%u\n", name.c_str(), n);
     for (uint64_t i=0; i<n; i++) {
         if (a[i] != b[i]) {
-            printf("name:%s, i:%lu, left:%u, right:%u\n", name, i, a[i], b[i]);
+            printf("name:%s, i:%lu, left:%u, right:%u\n", name.c_str(), i, a[i], b[i]);
             assert(0);
         }
     }
 }
 
 void check_eq(const std::string& name, const uint8_t *a, const uint8_t *b, uint32_t n) {
-    printf("check %s\n", name);
+    printf("check %s, n:%u\n", name.c_str(), n);
     for (uint64_t i=0; i<n; i++) {
         if (a[i] != b[i]) {
-            printf("name:%s, i:%lu, left:%u, right:%u\n", name, i, a[i], b[i]);
+            printf("name:%s, i:%lu, left:%u, right:%u\n", name.c_str(), i, a[i], b[i]);
             assert(0);
         }
     }
@@ -137,13 +137,13 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     CHECKCUDAERR(cudaMalloc(&evals_d, evals.size() * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMemcpy(evals_d, evals.data(), evals.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
-    ops2 = (uint8_t *)malloc(parserArgs.nOps *sizeof(uint8_t));
-    CHECKCUDAERR(cudaMemcpy(ops2, ops_d, parserArgs.nOps * sizeof(uint8_t), cudaMemcpyDeviceToHost));
-    check_eq("ops", ops, ops2, parserArgs.nOps);
-
     args2 = (uint16_t *)malloc(parserArgs.nArgs *sizeof(uint16_t));
     CHECKCUDAERR(cudaMemcpy(args2, args_d, parserArgs.nArgs * sizeof(uint16_t), cudaMemcpyDeviceToHost));
     check_eq("args", args, args2, parserArgs.nArgs);
+
+    ops2 = (uint8_t *)malloc(parserArgs.nOps *sizeof(uint8_t));
+    CHECKCUDAERR(cudaMemcpy(ops2, ops_d, parserArgs.nOps * sizeof(uint8_t), cudaMemcpyDeviceToHost));
+    check_eq("ops", ops, ops2, parserArgs.nOps);
 
     challenges2.resize(params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
     CHECKCUDAERR(cudaMemcpy(challenges2.data(), challenges_d, challenges2.size() * sizeof(uint64_t), cudaMemcpyDeviceToHost));
