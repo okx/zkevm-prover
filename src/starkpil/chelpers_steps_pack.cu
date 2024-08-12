@@ -241,6 +241,15 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 //            assert(0);
 //        }
 
+        uint64_t count = 0;
+        for (uint64_t j = 0; j < 2*nCols*nrowsPack; j++) {
+            if (((uint64_t *)bufferT_)[j] >= 18446744069414584321) {
+                count++;
+            }
+            bufferT_[j] = Goldilocks::fromU64(((uint64_t *)bufferT_)[j] % 18446744069414584321);
+        }
+        printf("count:%lu\n", count);
+
 
 #pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
