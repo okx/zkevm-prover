@@ -139,11 +139,11 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     args2 = (uint16_t *)malloc(parserArgs.nArgs *sizeof(uint16_t));
     CHECKCUDAERR(cudaMemcpy(args2, args_d, parserArgs.nArgs * sizeof(uint16_t), cudaMemcpyDeviceToHost));
-    check_eq("args", args, args2, parserArgs.nArgs);
+    check_eq("args", args, args2+parserParams.argsOffset, parserArgs.nArgs-parserParams.argsOffset);
 
-    ops2 = (uint8_t *)malloc(parserArgs.nOps *sizeof(uint8_t));
+    ops2 = (uint8_t *)malloc(parserArgs.nOps*sizeof(uint8_t));
     CHECKCUDAERR(cudaMemcpy(ops2, ops_d, parserArgs.nOps * sizeof(uint8_t), cudaMemcpyDeviceToHost));
-    check_eq("ops", ops, ops2, parserArgs.nOps);
+    check_eq("ops", ops, ops2+parserParams.opsOffset, parserArgs.nOps-parserParams.opsOffset);
 
     challenges2.resize(params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
     CHECKCUDAERR(cudaMemcpy(challenges2.data(), challenges_d, challenges2.size() * sizeof(uint64_t), cudaMemcpyDeviceToHost));

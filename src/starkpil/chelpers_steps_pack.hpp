@@ -123,6 +123,10 @@ public:
             }
         }
 
+        ops = &parserArgs.ops[parserParams.opsOffset];
+        args = &parserArgs.args[parserParams.argsOffset];
+        storePol = &parserArgs.storePols[parserParams.storePolsOffset];
+
         gBuffer = (Goldilocks::Element *)malloc(2*nCols*nrowsPack* sizeof(Goldilocks::Element));
     }
 
@@ -232,9 +236,6 @@ public:
     
         bool domainExtended = parserParams.stage > 3 ? true : false;
         uint64_t domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
-        ops = &parserArgs.ops[parserParams.opsOffset];
-        args = &parserArgs.args[parserParams.argsOffset];
-        storePol = &parserArgs.storePols[parserParams.storePolsOffset];
 
         if(rowEnd < rowIni || rowEnd > domainSize) {
             zklog.info("Invalid range for rowIni and rowEnd");
