@@ -155,7 +155,7 @@ void CHelpersStepsPackGPU::cleanupGPU() {
 const int64_t parallel = 1<<14;
 
 void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
-
+    printf("into cuda calculateExpressions...\n");
     setBufferTInfo(starkInfo, parserParams.stage);
     prepareGPU(starkInfo, params, parserArgs, parserParams);
 
