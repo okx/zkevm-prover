@@ -197,11 +197,11 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     cleanupGPU();
     for (uint64_t i = 0; i<2*nCols*nrowsPack; i++) {
         if (Goldilocks::toU64(input[i]) != Goldilocks::toU64(cudaInput[i])) {
-            printf("input not equal, p:%lu, i:%lu, left:%lu, right:%lu\n", p, i, Goldilocks::toU64(input[i]), Goldilocks::toU64(cudaInput[i]));
+            printf("input not equal, i:%lu, left:%lu, right:%lu\n", i, Goldilocks::toU64(input[i]), Goldilocks::toU64(cudaInput[i]));
             assert(0);
         }
         if (Goldilocks::toU64(output[i]) != Goldilocks::toU64(cudaOutput[i])) {
-            printf("output not equal, p:%lu, i:%lu, left:%lu, right:%lu\n", p, i, Goldilocks::toU64(output[i]), Goldilocks::toU64(cudaOutput[i]));
+            printf("output not equal, i:%lu, left:%lu, right:%lu\n", i, Goldilocks::toU64(output[i]), Goldilocks::toU64(cudaOutput[i]));
             assert(0);
         }
     }
