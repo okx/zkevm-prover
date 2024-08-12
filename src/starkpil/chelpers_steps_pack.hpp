@@ -29,6 +29,8 @@ public:
     vector<Goldilocks::Element> publics;
     vector<Goldilocks::Element> evals;
 
+    Goldilocks::Element *gBuffer
+
     using CHelpersSteps::storePolinomials;  // Just to avoid compiation warnings
     using CHelpersSteps::loadPolinomials;   // Just to avoid compiation warnings
 
@@ -120,6 +122,8 @@ public:
                 evals[(i*FIELD_EXTENSION + 2)*nrowsPack + j] = params.evals[i][2];
             }
         }
+
+        gBuffer = (Goldilocks::Element *)malloc(2*nCols*nrowsPack* sizeof(Goldilocks::Element));
     }
 
     inline virtual void storePolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint8_t* storePol, uint64_t row, uint64_t nrowsPack, uint64_t domainExtended) {
@@ -774,6 +778,9 @@ public:
 //            if ((i/nrowsPack) == 1024*2-1) {
 //                assert(0);
 //            }
+            if (i == rowEnd-nrowsPack) {
+                memcpy(gBuffer, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
+            }
 
             storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
             if (i_args != parserParams.nArgs) std::cout << " " << i_args << " - " << parserParams.nArgs << std::endl;

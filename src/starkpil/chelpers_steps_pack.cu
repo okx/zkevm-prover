@@ -68,44 +68,11 @@ __global__ void pack_kernel(uint64_t nrowsPack,
                             gl64_t *publics,
                             gl64_t *evals);
 
+const int64_t parallel = 1<<14;
+
 void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
-
-    Goldilocks::Element challenges[params.challenges.degree()*FIELD_EXTENSION*nrowsPack];
-    Goldilocks::Element challenges_ops[params.challenges.degree()*FIELD_EXTENSION*nrowsPack];
-    for(uint64_t i = 0; i < params.challenges.degree(); ++i) {
-        for(uint64_t j = 0; j < nrowsPack; ++j) {
-            challenges[(i*FIELD_EXTENSION)*nrowsPack + j] = params.challenges[i][0];
-            challenges[(i*FIELD_EXTENSION + 1)*nrowsPack + j] = params.challenges[i][1];
-            challenges[(i*FIELD_EXTENSION + 2)*nrowsPack + j] = params.challenges[i][2];
-            challenges_ops[(i*FIELD_EXTENSION)*nrowsPack + j] = params.challenges[i][0] + params.challenges[i][1];
-            challenges_ops[(i*FIELD_EXTENSION + 1)*nrowsPack + j] = params.challenges[i][0] + params.challenges[i][2];
-            challenges_ops[(i*FIELD_EXTENSION + 2)*nrowsPack + j] = params.challenges[i][1] + params.challenges[i][2];
-        }
-    }
-
-    Goldilocks::Element numbers_[parserParams.nNumbers*nrowsPack];
-    for(uint64_t i = 0; i < parserParams.nNumbers; ++i) {
-        for(uint64_t j = 0; j < nrowsPack; ++j) {
-            numbers_[i*nrowsPack + j] = Goldilocks::fromU64(parserArgs.numbers[parserParams.numbersOffset+i]);
-        }
-    }
-
-    Goldilocks::Element publics[starkInfo.nPublics*nrowsPack];
-    for(uint64_t i = 0; i < starkInfo.nPublics; ++i) {
-        for(uint64_t j = 0; j < nrowsPack; ++j) {
-            publics[i*nrowsPack + j] = params.publicInputs[i];
-        }
-    }
-
-    Goldilocks::Element evals[params.evals.degree()*FIELD_EXTENSION*nrowsPack];
-    for(uint64_t i = 0; i < params.evals.degree(); ++i) {
-        for(uint64_t j = 0; j < nrowsPack; ++j) {
-            evals[(i*FIELD_EXTENSION)*nrowsPack + j] = params.evals[i][0];
-            evals[(i*FIELD_EXTENSION + 1)*nrowsPack + j] = params.evals[i][1];
-            evals[(i*FIELD_EXTENSION + 2)*nrowsPack + j] = params.evals[i][2];
-        }
-    }
-
+    prepare(starkInfo, params, parserArgs, parserParams);
+    pBuffer = (Goldilocks::Element *)malloc(2*nCols*nrowsPack * sizeof(uint64_t)*parallel));
 //    writeDataToFile("challenges2.txt", (uint64_t *)challenges, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
 //    writeDataToFile("challenges_ops2.txt", (uint64_t *)challenges_ops, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
 //    writeDataToFile("numbers_2.txt", (uint64_t *)numbers_, parserParams.nNumbers*nrowsPack);
@@ -125,20 +92,20 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 //    writeData8ToFile("ops2.txt", &parserArgs.ops[parserParams.opsOffset], parserArgs.nOps - parserParams.opsOffset);
 //    writeData16ToFile("args2.txt", &parserArgs.args[parserParams.argsOffset], parserArgs.nArgs - parserParams.argsOffset);
 
-    CHECKCUDAERR(cudaMalloc(&challenges_d, params.challenges.degree()*FIELD_EXTENSION*nrowsPack * sizeof(uint64_t)));
-    CHECKCUDAERR(cudaMemcpy(challenges_d, challenges, params.challenges.degree()*FIELD_EXTENSION*nrowsPack * sizeof(uint64_t), cudaMemcpyHostToDevice));
+    CHECKCUDAERR(cudaMalloc(&challenges_d, challenges.size() * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMemcpy(challenges_d, challenges.data(), challenges.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
-    CHECKCUDAERR(cudaMalloc(&challenges_ops_d, params.challenges.degree()*FIELD_EXTENSION*nrowsPack * sizeof(uint64_t)));
-    CHECKCUDAERR(cudaMemcpy(challenges_ops_d, challenges_ops, params.challenges.degree()*FIELD_EXTENSION*nrowsPack * sizeof(uint64_t), cudaMemcpyHostToDevice));
+    CHECKCUDAERR(cudaMalloc(&challenges_ops_d, challenges_ops.size() * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMemcpy(challenges_ops_d, challenges_ops.data(), challenges_ops.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
-    CHECKCUDAERR(cudaMalloc(&numbers_d, parserParams.nNumbers*nrowsPack * sizeof(uint64_t)));
-    CHECKCUDAERR(cudaMemcpy(numbers_d, numbers_, parserParams.nNumbers*nrowsPack * sizeof(uint64_t), cudaMemcpyHostToDevice));
+    CHECKCUDAERR(cudaMalloc(&numbers_d, numbers_.size() * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMemcpy(numbers_d, numbers_.data(), numbers_.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
-    CHECKCUDAERR(cudaMalloc(&publics_d, starkInfo.nPublics*nrowsPack * sizeof(uint64_t)));
-    CHECKCUDAERR(cudaMemcpy(publics_d, publics, starkInfo.nPublics*nrowsPack * sizeof(uint64_t), cudaMemcpyHostToDevice));
+    CHECKCUDAERR(cudaMalloc(&publics_d, publics.size() * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMemcpy(publics_d, publics.data(), publics.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
-    CHECKCUDAERR(cudaMalloc(&evals_d, params.evals.degree()*FIELD_EXTENSION*nrowsPack * sizeof(uint64_t)));
-    CHECKCUDAERR(cudaMemcpy(evals_d, evals, params.challenges.degree()*FIELD_EXTENSION*nrowsPack * sizeof(uint64_t), cudaMemcpyHostToDevice));
+    CHECKCUDAERR(cudaMalloc(&evals_d, evals.size() * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMemcpy(evals_d, evals.data(), evals.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 }
 
 void CHelpersStepsPackGPU::cleanupGPU() {
@@ -152,8 +119,6 @@ void CHelpersStepsPackGPU::cleanupGPU() {
     cudaFree(evals_d);
 }
 
-const int64_t parallel = 1<<14;
-
 void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
     printf("into cuda calculateExpressions...\n");
     setBufferTInfo(starkInfo, parserParams.stage);
@@ -163,6 +128,15 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     uint64_t domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
     calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*parallel);
     cleanupGPU();
+    for (uint64_t p = 0; p < parallel; p++) {
+        calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*p, nrowsPack*(p+1));
+        for (uint64_t i = 0; i<2*nCols*nrowsPack; i++) {
+            if (Goldilocks::toU64(gBuffer[i]) != Goldilocks::toU64(pBuffer[p*2*nCols*nrowsPack+i])) {
+                printf("p:%lu, i:%lu, left:%lu, right:%lu\n", p, i, Goldilocks::toU64(gBuffer[i]), Goldilocks::toU64(pBuffer[p*2*nCols*nrowsPack+i]));
+                assert(0);
+            }
+        }
+    }
     calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*parallel, domainSize);
 
 }
@@ -241,15 +215,9 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 //            assert(0);
 //        }
 
-        uint64_t count = 0;
-        for (uint64_t j = 0; j < 2*nCols*nrowsPack; j++) {
-            if (((uint64_t *)bufferT_)[j] >= 18446744069414584321) {
-                count++;
-            }
-            bufferT_[j] = Goldilocks::fromU64(((uint64_t *)bufferT_)[j] % 18446744069414584321);
+        if (i == rowEnd - nrowsPack*parallel) {
+            memcpy(pBuffer, bufferT_, 2*nCols*nrowsPack * sizeof(uint64_t)*parallel));
         }
-        printf("count:%lu\n", count);
-
 
 #pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
