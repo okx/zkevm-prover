@@ -192,7 +192,7 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
 
     bool domainExtended = parserParams.stage > 3 ? true : false;
     uint64_t domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
-    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*p, nrowsPack*(p+1));
+    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*parallel);
     calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*parallel);
     cleanupGPU();
     for (uint64_t i = 0; i<2*nCols*nrowsPack; i++) {
