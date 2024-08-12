@@ -788,10 +788,10 @@ public:
                 memcpy(output, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
                 writeDataToFile("output.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
             }
+            if (i != 0) {
+                storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
+            }
 
-
-
-            storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
             if (i_args != parserParams.nArgs) std::cout << " " << i_args << " - " << parserParams.nArgs << std::endl;
             assert(i_args == parserParams.nArgs);
         }
