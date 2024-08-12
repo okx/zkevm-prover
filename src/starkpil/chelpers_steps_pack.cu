@@ -98,7 +98,7 @@ __global__ void pack_kernel(uint64_t nrowsPack,
                             gl64_t *publics,
                             gl64_t *evals);
 
-const int64_t parallel = 1024;
+const int64_t parallel = 1<<14;
 
 void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
     prepare(starkInfo, params, parserArgs, parserParams);
@@ -193,7 +193,7 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     bool domainExtended = parserParams.stage > 3 ? true : false;
     uint64_t domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
     //calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*parallel);
-    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*parallel);
+    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, domainSize);
     cleanupGPU();
 //    for (uint64_t i = 0; i<2*nCols*nrowsPack; i++) {
 //        if (Goldilocks::toU64(input[i]) != Goldilocks::toU64(cudaInput[i])) {
@@ -205,7 +205,7 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
 //            assert(0);
 //        }
 //    }
-    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*parallel, domainSize);
+    //calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*parallel, domainSize);
 }
 
 #include <iostream>
