@@ -216,7 +216,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 //        }
 
         if (i == rowEnd - nrowsPack*parallel) {
-            writeDataToFile("buffer2.txt", (uint64 *)bufferT, 2*nCols*nrowsPack);
+            writeDataToFile("buffer2.txt", (uint64 *)bufferT_, 2*nCols*nrowsPack);
             memcpy(pBuffer, bufferT_, 2*nCols*nrowsPack * sizeof(uint64_t)*parallel);
         }
 
