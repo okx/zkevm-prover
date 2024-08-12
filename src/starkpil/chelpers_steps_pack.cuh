@@ -21,6 +21,7 @@ public:
     uint8_t* ops2;
     uint16_t* args2;
 
+    vector<uint64_t> nColsStagesAcc2;
     vector<Goldilocks::Element> challenges2;
     vector<Goldilocks::Element> challenges_ops2;
     vector<Goldilocks::Element> numbers_2;

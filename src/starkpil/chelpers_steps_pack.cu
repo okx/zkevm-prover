@@ -62,17 +62,7 @@ void check_eq(const std::string& name, const uint64_t *a, const uint64_t *b, siz
 
 void check_eq(const std::string& name, const uint16_t *a, const uint16_t *b, uint32_t n) {
     printf("check u16 %s, n:%u\n", name.c_str(), n);
-    uint16_t temp;
     for (uint64_t i=0; i<n; i++) {
-        temp = a[i];
-    }
-    printf("temp1:%u\n", temp);
-    for (uint64_t i=0; i<n; i++) {
-        temp = b[i];
-    }
-    printf("temp2:%u\n", temp);
-    for (uint64_t i=0; i<n; i++) {
-        printf("index:%lu\n", i);
         if (a[i] != b[i]) {
             printf("name:%s, i:%lu, left:%u, right:%u\n", name.c_str(), i, a[i], b[i]);
             assert(0);
@@ -149,6 +139,10 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     CHECKCUDAERR(cudaMalloc(&evals_d, evals.size() * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMemcpy(evals_d, evals.data(), evals.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+
+    nColsStagesAcc2.resize(nColsStagesAcc.size());
+    CHECKCUDAERR(cudaMemcpy(nColsStagesAcc2.data(), nColsStagesAcc_d, nColsStagesAcc2.size() * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    check_eq("nColsStagesAcc", (uint64_t *)nColsStagesAcc.data(), (uint64_t *)nColsStagesAcc2.data(), nColsStagesAcc2.size());
 
     args2 = (uint16_t *)malloc(nArgs *sizeof(uint16_t));
     CHECKCUDAERR(cudaMemcpy(args2, args_d, nArgs * sizeof(uint16_t), cudaMemcpyDeviceToHost));
