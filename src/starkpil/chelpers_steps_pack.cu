@@ -192,23 +192,20 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
 
     bool domainExtended = parserParams.stage > 3 ? true : false;
     uint64_t domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
+    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*p, nrowsPack*(p+1));
     calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*parallel);
     cleanupGPU();
-    for (uint64_t p = 0; p < parallel; p++) {
-        calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*p, nrowsPack*(p+1));
-        for (uint64_t i = 0; i<2*nCols*nrowsPack; i++) {
-            if (Goldilocks::toU64(input[i]) != Goldilocks::toU64(cudaInput[p*2*nCols*nrowsPack+i])) {
-                printf("input not equal, p:%lu, i:%lu, left:%lu, right:%lu\n", p, i, Goldilocks::toU64(input[i]), Goldilocks::toU64(cudaInput[p*2*nCols*nrowsPack+i]));
-                assert(0);
-            }
-            if (Goldilocks::toU64(output[i]) != Goldilocks::toU64(cudaOutput[p*2*nCols*nrowsPack+i])) {
-                printf("output not equal, p:%lu, i:%lu, left:%lu, right:%lu\n", p, i, Goldilocks::toU64(output[i]), Goldilocks::toU64(cudaOutput[p*2*nCols*nrowsPack+i]));
-                assert(0);
-            }
+    for (uint64_t i = 0; i<2*nCols*nrowsPack; i++) {
+        if (Goldilocks::toU64(input[i]) != Goldilocks::toU64(cudaInput[i])) {
+            printf("input not equal, p:%lu, i:%lu, left:%lu, right:%lu\n", p, i, Goldilocks::toU64(input[i]), Goldilocks::toU64(cudaInput[i]));
+            assert(0);
+        }
+        if (Goldilocks::toU64(output[i]) != Goldilocks::toU64(cudaOutput[i])) {
+            printf("output not equal, p:%lu, i:%lu, left:%lu, right:%lu\n", p, i, Goldilocks::toU64(output[i]), Goldilocks::toU64(cudaOutput[i]));
+            assert(0);
         }
     }
     calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*parallel, domainSize);
-
 }
 
 #include <iostream>
