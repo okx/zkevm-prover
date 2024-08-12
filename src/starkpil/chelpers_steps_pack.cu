@@ -51,6 +51,7 @@ bool writeGoldilocksToFile(const std::string& filename, const Goldilocks::Elemen
 }
 
 void check_eq(const std::string& name, const uint64_t *a, const uint64_t *b, size_t n) {
+    printf("check %s\n", name);
     for (uint64_t i=0; i<n; i++) {
         if (a[i] != b[i]) {
             printf("name:%s, i:%lu, left:%lu, right:%lu\n", name, i, a[i], b[i]);
@@ -60,6 +61,7 @@ void check_eq(const std::string& name, const uint64_t *a, const uint64_t *b, siz
 }
 
 void check_eq(const std::string& name, const uint16_t *a, const uint16_t *b, uint32_t n) {
+    printf("check %s\n", name);
     for (uint64_t i=0; i<n; i++) {
         if (a[i] != b[i]) {
             printf("name:%s, i:%lu, left:%u, right:%u\n", name, i, a[i], b[i]);
@@ -69,6 +71,7 @@ void check_eq(const std::string& name, const uint16_t *a, const uint16_t *b, uin
 }
 
 void check_eq(const std::string& name, const uint8_t *a, const uint8_t *b, uint32_t n) {
+    printf("check %s\n", name);
     for (uint64_t i=0; i<n; i++) {
         if (a[i] != b[i]) {
             printf("name:%s, i:%lu, left:%u, right:%u\n", name, i, a[i], b[i]);
@@ -133,7 +136,6 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     CHECKCUDAERR(cudaMalloc(&evals_d, evals.size() * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMemcpy(evals_d, evals.data(), evals.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
-
 
     ops2 = (uint8_t *)malloc(parserArgs.nOps *sizeof(uint8_t));
     CHECKCUDAERR(cudaMemcpy(ops2, ops_d, parserArgs.nOps * sizeof(uint8_t), cudaMemcpyDeviceToHost));
