@@ -20,7 +20,7 @@ bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t s
         // 逐行写入数据
         file << std::hex;
         for (size_t i = 0; i < size; i++) {
-            file << (data[i] % 18446744069414584321) << std::endl;
+            file << (data[i]) << std::endl; //18446744069414584321
         }
         // 关闭文件
         file.close();
@@ -247,26 +247,25 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     gl64_t *bufferT_d;
     CHECKCUDAERR(cudaMalloc(&bufferT_d, 2*nCols*nrowsPack * sizeof(uint64_t)*parallel));
 
-    printf("ok1\n");
-
     gl64_t *tmp1_d;
     gl64_t *tmp3_d;
     CHECKCUDAERR(cudaMalloc(&tmp1_d, parserParams.nTemp1*nrowsPack * sizeof(uint64_t) *parallel));
-    printf("ok2\n");
     CHECKCUDAERR(cudaMalloc(&tmp3_d, parserParams.nTemp3*FIELD_EXTENSION*nrowsPack * sizeof(uint64_t)*parallel));
-    printf("ok3\n");
 
     for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack*parallel) {
         printf("rows:%lu\n", i);
         memset(bufferT_, 0, 2*nCols*nrowsPack*parallel*sizeof(uint64_t));
-//#pragma omp parallel for
+#pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
             printf("loadPolinomials from cuda\n");
             loadPolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, i+nrowsPack*j, parserParams.stage, nrowsPack, domainExtended);
         }
 
-        memcpy(cudaInput, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
-        writeDataToFile("input2.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
+        if (i == 0) {
+            memcpy(cudaInput, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
+            writeDataToFile("input2.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
+        }
+
 
         //TimerStart(Memcpy_H_to_D);
         CHECKCUDAERR(cudaMemcpy(bufferT_d, bufferT_, 2*nCols*nrowsPack * sizeof(uint64_t) *parallel, cudaMemcpyHostToDevice));
@@ -294,7 +293,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
 #pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
-            storePolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, storePol, i+nrowsPack*j, nrowsPack, domainExtended);
+            //storePolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, storePol, i+nrowsPack*j, nrowsPack, domainExtended);
         }
     }
 
