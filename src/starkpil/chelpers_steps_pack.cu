@@ -145,23 +145,23 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     challenges2.resize(params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
     CHECKCUDAERR(cudaMemcpy(challenges2.data(), challenges_d, challenges2.size() * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-    check_eq("challenges", challenges, challenges2, challenges2.size());
+    check_eq("challenges", (uint64_t *)challenges.data(), (uint64_t *)challenges2.data(), challenges2.size());
 
     challenges_ops2.resize(params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
     CHECKCUDAERR(cudaMemcpy(challenges_ops2.data(), challenges_ops_d, challenges_ops2.size() * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-    check_eq("challenges_ops", challenges_ops, challenges_ops2, challenges_ops2.size());
+    check_eq("challenges_ops", (uint64_t *)challenges_ops.data(), (uint64_t *)challenges_ops2.data(), challenges_ops2.size());
 
     numbers_2.resize(parserParams.nNumbers*nrowsPack);
     CHECKCUDAERR(cudaMemcpy(numbers_2.data(), numbers_d, numbers_2.size() * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-    check_eq("numbers_", numbers_, numbers_2, numbers_2.size());
+    check_eq("numbers_", (uint64_t *)numbers_.data(), (uint64_t *)numbers_2.data(), numbers_2.size());
 
     publics2.resize(starkInfo.nPublics*nrowsPack);
     CHECKCUDAERR(cudaMemcpy(publics2.data(), publics_d, publics2.size() * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-    check_eq("publics", publics, publics2, publics2.size());
+    check_eq("publics", (uint64_t *)publics.data(), (uint64_t *)publics2.data(), publics2.size());
 
     evals2.resize(params.evals.degree()*FIELD_EXTENSION*nrowsPack);
     CHECKCUDAERR(cudaMemcpy(evals2.data(), evals_d, evals2.size() * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-    check_eq("evals", evals, evals2, evals2.size());
+    check_eq("evals", (uint64_t *)evals.data(), (uint64_t *)evals2.data(), evals2.size());
 }
 
 void CHelpersStepsPackGPU::cleanupGPU() {
