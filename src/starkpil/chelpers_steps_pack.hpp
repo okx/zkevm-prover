@@ -126,6 +126,7 @@ public:
 
         ops = &parserArgs.ops[parserParams.opsOffset];
         args = &parserArgs.args[parserParams.argsOffset];
+        printf("pack assign args\n");
         storePol = &parserArgs.storePols[parserParams.storePolsOffset];
 
         gBuffer = (Goldilocks::Element *)malloc(2*nCols*nrowsPack* sizeof(Goldilocks::Element));

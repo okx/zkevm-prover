@@ -62,6 +62,15 @@ void check_eq(const std::string& name, const uint64_t *a, const uint64_t *b, siz
 
 void check_eq(const std::string& name, const uint16_t *a, const uint16_t *b, uint32_t n) {
     printf("check u16 %s, n:%u\n", name.c_str(), n);
+    uint16_t temp;
+    for (uint64_t i=0; i<n; i++) {
+        temp = a[i];
+    }
+    printf("temp1:%u\n", temp);
+    for (uint64_t i=0; i<n; i++) {
+        temp = b[i];
+    }
+    printf("temp2:%u\n", temp);
     for (uint64_t i=0; i<n; i++) {
         printf("index:%lu\n", i);
         if (a[i] != b[i]) {
@@ -119,6 +128,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     CHECKCUDAERR(cudaMemcpy(ops_d, &parserArgs.ops[parserParams.opsOffset], nOps * sizeof(uint8_t), cudaMemcpyHostToDevice));
 
     uint32_t nArgs = parserArgs.nArgs - parserParams.argsOffset;
+    printf("cuda nArgs:%u\n", nArgs);
     CHECKCUDAERR(cudaMalloc(&args_d, nArgs * sizeof(uint16_t)));
     CHECKCUDAERR(cudaMemcpy(args_d, &parserArgs.args[parserParams.argsOffset], nArgs * sizeof(uint16_t), cudaMemcpyHostToDevice));
 
