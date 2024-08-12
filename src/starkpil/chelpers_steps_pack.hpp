@@ -779,6 +779,7 @@ public:
 //                assert(0);
 //            }
             if (i == rowEnd-nrowsPack) {
+                writeDataToFile("buffer.txt", bufferT_, 2*nCols*nrowsPack);
                 memcpy(gBuffer, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
             }
 
