@@ -259,8 +259,9 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack*parallel) {
         printf("rows:%lu\n", i);
         memset(bufferT_, 0, 2*nCols*nrowsPack*parallel*sizeof(uint64_t));
-#pragma omp parallel for
+//#pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
+            printf("loadPolinomials from cuda\n");
             loadPolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, i+nrowsPack*j, parserParams.stage, nrowsPack, domainExtended);
         }
 
