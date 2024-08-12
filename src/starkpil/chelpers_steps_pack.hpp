@@ -85,6 +85,7 @@ public:
     }
 
     inline virtual void prepare(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
+        printf("into pack prepare...\n");
         challenges.resize(params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
         challenges_ops.resize(params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
         for(uint64_t i = 0; i < params.challenges.degree(); ++i) {

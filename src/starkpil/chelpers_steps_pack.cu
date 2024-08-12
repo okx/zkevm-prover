@@ -51,7 +51,7 @@ bool writeGoldilocksToFile(const std::string& filename, const Goldilocks::Elemen
 }
 
 void check_eq(const std::string& name, const uint64_t *a, const uint64_t *b, size_t n) {
-    printf("check %s, n%lu\n", name.c_str(), n);
+    printf("check u64 %s, n%lu\n", name.c_str(), n);
     for (uint64_t i=0; i<n; i++) {
         if (a[i] != b[i]) {
             printf("name:%s, i:%lu, left:%lu, right:%lu\n", name.c_str(), i, a[i], b[i]);
@@ -61,8 +61,9 @@ void check_eq(const std::string& name, const uint64_t *a, const uint64_t *b, siz
 }
 
 void check_eq(const std::string& name, const uint16_t *a, const uint16_t *b, uint32_t n) {
-    printf("check %s, n:%u\n", name.c_str(), n);
+    printf("check u16 %s, n:%u\n", name.c_str(), n);
     for (uint64_t i=0; i<n; i++) {
+        printf("index:%lu\n", i);
         if (a[i] != b[i]) {
             printf("name:%s, i:%lu, left:%u, right:%u\n", name.c_str(), i, a[i], b[i]);
             assert(0);
@@ -71,7 +72,7 @@ void check_eq(const std::string& name, const uint16_t *a, const uint16_t *b, uin
 }
 
 void check_eq(const std::string& name, const uint8_t *a, const uint8_t *b, uint32_t n) {
-    printf("check %s, n:%u\n", name.c_str(), n);
+    printf("check u8 %s, n:%u\n", name.c_str(), n);
     for (uint64_t i=0; i<n; i++) {
         if (a[i] != b[i]) {
             printf("name:%s, i:%lu, left:%u, right:%u\n", name.c_str(), i, a[i], b[i]);
@@ -102,6 +103,7 @@ const int64_t parallel = 1;
 
 void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
     prepare(starkInfo, params, parserArgs, parserParams);
+    printf("into cuda prepare...\n");
     pBuffer = (Goldilocks::Element *)malloc(2*nCols*nrowsPack * sizeof(uint64_t)*parallel);
 //    writeDataToFile("challenges2.txt", (uint64_t *)challenges, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
 //    writeDataToFile("challenges_ops2.txt", (uint64_t *)challenges_ops, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
