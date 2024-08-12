@@ -130,7 +130,8 @@ public:
         printf("pack assign args\n");
         storePol = &parserArgs.storePols[parserParams.storePolsOffset];
 
-        gBuffer = (Goldilocks::Element *)malloc(2*nCols*nrowsPack* sizeof(Goldilocks::Element));
+        input = (Goldilocks::Element *)malloc(2*nCols*nrowsPack* sizeof(Goldilocks::Element));
+        output = (Goldilocks::Element *)malloc(2*nCols*nrowsPack* sizeof(Goldilocks::Element));
     }
 
     inline virtual void storePolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint8_t* storePol, uint64_t row, uint64_t nrowsPack, uint64_t domainExtended) {

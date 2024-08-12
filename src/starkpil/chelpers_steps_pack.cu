@@ -103,7 +103,8 @@ const int64_t parallel = 1;
 void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
     prepare(starkInfo, params, parserArgs, parserParams);
     printf("into cuda prepare...\n");
-    pBuffer = (Goldilocks::Element *)malloc(2*nCols*nrowsPack * sizeof(uint64_t)*parallel);
+    cudaInput = (Goldilocks::Element *)malloc(2*nCols*nrowsPack * sizeof(uint64_t)*parallel);
+    cudaOutput = (Goldilocks::Element *)malloc(2*nCols*nrowsPack * sizeof(uint64_t)*parallel);
 //    writeDataToFile("challenges2.txt", (uint64_t *)challenges, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
 //    writeDataToFile("challenges_ops2.txt", (uint64_t *)challenges_ops, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
 //    writeDataToFile("numbers_2.txt", (uint64_t *)numbers_, parserParams.nNumbers*nrowsPack);
