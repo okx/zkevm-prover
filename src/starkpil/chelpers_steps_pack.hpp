@@ -29,7 +29,7 @@ public:
     vector<Goldilocks::Element> publics;
     vector<Goldilocks::Element> evals;
 
-    Goldilocks::Element *gBuffer
+    Goldilocks::Element *gBuffer;
 
     using CHelpersSteps::storePolinomials;  // Just to avoid compiation warnings
     using CHelpersSteps::loadPolinomials;   // Just to avoid compiation warnings
