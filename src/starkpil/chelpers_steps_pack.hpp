@@ -29,7 +29,8 @@ public:
     vector<Goldilocks::Element> publics;
     vector<Goldilocks::Element> evals;
 
-    Goldilocks::Element *gBuffer;
+    Goldilocks::Element *input;
+    Goldilocks::Element *output;
 
     using CHelpersSteps::storePolinomials;  // Just to avoid compiation warnings
     using CHelpersSteps::loadPolinomials;   // Just to avoid compiation warnings
@@ -287,6 +288,9 @@ public:
             Goldilocks::Element tmp3[parserParams.nTemp3*nrowsPack*FIELD_EXTENSION];
 
             loadPolinomials(starkInfo, params, bufferT_, i, parserParams.stage, nrowsPack, domainExtended);
+
+            memcpy(input, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
+            writeDataToFile("input.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
 
             for (uint64_t kk = 0; kk < parserParams.nOps; ++kk) {
                 switch (ops[kk]) {
@@ -777,14 +781,9 @@ public:
                 }
             }
 
-//            writeGoldilocksToFile("buffer.txt", bufferT_, 2*nCols*nrowsPack);
-//            if ((i/nrowsPack) == 1024*2-1) {
-//                assert(0);
-//            }
-            if (i == rowEnd-nrowsPack) {
-                writeDataToFile("buffer.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
-                memcpy(gBuffer, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
-            }
+            memcpy(output, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
+            writeDataToFile("output.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
+
 
             storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
             if (i_args != parserParams.nArgs) std::cout << " " << i_args << " - " << parserParams.nArgs << std::endl;

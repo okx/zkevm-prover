@@ -196,8 +196,12 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     for (uint64_t p = 0; p < parallel; p++) {
         calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*p, nrowsPack*(p+1));
         for (uint64_t i = 0; i<2*nCols*nrowsPack; i++) {
-            if (Goldilocks::toU64(gBuffer[i]) != Goldilocks::toU64(pBuffer[p*2*nCols*nrowsPack+i])) {
-                printf("p:%lu, i:%lu, left:%lu, right:%lu\n", p, i, Goldilocks::toU64(gBuffer[i]), Goldilocks::toU64(pBuffer[p*2*nCols*nrowsPack+i]));
+            if (Goldilocks::toU64(input[i]) != Goldilocks::toU64(cudaInput[p*2*nCols*nrowsPack+i])) {
+                printf("input not equal, p:%lu, i:%lu, left:%lu, right:%lu\n", p, i, Goldilocks::toU64(input[i]), Goldilocks::toU64(cudaInput[p*2*nCols*nrowsPack+i]));
+                assert(0);
+            }
+            if (Goldilocks::toU64(output[i]) != Goldilocks::toU64(cudaOutput[p*2*nCols*nrowsPack+i])) {
+                printf("output not equal, p:%lu, i:%lu, left:%lu, right:%lu\n", p, i, Goldilocks::toU64(output[i]), Goldilocks::toU64(cudaOutput[p*2*nCols*nrowsPack+i]));
                 assert(0);
             }
         }
@@ -259,6 +263,9 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
             loadPolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, i+nrowsPack*j, parserParams.stage, nrowsPack, domainExtended);
         }
 
+        memcpy(cudaInput, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
+        writeDataToFile("input2.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
+
         //TimerStart(Memcpy_H_to_D);
         CHECKCUDAERR(cudaMemcpy(bufferT_d, bufferT_, 2*nCols*nrowsPack * sizeof(uint64_t) *parallel, cudaMemcpyHostToDevice));
         //TimerStopAndLog(Memcpy_H_to_D);
@@ -280,10 +287,8 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 //            assert(0);
 //        }
 
-        if (i == rowEnd - nrowsPack*parallel) {
-            writeDataToFile("buffer2.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
-            memcpy(pBuffer, bufferT_, 2*nCols*nrowsPack * sizeof(uint64_t)*parallel);
-        }
+        memcpy(cudaOutput, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
+        writeDataToFile("output2.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
 
 #pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
@@ -294,14 +299,6 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     cudaFree(bufferT_d);
     cudaFree(tmp1_d);
     cudaFree(tmp3_d);
-
-//    writeDataToFile("2-stage2.txt", (uint64_t *)params.pols + offsetsStages[2], nColsStages[2] * domainSize);
-//    printf("save 2\n");
-//    writeDataToFile("2-stage3.txt", (uint64_t *)params.pols + offsetsStages[3], nColsStages[3] * domainSize);
-//    printf("save 3\n");
-//    writeDataToFile("2-stage4.txt", (uint64_t *)params.pols + offsetsStages[4], nColsStages[4] * domainSize);
-//    printf("save 4\n");
-//    assert(0);
 }
 
 __global__ void pack_kernel(uint64_t nrowsPack,
