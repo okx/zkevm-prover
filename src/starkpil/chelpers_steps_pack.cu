@@ -152,6 +152,8 @@ void CHelpersStepsPackGPU::cleanupGPU() {
     cudaFree(evals_d);
 }
 
+const int64_t parallel = 1<<14;
+
 void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
 
     setBufferTInfo(starkInfo, parserParams.stage);
@@ -165,7 +167,6 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
 
 }
 
-const int64_t parallel = 1<<14;
 #include <iostream>
 #include <fstream>
 #include <cstdint>
