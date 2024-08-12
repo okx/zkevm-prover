@@ -19,15 +19,15 @@ public:
     vector<uint64_t> nColsStagesAcc;
     vector<uint64_t> offsetsStages;
 
-    uint8_t *ops;
-    uint16_t *args;
-    uint8_t *storePol;
+    uint8_t* ops;
+    uint16_t* args;
+    uint8_t* storePol;
 
-    Goldilocks::Element *challenges;
-    Goldilocks::Element *challenges_ops;
-    Goldilocks::Element *numbers_;
-    Goldilocks::Element *publics;
-    Goldilocks::Element *evals;
+    vector<Goldilocks::Element> challenges;
+    vector<Goldilocks::Element> challenges_ops;
+    vector<Goldilocks::Element> numbers_;
+    vector<Goldilocks::Element> publics;
+    vector<Goldilocks::Element> evals;
 
     using CHelpersSteps::storePolinomials;  // Just to avoid compiation warnings
     using CHelpersSteps::loadPolinomials;   // Just to avoid compiation warnings
@@ -83,8 +83,8 @@ public:
     }
 
     inline virtual void prepare(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
-        challenges = (Goldilocks::Element *)malloc(params.challenges.degree()*FIELD_EXTENSION*nrowsPack*sizeof(Goldilocks::Element));
-        challenges_ops = (Goldilocks::Element *)malloc(params.challenges.degree()*FIELD_EXTENSION*nrowsPack*sizeof(Goldilocks::Element));
+        challenges.resize(params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
+        challenges_ops.resize(params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
         for(uint64_t i = 0; i < params.challenges.degree(); ++i) {
             for(uint64_t j = 0; j < nrowsPack; ++j) {
                 challenges[(i*FIELD_EXTENSION)*nrowsPack + j] = params.challenges[i][0];
@@ -96,7 +96,7 @@ public:
             }
         }
 
-        numbers_ = (Goldilocks::Element *)malloc(parserParams.nNumbers*nrowsPack*sizeof(Goldilocks::Element));
+        numbers_.resize(parserParams.nNumbers*nrowsPack);
         for(uint64_t i = 0; i < parserParams.nNumbers; ++i) {
             for(uint64_t j = 0; j < nrowsPack; ++j) {
                 numbers_[i*nrowsPack + j] = Goldilocks::fromU64(parserArgs.numbers[parserParams.numbersOffset+i]);
@@ -104,7 +104,7 @@ public:
         }
 
 
-        publics = (Goldilocks::Element *)malloc(starkInfo.nPublics*nrowsPack*sizeof(Goldilocks::Element));
+        publics.resize(starkInfo.nPublics*nrowsPack);
         for(uint64_t i = 0; i < starkInfo.nPublics; ++i) {
             for(uint64_t j = 0; j < nrowsPack; ++j) {
                 publics[i*nrowsPack + j] = params.publicInputs[i];
@@ -112,7 +112,7 @@ public:
         }
 
 
-        evals = (Goldilocks::Element *)malloc(params.evals.degree()*FIELD_EXTENSION*nrowsPack*sizeof(Goldilocks::Element));
+        evals.resize(params.evals.degree()*FIELD_EXTENSION*nrowsPack);
         for(uint64_t i = 0; i < params.evals.degree(); ++i) {
             for(uint64_t j = 0; j < nrowsPack; ++j) {
                 evals[(i*FIELD_EXTENSION)*nrowsPack + j] = params.evals[i][0];
