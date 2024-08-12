@@ -719,14 +719,6 @@ public:
             if (i_args != parserParams.nArgs) std::cout << " " << i_args << " - " << parserParams.nArgs << std::endl;
             assert(i_args == parserParams.nArgs);
         }
-
-        writeDataToFile("1-stage2.txt", (uint64_t *)params.pols + offsetsStages[2], nColsStages[2] * domainSize);
-        printf("save 2\n");
-        writeDataToFile("1-stage3.txt", (uint64_t *)params.pols + offsetsStages[3], nColsStages[3] * domainSize);
-        printf("save 3\n");
-        writeDataToFile("1-stage4.txt", (uint64_t *)params.pols + offsetsStages[4], nColsStages[4] * domainSize);
-        printf("save 4\n");
-        assert(0);
     }
 };
 
