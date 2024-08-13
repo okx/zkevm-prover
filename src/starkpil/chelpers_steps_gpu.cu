@@ -223,13 +223,6 @@ void CHelpersStepsGPU::dataSetup(StarkInfo &starkInfo, StepsParams &params, Pars
     CHECKCUDAERR(cudaMemcpy(stepPointers_d, &stepPointers_h, sizeof(StepsPointers), cudaMemcpyHostToDevice));
 }
 
-__global__ void myadd(StepsPointers *in) {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < 12) {
-        in->nColsStages_d[i]++;
-    }
-}
-
 void CHelpersStepsGPU::loadData(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams, uint64_t row, cudaStream_t& stream){
 
     bool domainExtended = parserParams.stage > 3 ? true : false;
@@ -313,52 +306,6 @@ void CHelpersStepsGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &p
 
     //Rest of packs are copmuted in the GPU...
     dataSetup(starkInfo, params, parserArgs, parserParams);
-
-    uint64_t mysize = nColsStages.size();
-    printf("nColsStages size%lu:\n", mysize);
-    for (uint64_t i=0; i<mysize; i++) {
-        printf("%lu\n", nColsStages[i]);
-    }
-    uint64_t *mybuffer = (uint64_t *)malloc(mysize * sizeof(uint64_t));
-    CHECKCUDAERR(cudaMemcpy(mybuffer, stepPointers_h.nColsStages_d, mysize * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-    printf("stepPointers_h.nColsStages_d:\n");
-    for (uint64_t i=0; i<mysize; i++) {
-        printf("%lu\n", mybuffer[i]);
-    }
-
-    myadd<<<1, 64>>>(stepPointers_d);
-
-    StepsPointers *tmpPointer = (StepsPointers *)malloc(sizeof(StepsPointers));
-    CHECKCUDAERR(cudaMemcpy(tmpPointer, stepPointers_d, sizeof(StepsPointers), cudaMemcpyDeviceToHost));
-
-    CHECKCUDAERR(cudaMemcpy(mybuffer, tmpPointer->nColsStages_d, mysize * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-    printf("stepPointers_h.nColsStages_d:\n");
-    for (uint64_t i=0; i<mysize; i++) {
-        printf("%lu\n", mybuffer[i]);
-    }
-
-    printf("nCols:%lu\n", nCols);
-    printf("nrowsPack:%lu\n", nrowsPack);
-    printf("domainSize:%lu\n", stepPointers_h.domainSize);
-    printf("nConstants:%lu\n", stepPointers_h.nConstants);
-    printf("nextStride:%lu\n", stepPointers_h.nextStride);
-
-    printf("dimBufferT:%u\n", stepPointers_h.dimBufferT);
-    printf("dimBufferPols:%u\n", stepPointers_h.dimBufferPols);
-    printf("dimBufferConsts:%u\n", stepPointers_h.dimBufferConsts);
-    printf("dimTmp1:%u\n", stepPointers_h.dimTmp1);
-    printf("dimTmp3:%u\n", stepPointers_h.dimTmp3);
-
-    printf("nConstants:%lu\n", starkInfo.nConstants);
-    printf("nPublics:%lu\n", starkInfo.nPublics);
-    printf("nCm1:%lu\n", starkInfo.nCm1);
-    printf("nCm2:%lu\n", starkInfo.nCm2);
-    printf("nCm3:%lu\n", starkInfo.nCm3);
-    printf("nCm4:%lu\n", starkInfo.nCm4);
-    printf("qDeg:%lu\n", starkInfo.qDeg);
-    printf("qDim:%lu\n", starkInfo.qDim);
-    printf("friExpId:%lu\n", starkInfo.friExpId);
-    printf("merkleTreeArity:%lu\n", starkInfo.merkleTreeArity);
 
     cudaStream_t *streams = new cudaStream_t[nstreams];
     for (int i = 0; i < nstreams; i++)
