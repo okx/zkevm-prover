@@ -7,6 +7,8 @@
 #include "zklog.hpp"
 #include "exit_process.hpp"
 
+bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t size);
+
 class CHelpersStepsPack : public CHelpersSteps {
 public:
     uint64_t nrowsPack = 4;
@@ -123,9 +125,6 @@ public:
         ops = &parserArgs.ops[parserParams.opsOffset];
         args = &parserArgs.args[parserParams.argsOffset];
         storePol = &parserArgs.storePols[parserParams.storePolsOffset];
-        printf("debug ops, all:%u, offset:%u, len:%u\n", parserArgs.nOps, parserParams.opsOffset, parserParams.nOps);
-        printf("debug args, all:%u, offset:%u, len:%u\n", parserArgs.nArgs, parserParams.argsOffset, parserParams.nArgs);
-        printf("debug storePol, all:%u, offset:%u, len:%u\n", parserArgs.nStorePols, parserParams.storePolsOffset, parserParams.nStorePols);
     }
 
     inline virtual void storePolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint8_t* storePol, uint64_t row, uint64_t nrowsPack, uint64_t domainExtended) {
@@ -254,7 +253,7 @@ public:
         printf("numbersOffset:%lu\n", parserParams.numbersOffset);
         printf("storePolsOffset:%u\n", parserParams.storePolsOffset);
 
-    #pragma omp parallel for
+    //#pragma omp parallel for
         for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack) {
             uint64_t i_args = 0;
 
@@ -263,6 +262,8 @@ public:
             Goldilocks::Element tmp3[parserParams.nTemp3*nrowsPack*FIELD_EXTENSION];
 
             loadPolinomials(starkInfo, params, bufferT_, i, parserParams.stage, nrowsPack, domainExtended);
+
+            writeDataToFile("input.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
 
             for (uint64_t kk = 0; kk < parserParams.nOps; ++kk) {
                 switch (ops[kk]) {
@@ -752,6 +753,9 @@ public:
                     }
                 }
             }
+
+            writeDataToFile("output.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
+            assert(0);
 
             storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
 

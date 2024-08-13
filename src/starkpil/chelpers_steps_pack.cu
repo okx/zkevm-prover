@@ -9,6 +9,24 @@
 #include "cuda_utils.hpp"
 #include "timer.hpp"
 
+bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t size) {
+    // 打开文件
+    std::ofstream file(filename);
+    if (file.is_open()) {
+        // 逐行写入数据
+        for (size_t i = 0; i < size; i++) {
+            file << (data[i] % 18446744069414584321) << std::endl;
+        }
+        // 关闭文件
+        file.close();
+        std::cout << "Data written to file successfully!" << std::endl;
+        return true;
+    } else {
+        std::cerr << "Unable to open file." << std::endl;
+        return false;
+    }
+}
+
 const uint64_t MAX_U64 = 0xFFFFFFFFFFFFFFFF;
 
 void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
@@ -124,7 +142,7 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     prepareGPU(starkInfo, params, parserArgs, parserParams);
     calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
     cleanupGPU();
-    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*nCudaThreads, domainSize);
+    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, 0, domainSize);
 }
 
 void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams,
@@ -144,9 +162,18 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         assert(i % (nrowsPack*nCudaThreads) == 0);
         loadData(starkInfo, params, i, parserParams.stage);
         loadPolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d, starkInfo.nConstants, parserParams.stage);
+
+        // debug
+        uint64_t *temp = (uint64_t *)malloc(nBufferT * nCudaThreads * sizeof(uint64_t));
+        CHECKCUDAERR(cudaMemcpy(temp, gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+        writeDataToFile("input2.txt", temp, nBufferT * nCudaThreads);
+        //
         pack_kernel<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
+        CHECKCUDAERR(cudaMemcpy(temp, gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+        writeDataToFile("output2.txt", temp, nBufferT * nCudaThreads);
         storePolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
-        storeData(starkInfo, params, i, parserParams.stage);
+
+        //storeData(starkInfo, params, i, parserParams.stage);
     }
 
     cudaFree(cHelpersSteps_d);
