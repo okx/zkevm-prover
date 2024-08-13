@@ -268,7 +268,7 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
     gl64_t *bufferT_ = cHelpersSteps->gBufferT_ + idx * nBufferT;
     gl64_t *pols = cHelpersSteps->pols_d;
 
-    uint64_t nPols = cHelpersSteps->nPols
+    uint64_t nPols = cHelpersSteps->nPols;
 
     if(domainExtended) {
         // Store either polinomial f or polinomial q
