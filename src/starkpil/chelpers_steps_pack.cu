@@ -99,7 +99,7 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     nCudaThreads = 1 << 15;
     domainExtended = parserParams.stage > 3 ? true : false;
     domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
-    uint64_t nextStride = domainExtended ?  1 << (starkInfo.starkStruct.nBitsExt - starkInfo.starkStruct.nBits) : 1;
+    nextStride = domainExtended ? 1 << (starkInfo.starkStruct.nBitsExt - starkInfo.starkStruct.nBits) : 1;
 
     nOps = parserParams.nOps;
     nArgs = parserParams.nArgs;
