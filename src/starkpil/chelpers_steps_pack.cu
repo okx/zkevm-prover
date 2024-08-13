@@ -136,8 +136,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     CHECKCUDAERR(cudaMalloc((void **)&(cHelpersSteps_d), sizeof(CHelpersStepsPackGPU)));
     CHECKCUDAERR(cudaMemcpy(cHelpersSteps_d, this, sizeof(CHelpersStepsPackGPU), cudaMemcpyHostToDevice));
 
-    // TODO: from 0
-    for (uint64_t i = nrowsPack*nCudaThreads; i < rowEnd; i+= nrowsPack*nCudaThreads) {
+    for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack*nCudaThreads) {
         printf("rows:%lu\n", i);
         assert(i % (nrowsPack*nCudaThreads) == 0);
         loadData(starkInfo, params, i, parserParams.stage);
@@ -272,6 +271,7 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
     uint64_t nPols = cHelpersSteps->nPols;
 
     if(domainExtended) {
+        assert(0);
         // Store either polinomial f or polinomial q
         for(uint64_t k = 0; k < nColsStages[10]; ++k) {
             gl64_t *buffT = &bufferT_[(nColsStagesAcc[10] + k)* nrowsPack];

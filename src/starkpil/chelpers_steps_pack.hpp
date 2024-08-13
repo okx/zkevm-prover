@@ -123,6 +123,9 @@ public:
         ops = &parserArgs.ops[parserParams.opsOffset];
         args = &parserArgs.args[parserParams.argsOffset];
         storePol = &parserArgs.storePols[parserParams.storePolsOffset];
+        printf("debug ops, all:%u, offset:%u, len:%u\n", parserArgs.nOps, parserParams.opsOffset, parserParams.nOps);
+        printf("debug args, all:%u, offset:%u, len:%u\n", parserArgs.nArgs, parserParams.argsOffset, parserParams.nArgs);
+        printf("debug storePol, all:%u, offset:%u, len:%u\n", parserArgs.nStorePols, parserParams.storePolsOffset, parserParams.nStorePols);
     }
 
     inline virtual void storePolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint8_t* storePol, uint64_t row, uint64_t nrowsPack, uint64_t domainExtended) {
