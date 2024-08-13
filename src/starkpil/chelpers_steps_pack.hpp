@@ -7,6 +7,10 @@
 #include "zklog.hpp"
 #include "exit_process.hpp"
 
+#include <iostream>
+#include <fstream>
+#include <cstdint>
+
 bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t size);
 
 class CHelpersStepsPack : public CHelpersSteps {
