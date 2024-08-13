@@ -56,23 +56,7 @@ public:
 
 __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t nConstants, uint64_t row, uint64_t stage);
 __global__ void storePolinomialsGPU();
-__global__ void pack_kernel(uint64_t nrowsPack,
-                            uint32_t nOps,
-                            uint32_t nArgs,
-                            uint64_t nBufferT,
-                            uint64_t nTemp1,
-                            uint64_t nTemp3,
-                            gl64_t *tmp1,
-                            gl64_t *tmp3,
-                            uint64_t *nColsStagesAcc,
-                            uint8_t *ops,
-                            uint16_t *args,
-                            gl64_t *bufferT_,
-                            gl64_t *challenges,
-                            gl64_t *challenges_ops,
-                            gl64_t *numbers,
-                            gl64_t *publics,
-                            gl64_t *evals);
+__global__ void pack_kernel(CHelpersStepsPackGPU *cHelpersSteps);
 
 #endif
 #endif

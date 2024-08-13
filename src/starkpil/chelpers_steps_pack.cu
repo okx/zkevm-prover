@@ -135,6 +135,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         printf("rows:%lu\n", i);
         loadData(starkInfo, params, i, parserParams.stage);
         loadPolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d, starkInfo.nConstants, i, parserParams.stage);
+        pack_kernel<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
         return;
     }
 
@@ -174,8 +175,6 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
     uint64_t nextStride = cHelpersSteps->nextStride;
     uint64_t domainSize = cHelpersSteps->domainSize;
     uint64_t nBufferT = cHelpersSteps->nBufferT;
-
-    printf("loadPolinomialsGPU, nrowsPack: %lu, nCols:%lu\n", nrowsPack, cHelpersSteps->nCols);
 
     uint64_t *nColsStages = cHelpersSteps->nColsStages_d;
     uint64_t *nColsStagesAcc = cHelpersSteps->nColsStagesAcc_d;
@@ -244,32 +243,34 @@ __global__ void storePolinomialsGPU() {
 
 }
 
-__global__ void pack_kernel(uint64_t nrowsPack,
-                            uint32_t nOps,
-                            uint32_t nArgs,
-                            uint64_t nBufferT,
-                            uint64_t nTemp1,
-                            uint64_t nTemp3,
-                            gl64_t *tmp1,
-                            gl64_t *tmp3,
-                            uint64_t *nColsStagesAcc,
-                            uint8_t *ops,
-                            uint16_t *args,
-                            gl64_t *bufferT_,
-                            gl64_t *challenges,
-                            gl64_t *challenges_ops,
-                            gl64_t *numbers_,
-                            gl64_t *publics,
-                            gl64_t *evals)
+__global__ void pack_kernel(CHelpersStepsPackGPU *cHelpersSteps)
 {
+    uint64_t nCudaThreads = cHelpersSteps->nCudaThreads;
+
     uint64_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx > 0) {
+    if (idx >= nCudaThreads) {
         return;
     }
 
-    bufferT_ = bufferT_ + nBufferT*idx;
-    tmp1 = tmp1 + nTemp1*idx;
-    tmp3 = tmp3 + nTemp3*idx;
+    uint64_t nrowsPack = cHelpersSteps->nrowsPack;
+    uint64_t nOps = cHelpersSteps->nOps;
+    uint64_t nArgs = cHelpersSteps->nArgs;
+    uint64_t nBufferT = cHelpersSteps->nBufferT;
+    uint64_t nTemp1 = cHelpersSteps->nTemp1;
+    uint64_t nTemp3 = cHelpersSteps->nTemp3;
+
+    uint64_t *nColsStagesAcc = cHelpersSteps->nColsStagesAcc_d;
+    uint8_t *ops = cHelpersSteps->ops_d;
+    uint16_t *args = cHelpersSteps->args_d;
+    gl64_t *challenges = cHelpersSteps->challenges_d;
+    gl64_t *challenges_ops = cHelpersSteps->challenges_ops_d;
+    gl64_t *numbers_ = cHelpersSteps->numbers_d;
+    gl64_t *publics = cHelpersSteps->publics_d;
+    gl64_t *evals = cHelpersSteps->evals_d;
+
+    gl64_t *bufferT_ = cHelpersSteps->gBufferT_ + idx * nBufferT;
+    gl64_t *tmp1 = cHelpersSteps->tmp1_d + nTemp1*idx;
+    gl64_t *tmp3 = cHelpersSteps->tmp3_d + nTemp3*idx;
 
     uint64_t i_args = 0;
 
