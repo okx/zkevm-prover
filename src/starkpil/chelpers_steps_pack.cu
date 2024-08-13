@@ -108,6 +108,10 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     nTemp1 = parserParams.nTemp1*nrowsPack;
     nTemp3 = parserParams.nTemp3*FIELD_EXTENSION*nrowsPack;
 
+    printf("nCols:%lu\n", nCols);
+    printf("nrowsPack:%lu\n", nrowsPack);
+    printf("buffer:%lu\n", nBufferT);
+
     CHECKCUDAERR(cudaSetDevice(0));
 
     prepareGPU(starkInfo, params, parserArgs, parserParams);
@@ -122,10 +126,6 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         zklog.info("Invalid range for rowIni " + to_string(rowIni) + " and rowEnd " + to_string(rowEnd));
         exitProcess();
     }
-
-    printf("nCols:%lu\n", nCols);
-    printf("nrowsPack:%lu\n", nrowsPack);
-    printf("buffer:%lu\n", nBufferT);
 
     CHelpersStepsPackGPU *cHelpersSteps_d;
     CHECKCUDAERR(cudaMalloc((void **)&(cHelpersSteps_d), sizeof(CHelpersStepsPackGPU)));
