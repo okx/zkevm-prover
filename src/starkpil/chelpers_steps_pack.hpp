@@ -265,6 +265,10 @@ public:
             Goldilocks::Element tmp1[parserParams.nTemp1*nrowsPack];
             Goldilocks::Element tmp3[parserParams.nTemp3*nrowsPack*FIELD_EXTENSION];
 
+            for (uint64_t i=0; i<2*nCols*nrowsPack; i++) {
+                bufferT_[i] = Goldilocks::zero();
+            }
+
             loadPolinomials(starkInfo, params, bufferT_, i, parserParams.stage, nrowsPack, domainExtended);
 
             writeDataToFile("input.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
