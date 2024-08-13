@@ -122,8 +122,9 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     CHECKCUDAERR(cudaSetDevice(0));
 
     prepareGPU(starkInfo, params, parserArgs, parserParams);
-    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, domainSize);
+    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
     cleanupGPU();
+    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*nCudaThreads, domainSize);
 }
 
 void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams,
@@ -145,6 +146,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         loadPolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d, starkInfo.nConstants, parserParams.stage);
         pack_kernel<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
         storePolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
+        storeData(starkInfo, params, i, parserParams.stage);
     }
 
     cudaFree(cHelpersSteps_d);
@@ -168,6 +170,24 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
 
     CHECKCUDAERR(cudaMemcpy(xDivXSubXi_d, params.xDivXSubXi[row], subDomainSize *FIELD_EXTENSION * sizeof(uint64_t), cudaMemcpyHostToDevice));
     CHECKCUDAERR(cudaMemcpy(xDivXSubXi_d + subDomainSize *FIELD_EXTENSION, params.xDivXSubXi[domainSize + row], subDomainSize *FIELD_EXTENSION * sizeof(uint64_t), cudaMemcpyHostToDevice));
+}
+
+void CHelpersStepsPackGPU::storeData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint64_t stage) {
+    ConstantPolsStarks *constPols = domainExtended ? params.pConstPols2ns : params.pConstPols;
+    Polinomial &x = domainExtended ? params.x_2ns : params.x_n;
+
+    CHECKCUDAERR(cudaMemcpy(((Goldilocks::Element *)constPols->address()) + row * starkInfo.nConstants, constPols_d, starkInfo.nConstants * (subDomainSize + nextStride) * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    CHECKCUDAERR(cudaMemcpy(x[row], x_d, subDomainSize * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    CHECKCUDAERR(cudaMemcpy(params.zi[row], zi_d, subDomainSize * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+
+    for (uint64_t s = 1; s < 11; s++) {
+        if (offsetsStagesGPU[s] != MAX_U64) {
+            CHECKCUDAERR(cudaMemcpy(&params.pols[offsetsStages[s] + row*nColsStages[s]], pols_d + offsetsStagesGPU[s], subDomainSize *nColsStages[s] * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+        }
+    }
+
+    CHECKCUDAERR(cudaMemcpy(params.xDivXSubXi[row], xDivXSubXi_d, subDomainSize *FIELD_EXTENSION * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    CHECKCUDAERR(cudaMemcpy(params.xDivXSubXi[domainSize + row], xDivXSubXi_d + subDomainSize *FIELD_EXTENSION, subDomainSize *FIELD_EXTENSION * sizeof(uint64_t), cudaMemcpyDeviceToHost));
 }
 
 __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t nConstants, uint64_t stage) {
