@@ -20,11 +20,11 @@ public:
     uint64_t nTemp1;
     uint64_t nTemp3;
 
-    vector<uint64_t> offsetsStagesGPU;
+    vector<int64_t> offsetsStagesGPU;
 
     uint64_t *nColsStages_d;
     uint64_t *nColsStagesAcc_d;
-    uint64_t *offsetsStages;
+    uint64_t *offsetsStages_d;
 
     uint8_t *ops_d;
     uint16_t *args_d;
@@ -51,11 +51,11 @@ public:
     void prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams);
     void cleanupGPU();
 
-    void loadData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint64_t stage, uint64_t nrowsPack, uint64_t domainExtended);
+    void loadData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint64_t stage);
 };
 
-__global__ void loadPolinomials(CHelpersStepsPackGPU *cHelpersSteps, uint64_t nConstants, uint64_t row, uint64_t stage);
-__global__ void storePolinomials();
+__global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t nConstants, uint64_t row, uint64_t stage);
+__global__ void storePolinomialsGPU();
 __global__ void pack_kernel(uint64_t nrowsPack,
                             uint32_t nOps,
                             uint32_t nArgs,
