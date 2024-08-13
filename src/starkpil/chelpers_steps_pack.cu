@@ -126,9 +126,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         //TimerStart(Memcpy_D_to_H);
         CHECKCUDAERR(cudaMemcpy(bufferT_, bufferT_d, 2*nCols*nrowsPack * sizeof(uint64_t) *parallel, cudaMemcpyDeviceToHost));
         //TimerStopAndLog(Memcpy_D_to_H);
-
-
-
+        
 #pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
             storePolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, storePol, i+nrowsPack*j, nrowsPack, domainExtended);
