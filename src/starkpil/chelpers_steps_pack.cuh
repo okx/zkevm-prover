@@ -19,6 +19,7 @@ public:
     uint64_t nBufferT;
     uint64_t nTemp1;
     uint64_t nTemp3;
+    uint64_t nPols;
 
     vector<int64_t> offsetsStagesGPU;
 
@@ -55,7 +56,7 @@ public:
 };
 
 __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t nConstants, uint64_t row, uint64_t stage);
-__global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t row);
+__global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps);
 __global__ void pack_kernel(CHelpersStepsPackGPU *cHelpersSteps);
 
 #endif

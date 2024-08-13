@@ -59,7 +59,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     CHECKCUDAERR(cudaMalloc(&evals_d, evals.size() * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMemcpy(evals_d, evals.data(), evals.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
-    offsetsStagesGPU.resize(12);
+    offsetsStagesGPU.resize(10 + 2);
     uint64_t total_offsets = 0;
     for (uint64_t s = 1; s < 11; s++) {
         if (s < 4 || (s == 4 && parserParams.stage != 4) || (s == 10 && domainExtended)) {
@@ -69,6 +69,8 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
             offsetsStagesGPU[s] = -1;
         }
     }
+
+    nPols = total_offsets;
 
     printf("total_offsets:%lu\n", total_offsets);
 
@@ -140,7 +142,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         loadData(starkInfo, params, i, parserParams.stage);
         loadPolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d, starkInfo.nConstants, i, parserParams.stage);
         pack_kernel<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
-        storePolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d, i);
+        storePolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
     }
 
     cudaFree(cHelpersSteps_d);
@@ -150,26 +152,6 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
 
     ConstantPolsStarks *constPols = domainExtended ? params.pConstPols2ns : params.pConstPols;
     Polinomial &x = domainExtended ? params.x_2ns : params.x_n;
-    printf("degree:%lu, cols:%lu, nextStride:%lu\n", constPols->degree(), constPols->numPols(), nextStride);
-    uint64_t *temp = (uint64_t *)malloc(starkInfo.nConstants * (nrowsPack * nCudaThreads + nextStride) * sizeof(uint64_t));
-    memcpy(temp, ((Goldilocks::Element *)constPols->address()) + row * starkInfo.nConstants, starkInfo.nConstants * (nrowsPack * nCudaThreads + nextStride) * sizeof(uint64_t));
-    printf("temp ok\n");
-
-
-    CHECKCUDAERR(cudaMemcpy(temp, constPols_d, nrowsPack * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-    printf("copy back ok\n");
-
-    assert(constPols_d != NULL);
-    printf("assert ok\n");
-
-    printf("nrowsPack:%lu, nCudaThreads:%lu, nConstants:%lu\n", nrowsPack, nCudaThreads, starkInfo.nConstants);
-    CHECKCUDAERR(cudaMalloc(&constPols_d, starkInfo.nConstants * (nrowsPack * nCudaThreads + 2) * sizeof(uint64_t)));
-    CHECKCUDAERR(cudaMemcpy(constPols_d, temp, sizeof(uint64_t), cudaMemcpyHostToDevice));
-    printf("first\n");
-    CHECKCUDAERR(cudaMemcpy(constPols_d, temp, starkInfo.nConstants * nrowsPack * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    printf("second\n");
-    CHECKCUDAERR(cudaMemcpy(constPols_d, temp, starkInfo.nConstants * (nrowsPack * nCudaThreads) * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    printf("nConstants: %lu\n", starkInfo.nConstants);
 
     // TODO may overflow and cycle
     CHECKCUDAERR(cudaMemcpy(constPols_d, ((Goldilocks::Element *)constPols->address()) + row * starkInfo.nConstants, starkInfo.nConstants * (nrowsPack * nCudaThreads + nextStride) * sizeof(uint64_t), cudaMemcpyHostToDevice));
@@ -186,7 +168,7 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
     CHECKCUDAERR(cudaMemcpy(xDivXSubXi_d + nrowsPack * nCudaThreads *FIELD_EXTENSION, params.xDivXSubXi[domainSize + row], nrowsPack * nCudaThreads *FIELD_EXTENSION * sizeof(uint64_t), cudaMemcpyHostToDevice));
 }
 
-__global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t nConstants, uint64_t row, uint64_t stage) {
+__global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t nConstants, uint64_t stage) {
 
     uint64_t nCudaThreads = cHelpersSteps->nCudaThreads;
 
@@ -208,8 +190,7 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
     gl64_t *pols = cHelpersSteps->pols_d;
     gl64_t *constPols = cHelpersSteps->constPols_d;
 
-    row = row % (nrowsPack * nCudaThreads);
-    row = row + idx*nrowsPack;
+    uint64_t row = idx*nrowsPack;
     uint64_t nStages = 3;
     uint64_t nextStrides[2] = {0, nextStride};
 
@@ -263,7 +244,7 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
 }
 
 
-__global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t row) {
+__global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
     uint64_t nCudaThreads = cHelpersSteps->nCudaThreads;
 
     uint64_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -276,8 +257,7 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_
     uint64_t nrowsPack = cHelpersSteps->nrowsPack;
     uint64_t nBufferT = cHelpersSteps->nBufferT;
 
-    row = row % (nrowsPack * nCudaThreads);
-    row = row + idx*nrowsPack;
+    uint64_t row = idx*nrowsPack;
 
     uint64_t *nColsStages = cHelpersSteps->nColsStages_d;
     uint64_t *nColsStagesAcc = cHelpersSteps->nColsStagesAcc_d;
@@ -287,6 +267,8 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_
 
     gl64_t *bufferT_ = cHelpersSteps->gBufferT_ + idx * nBufferT;
     gl64_t *pols = cHelpersSteps->pols_d;
+
+    uint64_t nPols = cHelpersSteps->nPols
 
     if(domainExtended) {
         // Store either polinomial f or polinomial q
@@ -301,12 +283,14 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_
             for(uint64_t k = 0; k < nColsStages[s]; ++k) {
                 uint64_t dim = storePols[nColsStagesAcc[s] + k];
                 if(storePols[nColsStagesAcc[s] + k]) {
+                    assert((nColsStagesAcc[s] + k)* nrowsPack < nBufferT);
                     gl64_t *buffT = &bufferT_[(nColsStagesAcc[s] + k)* nrowsPack];
                     if(isTmpPol) {
                         for(uint64_t i = 0; i < dim; ++i) {
                             gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k * domainSize + row * dim + i], uint64_t(dim), &buffT[i*nrowsPack]);
                         }
                     } else {
+                        assert(offsetsStages[s] + k + row * nColsStages[s] < nPols);
                         gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k + row * nColsStages[s]], nColsStages[s], buffT);
                     }
                 }
