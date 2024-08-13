@@ -147,6 +147,10 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
 
     ConstantPolsStarks *constPols = domainExtended ? params.pConstPols2ns : params.pConstPols;
     Polinomial &x = domainExtended ? params.x_2ns : params.x_n;
+    printf("degree:%lu, cols:%lu\n", constPols.degree(), constPols.numPols());
+    uint64_t *temp = (uint64_t *)malloc(starkInfo.nConstants * (nrowsPack * nCudaThreads + nextStride) * sizeof(uint64_t));
+    memcpy(temp, ((Goldilocks::Element *)constPols->address()) + row * starkInfo.nConstants);
+    printf("temp ok\n");
 
     // TODO may overflow and cycle
     CHECKCUDAERR(cudaMemcpy(constPols_d, ((Goldilocks::Element *)constPols->address()) + row * starkInfo.nConstants, starkInfo.nConstants * (nrowsPack * nCudaThreads + nextStride) * sizeof(uint64_t), cudaMemcpyHostToDevice));
