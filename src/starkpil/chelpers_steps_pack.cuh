@@ -55,7 +55,7 @@ public:
     void loadData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint64_t stage);
 };
 
-__global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t nConstants, uint64_t row, uint64_t stage);
+__global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t nConstants, uint64_t stage);
 __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps);
 __global__ void pack_kernel(CHelpersStepsPackGPU *cHelpersSteps);
 
