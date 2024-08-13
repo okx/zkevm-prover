@@ -152,6 +152,12 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
     memcpy(temp, ((Goldilocks::Element *)constPols->address()) + row * starkInfo.nConstants, starkInfo.nConstants * (nrowsPack * nCudaThreads + nextStride) * sizeof(uint64_t));
     printf("temp ok\n");
 
+    assert(constPols_d != NULL);
+    printf("assert ok\n");
+
+    CHECKCUDAERR(cudaMemcpy(constPols_d, temp, starkInfo.nConstants * (nrowsPack * nCudaThreads + nextStride) * sizeof(uint64_t), cudaMemcpyHostToDevice));
+    printf("nConstants: %lu\n", starkInfo.nConstants);
+
     // TODO may overflow and cycle
     CHECKCUDAERR(cudaMemcpy(constPols_d, ((Goldilocks::Element *)constPols->address()) + row * starkInfo.nConstants, starkInfo.nConstants * (nrowsPack * nCudaThreads + nextStride) * sizeof(uint64_t), cudaMemcpyHostToDevice));
     CHECKCUDAERR(cudaMemcpy(x_d, x[row], nrowsPack * nCudaThreads * sizeof(uint64_t), cudaMemcpyHostToDevice));
@@ -186,8 +192,8 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
     uint64_t *offsetsStages = cHelpersSteps->offsetsStages_d;
 
     gl64_t *bufferT_ = cHelpersSteps->gBufferT_ + idx * nBufferT;
-    gl64_t *pols_d = cHelpersSteps->pols_d;
-    gl64_t *constPols_d = cHelpersSteps->constPols_d;
+    gl64_t *pols = cHelpersSteps->pols_d;
+    gl64_t *constPols = cHelpersSteps->constPols_d;
 
     row = row % (nrowsPack * nCudaThreads);
     row = row + idx*nrowsPack;
@@ -198,7 +204,7 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
         for(uint64_t o = 0; o < 2; ++o) {
             for(uint64_t j = 0; j < nrowsPack; ++j) {
                 uint64_t l = (row + j + nextStrides[o]) % domainSize;
-                bufferT_[(nColsStagesAcc[5*o] + k)*nrowsPack + j] = constPols_d[l * nConstants + k];
+                bufferT_[(nColsStagesAcc[5*o] + k)*nrowsPack + j] = constPols[l * nConstants + k];
             }
         }
     }
@@ -216,7 +222,7 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
             for(uint64_t o = 0; o < 2; ++o) {
                 for(uint64_t j = 0; j < nrowsPack; ++j) {
                     uint64_t l = (row + j + nextStrides[o]) % domainSize;
-                    bufferT_[(nColsStagesAcc[5*o + s] + k)*nrowsPack + j] = pols_d[offsetsStages[s] + l * nColsStages[s] + k];
+                    bufferT_[(nColsStagesAcc[5*o + s] + k)*nrowsPack + j] = pols[offsetsStages[s] + l * nColsStages[s] + k];
                 }
             }
         }
@@ -227,7 +233,7 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
             for(uint64_t o = 0; o < 2; ++o) {
                 for(uint64_t j = 0; j < nrowsPack; ++j) {
                     uint64_t l = (row + j + nextStrides[o]) % domainSize;
-                    bufferT_[(nColsStagesAcc[5*o + nStages + 1] + k)*nrowsPack + j] = pols_d[offsetsStages[nStages + 1] + l * nColsStages[nStages + 1] + k];
+                    bufferT_[(nColsStagesAcc[5*o + nStages + 1] + k)*nrowsPack + j] = pols[offsetsStages[nStages + 1] + l * nColsStages[nStages + 1] + k];
                 }
             }
         }
@@ -267,13 +273,13 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_
     uint8_t *storePols = cHelpersSteps->storePols_d;
 
     gl64_t *bufferT_ = cHelpersSteps->gBufferT_ + idx * nBufferT;
-    gl64_t *pols_d = cHelpersSteps->pols_d;
+    gl64_t *pols = cHelpersSteps->pols_d;
 
     if(domainExtended) {
         // Store either polinomial f or polinomial q
         for(uint64_t k = 0; k < nColsStages[10]; ++k) {
             gl64_t *buffT = &bufferT_[(nColsStagesAcc[10] + k)* nrowsPack];
-            gl64_t::copy_pack(nrowsPack, &pols_d[offsetsStages[10] + k + row * nColsStages[10]], nColsStages[10], buffT);
+            gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[10] + k + row * nColsStages[10]], nColsStages[10], buffT);
         }
     } else {
         uint64_t nStages = 3;
@@ -285,10 +291,10 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_
                     gl64_t *buffT = &bufferT_[(nColsStagesAcc[s] + k)* nrowsPack];
                     if(isTmpPol) {
                         for(uint64_t i = 0; i < dim; ++i) {
-                            gl64_t::copy_pack(nrowsPack, &pols_d[offsetsStages[s] + k * domainSize + row * dim + i], uint64_t(dim), &buffT[i*nrowsPack]);
+                            gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k * domainSize + row * dim + i], uint64_t(dim), &buffT[i*nrowsPack]);
                         }
                     } else {
-                        gl64_t::copy_pack(nrowsPack, &pols_d[offsetsStages[s] + k + row * nColsStages[s]], nColsStages[s], buffT);
+                        gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k + row * nColsStages[s]], nColsStages[s], buffT);
                     }
                 }
             }
