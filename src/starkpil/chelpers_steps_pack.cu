@@ -9,7 +9,7 @@
 #include "cuda_utils.hpp"
 #include "timer.hpp"
 
-const int64_t parallel = 1<<16;
+const int64_t parallel = 1<<15;
 
 void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
     prepare(starkInfo, params, parserArgs, parserParams);
