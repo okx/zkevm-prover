@@ -238,7 +238,7 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
 
     gl64_t *bufferT_ = cHelpersSteps->gBufferT_ + idx * nBufferT;
     for (uint64_t i = 0; i < nBufferT; i++) {
-        bufferT_[i] = gl64_t(0);
+        bufferT_[i] = gl64_t(uint64_t(0));
     }
     gl64_t *pols = cHelpersSteps->pols_d;
     gl64_t *constPols = cHelpersSteps->constPols_d;
