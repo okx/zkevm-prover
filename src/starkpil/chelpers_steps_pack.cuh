@@ -18,19 +18,6 @@ public:
     gl64_t *publics_d;
     gl64_t *evals_d;
 
-    uint8_t* ops2;
-    uint16_t* args2;
-
-    vector<uint64_t> nColsStagesAcc2;
-    vector<Goldilocks::Element> challenges2;
-    vector<Goldilocks::Element> challenges_ops2;
-    vector<Goldilocks::Element> numbers_2;
-    vector<Goldilocks::Element> publics2;
-    vector<Goldilocks::Element> evals2;
-
-    Goldilocks::Element *cudaInput;
-    Goldilocks::Element *cudaOutput;
-
     void calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams);
     void calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams, uint64_t rowIni, uint64_t rowEnd);
     void prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams);

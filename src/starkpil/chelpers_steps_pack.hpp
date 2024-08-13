@@ -7,13 +7,8 @@
 #include "zklog.hpp"
 #include "exit_process.hpp"
 
-#include <iostream>
-#include <fstream>
-#include <cstdint>
-
 class CHelpersStepsPack : public CHelpersSteps {
 public:
-    bool change = true;
     uint64_t nrowsPack = 4;
     uint64_t nCols;
     vector<uint64_t> nColsStages;
@@ -29,9 +24,6 @@ public:
     vector<Goldilocks::Element> numbers_;
     vector<Goldilocks::Element> publics;
     vector<Goldilocks::Element> evals;
-
-    Goldilocks::Element *input;
-    Goldilocks::Element *output;
 
     using CHelpersSteps::storePolinomials;  // Just to avoid compiation warnings
     using CHelpersSteps::loadPolinomials;   // Just to avoid compiation warnings
@@ -87,7 +79,6 @@ public:
     }
 
     inline virtual void prepare(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
-        printf("into pack prepare...\n");
         challenges.resize(params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
         challenges_ops.resize(params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
         for(uint64_t i = 0; i < params.challenges.degree(); ++i) {
@@ -128,11 +119,7 @@ public:
 
         ops = &parserArgs.ops[parserParams.opsOffset];
         args = &parserArgs.args[parserParams.argsOffset];
-        printf("pack assign args\n");
         storePol = &parserArgs.storePols[parserParams.storePolsOffset];
-
-        input = (Goldilocks::Element *)malloc(2*nCols*nrowsPack* sizeof(Goldilocks::Element));
-        output = (Goldilocks::Element *)malloc(2*nCols*nrowsPack* sizeof(Goldilocks::Element));
     }
 
     inline virtual void storePolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint8_t* storePol, uint64_t row, uint64_t nrowsPack, uint64_t domainExtended) {
@@ -228,7 +215,6 @@ public:
     }
 
     virtual void calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams){
-        printf("into pack calculateExpressions...\n");
         bool domainExtended = parserParams.stage > 3 ? true : false;
         uint64_t domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
         setBufferTInfo(starkInfo, parserParams.stage);
@@ -252,6 +238,7 @@ public:
         }
 
         printf("stage:%u\n", parserParams.stage);
+        printf("nrowsPack:%lu\n", nrowsPack);
         printf("nOps:%u\n", parserArgs.nOps);
         printf("nArgs:%u\n", parserArgs.nArgs);
         printf("nNumbers:%u\n", parserArgs.nNumbers);
@@ -262,39 +249,15 @@ public:
         printf("numbersOffset:%lu\n", parserParams.numbersOffset);
         printf("storePolsOffset:%u\n", parserParams.storePolsOffset);
 
-        printf("nrowsPack:%lu\n", nrowsPack);
-        printf("params.challenges.degree():%lu\n", params.challenges.degree());
-        printf("parserParams.nNumbers:%u\n", parserParams.nNumbers);
-        printf("starkInfo.nPublics:%lu\n", starkInfo.nPublics);
-        printf("params.evals.degree():%lu\n", params.evals.degree());
-
-//        writeDataToFile("challenges.txt", (uint64_t *)challenges, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
-//        writeDataToFile("challenges_ops.txt", (uint64_t *)challenges_ops, params.challenges.degree()*FIELD_EXTENSION*nrowsPack);
-//        writeDataToFile("numbers_.txt", (uint64_t *)numbers_, parserParams.nNumbers*nrowsPack);
-//        writeDataToFile("publics.txt", (uint64_t *)publics, starkInfo.nPublics*nrowsPack);
-//        writeDataToFile("evals.txt", (uint64_t *)evals, params.evals.degree()*FIELD_EXTENSION*nrowsPack);
-//
-//        writeData8ToFile("ops.txt", &parserArgs.ops[parserParams.opsOffset], parserArgs.nOps - parserParams.opsOffset);
-//        writeData16ToFile("args.txt", &parserArgs.args[parserParams.argsOffset], parserArgs.nArgs - parserParams.argsOffset);
-
-    
     #pragma omp parallel for
         for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack) {
             uint64_t i_args = 0;
 
             Goldilocks::Element bufferT_[2*nCols*nrowsPack];
-            for (uint64_t k=0; k<2*nCols*nrowsPack; k++) {
-                bufferT_[k] = Goldilocks::zero();
-            }
             Goldilocks::Element tmp1[parserParams.nTemp1*nrowsPack];
             Goldilocks::Element tmp3[parserParams.nTemp3*nrowsPack*FIELD_EXTENSION];
 
             loadPolinomials(starkInfo, params, bufferT_, i, parserParams.stage, nrowsPack, domainExtended);
-
-            if (i == 0) {
-                memcpy(input, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
-                writeDataToFile("input.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
-            }
 
             for (uint64_t kk = 0; kk < parserParams.nOps; ++kk) {
                 switch (ops[kk]) {
@@ -785,13 +748,7 @@ public:
                 }
             }
 
-            if (i == 0) {
-                memcpy(output, bufferT_, 2*nCols*nrowsPack* sizeof(Goldilocks::Element));
-                writeDataToFile("output.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
-            }
-            if (change) {
-                storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
-            }
+            storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
 
             if (i_args != parserParams.nArgs) std::cout << " " << i_args << " - " << parserParams.nArgs << std::endl;
             assert(i_args == parserParams.nArgs);
