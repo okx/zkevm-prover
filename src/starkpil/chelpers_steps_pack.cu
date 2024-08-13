@@ -65,6 +65,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     uint64_t total_offsets = 0;
     for (uint64_t s = 1; s < 11; s++) {
         if (s < 4 || (s == 4 && parserParams.stage != 4) || (s == 10 && domainExtended)) {
+            printf("stage:%u, ncols:%lu, offset:%lu\n", parserParams.stage, nColsStages[s], total_offsets);
             offsetsStagesGPU[s] = total_offsets;
             total_offsets += nColsStages[s] * nrowsPack * nCudaThreads;
         } else {
