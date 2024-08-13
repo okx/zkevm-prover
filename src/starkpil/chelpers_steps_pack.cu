@@ -156,6 +156,8 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
     printf("assert ok\n");
 
     printf("nrowsPack:%lu, nCudaThreads:%lu, nConstants:%lu\n", nrowsPack, nCudaThreads, starkInfo.nConstants);
+    CHECKCUDAERR(cudaFree(constPols_d));
+    CHECKCUDAERR(cudaMalloc(&constPols_d, starkInfo.nConstants * (nrowsPack * nCudaThreads + 2) * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMemcpy(constPols_d, temp, sizeof(uint64_t), cudaMemcpyHostToDevice));
     printf("first\n");
     CHECKCUDAERR(cudaMemcpy(constPols_d, temp, starkInfo.nConstants * nrowsPack * sizeof(uint64_t), cudaMemcpyHostToDevice));
