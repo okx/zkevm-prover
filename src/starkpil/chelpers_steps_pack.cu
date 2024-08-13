@@ -13,7 +13,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     prepare(starkInfo, params, parserArgs, parserParams);
 
-    nCudaThreads = 1<<10;
+    nCudaThreads = 1<<4;
     domainExtended = parserParams.stage > 3 ? true : false;
     domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
     nextStride = domainExtended ? 1 << (starkInfo.starkStruct.nBitsExt - starkInfo.starkStruct.nBits) : 1;
@@ -70,6 +70,8 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
         }
     }
 
+    printf("total_offsets:%lu\n", total_offsets);
+
     CHECKCUDAERR(cudaMalloc(&offsetsStages_d, offsetsStagesGPU.size() * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMemcpy(offsetsStages_d, offsetsStagesGPU.data(), offsetsStagesGPU.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
@@ -81,7 +83,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     CHECKCUDAERR(cudaMalloc(&gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMalloc(&tmp1_d, nTemp1 * nCudaThreads * sizeof(uint64_t)));
-    CHECKCUDAERR(cudaMalloc(&tmp3_d, nTemp3 * nCudaThreads * sizeof(uint64_t)*nCudaThreads));
+    CHECKCUDAERR(cudaMalloc(&tmp3_d, nTemp3 * nCudaThreads * sizeof(uint64_t)));
 }
 
 void CHelpersStepsPackGPU::cleanupGPU() {
@@ -153,14 +155,14 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
     memcpy(temp, ((Goldilocks::Element *)constPols->address()) + row * starkInfo.nConstants, starkInfo.nConstants * (nrowsPack * nCudaThreads + nextStride) * sizeof(uint64_t));
     printf("temp ok\n");
 
-    CHECKCUDAERR(cudaMemcpy(x_d, x[row], nrowsPack * nCudaThreads * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(zi_d, params.zi[row], nrowsPack * nCudaThreads * sizeof(uint64_t), cudaMemcpyHostToDevice));
+
+    CHECKCUDAERR(cudaMemcpy(temp, constPols_d, nrowsPack * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    printf("copy back ok\n");
 
     assert(constPols_d != NULL);
     printf("assert ok\n");
 
     printf("nrowsPack:%lu, nCudaThreads:%lu, nConstants:%lu\n", nrowsPack, nCudaThreads, starkInfo.nConstants);
-    CHECKCUDAERR(cudaFree(constPols_d));
     CHECKCUDAERR(cudaMalloc(&constPols_d, starkInfo.nConstants * (nrowsPack * nCudaThreads + 2) * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMemcpy(constPols_d, temp, sizeof(uint64_t), cudaMemcpyHostToDevice));
     printf("first\n");
