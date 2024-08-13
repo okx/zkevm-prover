@@ -65,7 +65,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     uint64_t total_offsets = 0;
     for (uint64_t s = 1; s < 11; s++) {
         if (s < 4 || (s == 4 && parserParams.stage != 4) || (s == 10 && domainExtended)) {
-            printf("stage:%u, ncols:%lu, offset:%lu\n", parserParams.stage, nColsStages[s], total_offsets);
+            printf("stage:%lu, ncols:%lu, offset:%lu\n", s, nColsStages[s], total_offsets);
             offsetsStagesGPU[s] = total_offsets;
             total_offsets += nColsStages[s] * nrowsPack * nCudaThreads;
         } else {
@@ -294,7 +294,10 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
                     gl64_t *buffT = &bufferT_[(nColsStagesAcc[s] + k)* nrowsPack];
                     if(isTmpPol) {
                         for(uint64_t i = 0; i < dim; ++i) {
-                            assert(offsetsStages[s] + k * domainSize + row * dim + i < nPols);
+                            if (offsetsStages[s] + k * domainSize + row * dim + i >= nPols) {
+                                printf("s:%lu, offset:%lu, k:%lu, domainSize:%lu, row:%lu, dim:%lu, i:%lu\n", s, offsetsStages[s], k, domainSize, row, dim, i);
+                                assert(0);
+                            }
                             assert(offsetsStages[s] + k * domainSize + row * dim + i + dim * nrowsPack < nPols);
                             assert((nColsStagesAcc[s] + k + i)* nrowsPack < nBufferT);
                             gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k * domainSize + row * dim + i], uint64_t(dim), &buffT[i*nrowsPack]);
