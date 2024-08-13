@@ -9,7 +9,7 @@
 #include "cuda_utils.hpp"
 #include "timer.hpp"
 
-const uint64_t MAX_U64 = (1ULL << 64) - 1;
+const uint64_t MAX_U64 = 0xFFFFFFFFFFFFFFFF;
 
 void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
 
