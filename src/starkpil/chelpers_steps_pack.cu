@@ -71,7 +71,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 void CHelpersStepsPackGPU::cleanupGPU() {
     cudaFree(nColsStages_d);
     cudaFree(nColsStagesAcc_d);
-    cudaFree(offsetsStages);
+    cudaFree(offsetsStages_d);
 
     cudaFree(ops_d);
     cudaFree(args_d);
@@ -173,12 +173,13 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
     uint64_t nrowsPack = cHelpersSteps->nrowsPack;
     uint64_t nextStride = cHelpersSteps->nextStride;
     uint64_t domainSize = cHelpersSteps->domainSize;
+    uint64_t nBufferT = cHelpersSteps->nBufferT;
 
-    uint64_t *nColsStages = cHelpersSteps->nColsStages_d;
-    uint64_t *nColsStagesAcc = cHelpersSteps->nColsStagesAcc_d;
-    uint64_t *offsetsStages = cHelpersSteps-> offsetsStagesGPU;
+    uint64_t *nColsStages = cHelpersSteps->nColsStages_d.data();
+    uint64_t *nColsStagesAcc = cHelpersSteps->nColsStagesAcc_d.data();
+    uint64_t *offsetsStages = cHelpersSteps->offsetsStagesGPU.data();
 
-    gl64_t *bufferT_ = cHelpersSteps->gBufferT_ + idx * 2*nCols*nrowsPack;
+    gl64_t *bufferT_ = cHelpersSteps->gBufferT_ + idx * nBufferT;
     gl64_t *pols_d = cHelpersSteps->pols_d;
 
     row = row % (nrowsPack * nCudaThreads);
@@ -259,7 +260,7 @@ __global__ void pack_kernel(uint64_t nrowsPack,
                             gl64_t *evals)
 {
     uint64_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= 0) {
+    if (idx > 0) {
         return;
     }
 
