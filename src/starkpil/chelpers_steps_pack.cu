@@ -133,7 +133,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
     for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack*nCudaThreads) {
         printf("rows:%lu\n", i);
-        assery(i % (nrowsPack*nCudaThreads) == 0);
+        assert(i % (nrowsPack*nCudaThreads) == 0);
         loadData(starkInfo, params, i, parserParams.stage);
         loadPolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d, starkInfo.nConstants, i, parserParams.stage);
         pack_kernel<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
@@ -254,14 +254,13 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_
     uint64_t nBufferT = cHelpersSteps->nBufferT;
 
     row = row % (nrowsPack * nCudaThreads);
-    assert(row % (nrowsPack * nCudaThreads) == 0);
     row = row + idx*nrowsPack;
 
     uint64_t *nColsStages = cHelpersSteps->nColsStages_d;
     uint64_t *nColsStagesAcc = cHelpersSteps->nColsStagesAcc_d;
     uint64_t *offsetsStages = cHelpersSteps->offsetsStages_d;
 
-    uint8_t *storePols = ucHelpersSteps->storePols_d;
+    uint8_t *storePols = cHelpersSteps->storePols_d;
 
     gl64_t *bufferT_ = cHelpersSteps->gBufferT_ + idx * nBufferT;
     gl64_t *pols_d = cHelpersSteps->pols_d;
