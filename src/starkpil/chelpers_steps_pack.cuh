@@ -3,6 +3,7 @@
 
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
 #include "chelpers_steps_pack.hpp"
+#include <cuda_runtime.h>
 class gl64_t;
 class CHelpersStepsPackGPU: public CHelpersStepsPack {
 public:
