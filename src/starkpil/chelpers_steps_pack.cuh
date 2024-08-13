@@ -21,7 +21,7 @@ public:
     uint64_t nTemp3;
     uint64_t nPols;
 
-    vector<int64_t> offsetsStagesGPU;
+    vector<uint64_t> offsetsStagesGPU;
 
     uint64_t *nColsStages_d;
     uint64_t *nColsStagesAcc_d;

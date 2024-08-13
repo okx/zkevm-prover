@@ -9,6 +9,8 @@
 #include "cuda_utils.hpp"
 #include "timer.hpp"
 
+const uint64_t MAX_U64 = (1ULL << 64) - 1;
+
 void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
 
     prepare(starkInfo, params, parserArgs, parserParams);
@@ -63,10 +65,10 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     uint64_t total_offsets = 0;
     for (uint64_t s = 1; s < 11; s++) {
         if (s < 4 || (s == 4 && parserParams.stage != 4) || (s == 10 && domainExtended)) {
-            offsetsStagesGPU[s] = int64_t(total_offsets);
+            offsetsStagesGPU[s] = total_offsets;
             total_offsets += nColsStages[s] * nrowsPack * nCudaThreads;
         } else {
-            offsetsStagesGPU[s] = -1;
+            offsetsStagesGPU[s] = MAX_U64;
         }
     }
 
@@ -159,7 +161,7 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
     CHECKCUDAERR(cudaMemcpy(zi_d, params.zi[row], nrowsPack * nCudaThreads * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
     for (uint64_t s = 1; s < 11; s++) {
-        if (offsetsStagesGPU[s] >= 0) {
+        if (offsetsStagesGPU[s] != MAX_U64) {
             CHECKCUDAERR(cudaMemcpy(pols_d + offsetsStagesGPU[s], &params.pols[offsetsStages[s] + row*nColsStages[s]], nrowsPack * nCudaThreads *nColsStages[s] * sizeof(uint64_t), cudaMemcpyHostToDevice));
         }
     }
@@ -252,6 +254,7 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
         return;
     }
 
+    printf("storePolinomialsGPU\n");
     bool domainExtended = cHelpersSteps->domainExtended;
     uint64_t domainSize = cHelpersSteps->domainSize;
     uint64_t nrowsPack = cHelpersSteps->nrowsPack;
