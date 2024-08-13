@@ -140,7 +140,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         printf("rows:%lu\n", i);
         assert(i % (nrowsPack*nCudaThreads) == 0);
         loadData(starkInfo, params, i, parserParams.stage);
-        loadPolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d, starkInfo.nConstants, i, parserParams.stage);
+        loadPolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d, starkInfo.nConstants, parserParams.stage);
         pack_kernel<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
         storePolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
     }
