@@ -248,14 +248,14 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_
         return;
     }
 
-    row = row % (nrowsPack * nCudaThreads);
-    assert(row % (nrowsPack * nCudaThreads) == 0);
-    row = row + idx*nrowsPack;
-
     bool domainExtended = cHelpersSteps->domainExtended;
     uint64_t domainSize = cHelpersSteps->domainSize;
     uint64_t nrowsPack = cHelpersSteps->nrowsPack;
     uint64_t nBufferT = cHelpersSteps->nBufferT;
+
+    row = row % (nrowsPack * nCudaThreads);
+    assert(row % (nrowsPack * nCudaThreads) == 0);
+    row = row + idx*nrowsPack;
 
     uint64_t *nColsStages = cHelpersSteps->nColsStages_d;
     uint64_t *nColsStagesAcc = cHelpersSteps->nColsStagesAcc_d;
@@ -265,7 +265,7 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_
 
     gl64_t *bufferT_ = cHelpersSteps->gBufferT_ + idx * nBufferT;
     gl64_t *pols_d = cHelpersSteps->pols_d;
-    uint64_t *offsetsStages
+    uint64_t *offsetsStages = cHelpersSteps->offsetsStages_d;
 
     if(domainExtended) {
         // Store either polinomial f or polinomial q
