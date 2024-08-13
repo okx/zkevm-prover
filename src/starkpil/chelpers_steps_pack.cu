@@ -186,7 +186,7 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
     row = row % (nrowsPack * nCudaThreads);
     row = row + idx*nrowsPack;
     uint64_t nStages = 3;
-    std::vector<uint64_t> nextStrides = {0, nextStride};
+    uint64_t nextStrides[2] = {0, nextStride};
 
     for(uint64_t k = 0; k < nConstants; ++k) {
         for(uint64_t o = 0; o < 2; ++o) {
