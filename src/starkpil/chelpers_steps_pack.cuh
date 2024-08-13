@@ -12,6 +12,7 @@ public:
 
     bool domainExtended;
     uint64_t domainSize;
+    uint64_t subDomainSize;
     uint64_t nextStride;
     uint32_t nOps;
     uint32_t nArgs;

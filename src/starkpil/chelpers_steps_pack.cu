@@ -18,6 +18,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     nCudaThreads = 1;
     domainExtended = parserParams.stage > 3 ? true : false;
     domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
+    subDomainSize = nrowsPack * nCudaThreads;
     nextStride = domainExtended ? 1 << (starkInfo.starkStruct.nBitsExt - starkInfo.starkStruct.nBits) : 1;
 
     nOps = parserParams.nOps;
@@ -80,11 +81,11 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     CHECKCUDAERR(cudaMalloc(&offsetsStages_d, offsetsStagesGPU.size() * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMemcpy(offsetsStages_d, offsetsStagesGPU.data(), offsetsStagesGPU.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
-    CHECKCUDAERR(cudaMalloc(&constPols_d, starkInfo.nConstants * (nrowsPack * nCudaThreads + 2) * sizeof(uint64_t)));
-    CHECKCUDAERR(cudaMalloc(&x_d, nrowsPack * nCudaThreads * sizeof(uint64_t)));
-    CHECKCUDAERR(cudaMalloc(&zi_d, nrowsPack * nCudaThreads * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMalloc(&constPols_d, starkInfo.nConstants * (subDomainSize + 2) * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMalloc(&x_d, subDomainSize * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMalloc(&zi_d, subDomainSize * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMalloc(&pols_d, total_offsets * sizeof(uint64_t)));
-    CHECKCUDAERR(cudaMalloc(&xDivXSubXi_d, 2 * nrowsPack * nCudaThreads * FIELD_EXTENSION * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMalloc(&xDivXSubXi_d, 2 * subDomainSize * FIELD_EXTENSION * sizeof(uint64_t)));
 
     CHECKCUDAERR(cudaMalloc(&gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMalloc(&tmp1_d, nTemp1 * nCudaThreads * sizeof(uint64_t)));
@@ -272,6 +273,8 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
     gl64_t *bufferT_ = cHelpersSteps->gBufferT_ + idx * nBufferT;
     gl64_t *pols = cHelpersSteps->pols_d;
 
+    uint64_t subDomainSize = cHelpersSteps->subDomainSize;
+
     uint64_t nPols = cHelpersSteps->nPols;
     uint32_t nStorePols = cHelpersSteps->nStorePols;
 
@@ -294,13 +297,13 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
                     gl64_t *buffT = &bufferT_[(nColsStagesAcc[s] + k)* nrowsPack];
                     if(isTmpPol) {
                         for(uint64_t i = 0; i < dim; ++i) {
-                            if (offsetsStages[s] + k * domainSize + row * dim + i >= nPols) {
-                                printf("s:%lu, offset:%lu, k:%lu, domainSize:%lu, row:%lu, dim:%lu, i:%lu\n", s, offsetsStages[s], k, domainSize, row, dim, i);
+                            if (offsetsStages[s] + k * subDomainSize + row * dim + i >= nPols) {
+                                printf("s:%lu, offset:%lu, k:%lu, subDomainSize:%lu, row:%lu, dim:%lu, i:%lu\n", s, offsetsStages[s], k, subDomainSize, row, dim, i);
                                 assert(0);
                             }
-                            assert(offsetsStages[s] + k * domainSize + row * dim + i + dim * nrowsPack < nPols);
+                            assert(offsetsStages[s] + k * subDomainSize + row * dim + i + dim * nrowsPack < nPols);
                             assert((nColsStagesAcc[s] + k + i)* nrowsPack < nBufferT);
-                            gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k * domainSize + row * dim + i], uint64_t(dim), &buffT[i*nrowsPack]);
+                            gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k * subDomainSize + row * dim + i], uint64_t(dim), &buffT[i*nrowsPack]);
                         }
                     } else {
                         assert(offsetsStages[s] + k + row * nColsStages[s] < nPols);
