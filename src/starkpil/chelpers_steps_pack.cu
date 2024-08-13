@@ -63,9 +63,9 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     CHECKCUDAERR(cudaMalloc(&pols_d, total_offsets * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMalloc(&xDivXSubXi_d, 2 * nrowsPack * nCudaThreads * sizeof(uint64_t)));
 
-    CHECKCUDAERR(cudaMalloc(&gBufferT_, nBufferT * sizeof(uint64_t)));
-    CHECKCUDAERR(cudaMalloc(&tmp1_d, nTemp1 * sizeof(uint64_t)));
-    CHECKCUDAERR(cudaMalloc(&tmp3_d, nTemp3 * sizeof(uint64_t)*nCudaThreads));
+    CHECKCUDAERR(cudaMalloc(&gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMalloc(&tmp1_d, nTemp1 * nCudaThreads * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMalloc(&tmp3_d, nTemp3 * nCudaThreads * sizeof(uint64_t)*nCudaThreads));
 }
 
 void CHelpersStepsPackGPU::cleanupGPU() {
@@ -96,7 +96,7 @@ void CHelpersStepsPackGPU::cleanupGPU() {
 
 void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
 
-    nCudaThreads = 1 << 15;
+    nCudaThreads = 1 << 12;
     domainExtended = parserParams.stage > 3 ? true : false;
     domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
     nextStride = domainExtended ? 1 << (starkInfo.starkStruct.nBitsExt - starkInfo.starkStruct.nBits) : 1;
