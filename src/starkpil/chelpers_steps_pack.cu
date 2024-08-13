@@ -269,6 +269,7 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
     gl64_t *pols = cHelpersSteps->pols_d;
 
     uint64_t nPols = cHelpersSteps->nPols;
+    uint32_t nStorePols = cHelpersSteps->nStorePols;
 
     if(domainExtended) {
         assert(0);
@@ -283,10 +284,12 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
             bool isTmpPol = !domainExtended && s == 4;
             for(uint64_t k = 0; k < nColsStages[s]; ++k) {
                 uint64_t dim = storePols[nColsStagesAcc[s] + k];
+                assert(nColsStagesAcc[s] + k < nStorePols);
                 if(storePols[nColsStagesAcc[s] + k]) {
                     assert((nColsStagesAcc[s] + k)* nrowsPack < nBufferT);
                     gl64_t *buffT = &bufferT_[(nColsStagesAcc[s] + k)* nrowsPack];
                     if(isTmpPol) {
+                        assert(0);
                         for(uint64_t i = 0; i < dim; ++i) {
                             gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k * domainSize + row * dim + i], uint64_t(dim), &buffT[i*nrowsPack]);
                         }
