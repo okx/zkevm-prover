@@ -77,7 +77,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     CHECKCUDAERR(cudaMalloc(&x_d, nrowsPack * nCudaThreads * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMalloc(&zi_d, nrowsPack * nCudaThreads * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMalloc(&pols_d, total_offsets * sizeof(uint64_t)));
-    CHECKCUDAERR(cudaMalloc(&xDivXSubXi_d, 2 * nrowsPack * nCudaThreads * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMalloc(&xDivXSubXi_d, 2 * nrowsPack * nCudaThreads * FIELD_EXTENSION * sizeof(uint64_t)));
 
     CHECKCUDAERR(cudaMalloc(&gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMalloc(&tmp1_d, nTemp1 * nCudaThreads * sizeof(uint64_t)));
