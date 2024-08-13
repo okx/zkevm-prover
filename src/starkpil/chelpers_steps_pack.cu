@@ -136,7 +136,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     CHECKCUDAERR(cudaMalloc((void **)&(cHelpersSteps_d), sizeof(CHelpersStepsPackGPU)));
     CHECKCUDAERR(cudaMemcpy(cHelpersSteps_d, this, sizeof(CHelpersStepsPackGPU), cudaMemcpyHostToDevice));
 
-    for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack*nCudaThreads) {
+    for (uint64_t i = 4096; i < rowEnd; i+= nrowsPack*nCudaThreads) {
         printf("rows:%lu\n", i);
         assert(i % (nrowsPack*nCudaThreads) == 0);
         loadData(starkInfo, params, i, parserParams.stage);
