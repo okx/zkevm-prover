@@ -258,7 +258,6 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
 
     printf("storePolinomialsGPU\n");
     bool domainExtended = cHelpersSteps->domainExtended;
-    uint64_t domainSize = cHelpersSteps->domainSize;
     uint64_t nrowsPack = cHelpersSteps->nrowsPack;
     uint64_t nBufferT = cHelpersSteps->nBufferT;
 
