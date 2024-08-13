@@ -13,6 +13,22 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     prepare(starkInfo, params, parserArgs, parserParams);
 
+    nCudaThreads = 1 << 12;
+    domainExtended = parserParams.stage > 3 ? true : false;
+    domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
+    nextStride = domainExtended ? 1 << (starkInfo.starkStruct.nBitsExt - starkInfo.starkStruct.nBits) : 1;
+
+    nOps = parserParams.nOps;
+    nArgs = parserParams.nArgs;
+    nStorePols = parserParams.nStorePols;
+    nBufferT = 2*nCols*nrowsPack;
+    nTemp1 = parserParams.nTemp1*nrowsPack;
+    nTemp3 = parserParams.nTemp3*FIELD_EXTENSION*nrowsPack;
+
+    printf("nCols:%lu\n", nCols);
+    printf("nrowsPack:%lu\n", nrowsPack);
+    printf("buffer:%lu\n", nBufferT);
+
     CHECKCUDAERR(cudaMalloc(&nColsStages_d, nColsStages.size() * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMemcpy(nColsStages_d, nColsStages.data(), nColsStages.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
@@ -95,22 +111,6 @@ void CHelpersStepsPackGPU::cleanupGPU() {
 }
 
 void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
-
-    nCudaThreads = 1 << 12;
-    domainExtended = parserParams.stage > 3 ? true : false;
-    domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
-    nextStride = domainExtended ? 1 << (starkInfo.starkStruct.nBitsExt - starkInfo.starkStruct.nBits) : 1;
-
-    nOps = parserParams.nOps;
-    nArgs = parserParams.nArgs;
-    nStorePols = parserParams.nStorePols;
-    nBufferT = 2*nCols*nrowsPack;
-    nTemp1 = parserParams.nTemp1*nrowsPack;
-    nTemp3 = parserParams.nTemp3*FIELD_EXTENSION*nrowsPack;
-
-    printf("nCols:%lu\n", nCols);
-    printf("nrowsPack:%lu\n", nrowsPack);
-    printf("buffer:%lu\n", nBufferT);
 
     CHECKCUDAERR(cudaSetDevice(0));
 
