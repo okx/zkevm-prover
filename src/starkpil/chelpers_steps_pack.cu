@@ -133,11 +133,11 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
     for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack*nCudaThreads) {
         printf("rows:%lu\n", i);
+        assery(i % (nrowsPack*nCudaThreads) == 0);
         loadData(starkInfo, params, i, parserParams.stage);
         loadPolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d, starkInfo.nConstants, i, parserParams.stage);
         pack_kernel<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
         storePolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d, i);
-        return;
     }
 
     cudaFree(cHelpersSteps_d);
@@ -265,7 +265,6 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_
 
     gl64_t *bufferT_ = cHelpersSteps->gBufferT_ + idx * nBufferT;
     gl64_t *pols_d = cHelpersSteps->pols_d;
-    uint64_t *offsetsStages = cHelpersSteps->offsetsStages_d;
 
     if(domainExtended) {
         // Store either polinomial f or polinomial q
