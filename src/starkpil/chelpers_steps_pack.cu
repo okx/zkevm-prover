@@ -9,24 +9,6 @@
 #include "cuda_utils.hpp"
 #include "timer.hpp"
 
-__global__ void pack_kernel(uint64_t nrowsPack,
-                            uint32_t nOps,
-                            uint32_t nArgs,
-                            uint64_t nBufferT,
-                            uint64_t nTemp1,
-                            uint64_t nTemp3,
-                            gl64_t *tmp1,
-                            gl64_t *tmp3,
-                            uint64_t *nColsStagesAcc,
-                            uint8_t *ops,
-                            uint16_t *args,
-                            gl64_t *bufferT_,
-                            gl64_t *challenges,
-                            gl64_t *challenges_ops,
-                            gl64_t *numbers,
-                            gl64_t *publics,
-                            gl64_t *evals);
-
 const int64_t parallel = 1<<16;
 
 void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
@@ -126,7 +108,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         //TimerStart(Memcpy_D_to_H);
         CHECKCUDAERR(cudaMemcpy(bufferT_, bufferT_d, 2*nCols*nrowsPack * sizeof(uint64_t) *parallel, cudaMemcpyDeviceToHost));
         //TimerStopAndLog(Memcpy_D_to_H);
-        
+
 #pragma omp parallel for
         for (uint64_t j = 0; j < parallel; j++) {
             storePolinomials(starkInfo, params, bufferT_ + 2*nCols*nrowsPack*j, storePol, i+nrowsPack*j, nrowsPack, domainExtended);

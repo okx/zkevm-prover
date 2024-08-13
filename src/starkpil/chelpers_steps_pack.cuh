@@ -22,6 +22,27 @@ public:
     void calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams, uint64_t rowIni, uint64_t rowEnd);
     void prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams);
     void cleanupGPU();
+
+    __global__ void pack_kernel(uint64_t nrowsPack,
+                            uint32_t nOps,
+                            uint32_t nArgs,
+                            uint64_t nBufferT,
+                            uint64_t nTemp1,
+                            uint64_t nTemp3,
+                            gl64_t *tmp1,
+                            gl64_t *tmp3,
+                            uint64_t *nColsStagesAcc,
+                            uint8_t *ops,
+                            uint16_t *args,
+                            gl64_t *bufferT_,
+                            gl64_t *challenges,
+                            gl64_t *challenges_ops,
+                            gl64_t *numbers,
+                            gl64_t *publics,
+                            gl64_t *evals);
+
+//    __global__ void loadPolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint64_t row, uint64_t stage, uint64_t nrowsPack, uint64_t domainExtended);
+//    __global__ void storePolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint8_t* storePol, uint64_t row, uint64_t nrowsPack, uint64_t domainExtended);
 };
 
 #endif
