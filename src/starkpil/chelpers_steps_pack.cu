@@ -108,6 +108,7 @@ void CHelpersStepsPackGPU::cleanupGPU() {
     cudaFree(gBufferT_);
     cudaFree(tmp1_d);
     cudaFree(tmp3_d);
+    assert(0);
 }
 
 void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
@@ -151,6 +152,9 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
     uint64_t *temp = (uint64_t *)malloc(starkInfo.nConstants * (nrowsPack * nCudaThreads + nextStride) * sizeof(uint64_t));
     memcpy(temp, ((Goldilocks::Element *)constPols->address()) + row * starkInfo.nConstants, starkInfo.nConstants * (nrowsPack * nCudaThreads + nextStride) * sizeof(uint64_t));
     printf("temp ok\n");
+
+    CHECKCUDAERR(cudaMemcpy(x_d, x[row], nrowsPack * nCudaThreads * sizeof(uint64_t), cudaMemcpyHostToDevice));
+    CHECKCUDAERR(cudaMemcpy(zi_d, params.zi[row], nrowsPack * nCudaThreads * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
     assert(constPols_d != NULL);
     printf("assert ok\n");
