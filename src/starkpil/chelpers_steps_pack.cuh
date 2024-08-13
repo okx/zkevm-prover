@@ -13,12 +13,12 @@ public:
     bool domainExtended;
     uint64_t domainSize;
     uint64_t nextStride;
-    uint32_t nOps,
-    uint32_t nArgs,
+    uint32_t nOps;
+    uint32_t nArgs;
     uint32_t nStorePols;
-    uint64_t nBufferT,
-    uint64_t nTemp1,
-    uint64_t nTemp3,
+    uint64_t nBufferT;
+    uint64_t nTemp1;
+    uint64_t nTemp3;
 
     vector<uint64_t> offsetsStagesGPU;
 
