@@ -19,9 +19,6 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     CHECKCUDAERR(cudaMalloc(&nColsStagesAcc_d, nColsStagesAcc.size() * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMemcpy(nColsStagesAcc_d, nColsStagesAcc.data(), nColsStagesAcc.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
-    CHECKCUDAERR(cudaMalloc(&offsetsStages_d, offsetsStages.size() * sizeof(uint64_t)));
-    CHECKCUDAERR(cudaMemcpy(offsetsStages_d, offsetsStages.data(), offsetsStages.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
-
     CHECKCUDAERR(cudaMalloc(&ops_d, nOps * sizeof(uint8_t)));
     CHECKCUDAERR(cudaMemcpy(ops_d, &parserArgs.ops[parserParams.opsOffset], nOps * sizeof(uint8_t), cudaMemcpyHostToDevice));
 
@@ -56,6 +53,9 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
             offsetsStagesGPU[s] = -1;
         }
     }
+
+    CHECKCUDAERR(cudaMalloc(&offsetsStages_d, offsetsStagesGPU.size() * sizeof(uint64_t)));
+    CHECKCUDAERR(cudaMemcpy(offsetsStages_d, offsetsStagesGPU.data(), offsetsStagesGPU.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
     CHECKCUDAERR(cudaMalloc(&constPols_d, starkInfo.nConstants * (nrowsPack * nCudaThreads + 2) * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMalloc(&x_d, nrowsPack * nCudaThreads * sizeof(uint64_t)));
@@ -175,9 +175,9 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
     uint64_t domainSize = cHelpersSteps->domainSize;
     uint64_t nBufferT = cHelpersSteps->nBufferT;
 
-    uint64_t *nColsStages = cHelpersSteps->nColsStages_d.data();
-    uint64_t *nColsStagesAcc = cHelpersSteps->nColsStagesAcc_d.data();
-    uint64_t *offsetsStages = cHelpersSteps->offsetsStagesGPU.data();
+    uint64_t *nColsStages = cHelpersSteps->nColsStages_d;
+    uint64_t *nColsStagesAcc = cHelpersSteps->nColsStagesAcc_d;
+    uint64_t *offsetsStages = cHelpersSteps->offsetsStages_d;
 
     gl64_t *bufferT_ = cHelpersSteps->gBufferT_ + idx * nBufferT;
     gl64_t *pols_d = cHelpersSteps->pols_d;
