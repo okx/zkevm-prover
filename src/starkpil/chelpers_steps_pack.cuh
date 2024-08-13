@@ -8,6 +8,12 @@ class gl64_t;
 class CHelpersStepsPackGPU: public CHelpersStepsPack {
 public:
 
+    bool domainExtended;
+    uint64_t domainSize;
+    int64_t nCudaThreads;
+
+    vector<uint64_t> offsetsStagesGPU;
+
     uint64_t *nColsStagesAcc_d;
 
     uint8_t *ops_d;
@@ -19,14 +25,23 @@ public:
     gl64_t *publics_d;
     gl64_t *evals_d;
 
+    gl64_t *constPols_d;
+    gl64_t *x_d;
+    gl64_d *zi_d;
+    gl64_t *pols_d;
+    gl64_t *xDivXSubXi_d;
+
+    gl64_t *gBufferT_
+
     void calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams);
     void calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams, uint64_t rowIni, uint64_t rowEnd);
     void prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams);
     void cleanupGPU();
 
+    void loadData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint64_t stage, uint64_t nrowsPack, uint64_t domainExtended);
 
-//    __global__ void loadPolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint64_t row, uint64_t stage, uint64_t nrowsPack, uint64_t domainExtended);
-//    __global__ void storePolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint8_t* storePol, uint64_t row, uint64_t nrowsPack, uint64_t domainExtended);
+    __global__ void loadPolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint64_t row, uint64_t stage);
+    __global__ void storePolinomials(StarkInfo &starkInfo, StepsParams &params, Goldilocks::Element *bufferT_, uint8_t* storePol, uint64_t row, uint64_t nrowsPack, uint64_t domainExtended);
 };
 
 __global__ void pack_kernel(uint64_t nrowsPack,
