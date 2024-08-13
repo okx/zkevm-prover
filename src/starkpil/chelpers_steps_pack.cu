@@ -13,7 +13,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     prepare(starkInfo, params, parserArgs, parserParams);
 
-    nCudaThreads = 1 << 12;
+    nCudaThreads = 1;
     domainExtended = parserParams.stage > 3 ? true : false;
     domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
     nextStride = domainExtended ? 1 << (starkInfo.starkStruct.nBitsExt - starkInfo.starkStruct.nBits) : 1;
@@ -174,6 +174,8 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
     uint64_t nextStride = cHelpersSteps->nextStride;
     uint64_t domainSize = cHelpersSteps->domainSize;
     uint64_t nBufferT = cHelpersSteps->nBufferT;
+
+    printf("loadPolinomialsGPU, nrowsPack: %lu, nCols:%lu\n", nrowsPack, cHelpersSteps->nCols);
 
     uint64_t *nColsStages = cHelpersSteps->nColsStages_d;
     uint64_t *nColsStagesAcc = cHelpersSteps->nColsStagesAcc_d;
