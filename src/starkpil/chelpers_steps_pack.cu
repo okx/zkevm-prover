@@ -371,7 +371,7 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
 //                            }
 //                            assert(offsetsStages[s] + k * subDomainSize + row * dim + i + dim * nrowsPack < nPols);
 //                            assert((nColsStagesAcc[s] + k + i)* nrowsPack < nBufferT);
-                            for (uint64_t r = 0; i < nrowsPack) {
+                            for (uint64_t r = 0; r < nrowsPack; r++) {
                                 if (k * subDomainSize + row * dim + i + r*dim == 15) {
                                     printf("storePolinomialsGPU r:%lu, k:%lu, dim:%lu, i:%lu\n", r, k, dim, i);
                                     for (uint64_t j = 0; j < nrowsPack; j++) {
