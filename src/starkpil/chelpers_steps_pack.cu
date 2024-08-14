@@ -136,6 +136,8 @@ void CHelpersStepsPackGPU::cleanupGPU() {
     cudaFree(gBufferT_);
     cudaFree(tmp1_d);
     cudaFree(tmp3_d);
+
+    free(tmpExp);
 }
 
 void CHelpersStepsPackGPU::compare(StepsParams &params, uint64_t row) {
@@ -159,7 +161,7 @@ void CHelpersStepsPackGPU::compare(StepsParams &params, uint64_t row) {
 //    }
     uint64_t s = 4;
     writeDataToFile("gpu.txt", (uint64_t *)params.pols +offsetsStages[s] + row*nColsStages[s], subDomainSize *nColsStages[s]);
-
+    assert(0);
 }
 
 void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
@@ -169,7 +171,8 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     prepareGPU(starkInfo, params, parserArgs, parserParams);
     calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
     cleanupGPU();
-    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*nCudaThreads, domainSize);
+    //calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*nCudaThreads, domainSize);
+    compare(params, 0);
 }
 
 void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams,
@@ -252,7 +255,7 @@ void CHelpersStepsPackGPU::storeData(StarkInfo &starkInfo, StepsParams &params, 
             if (isTmpPol) {
                 CHECKCUDAERR(cudaMemcpy(tmpExp, pols_d + offsetsStagesGPU[s], subDomainSize *nColsStages[s] * sizeof(uint64_t), cudaMemcpyDeviceToHost));
                 #pragma omp parallel for
-                for (uint64_t i=0; i<(subDomainSize+nextStride); i++) {
+                for (uint64_t i=0; i<subDomainSize; i++) {
                     for (uint64_t j=0; j<nColsStages[s]; j++) {
                         params.pols[offsetsStages[s] + j*domainSize + i] = tmpExp[i*nColsStages[s]+j];
                     }
