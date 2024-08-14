@@ -11,7 +11,7 @@
 
 bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t size) {
     // 打开文件
-    std::ofstream file(filename);
+    std::ofstream file(filename, std::ios::app);
     if (file.is_open()) {
         // 逐行写入数据
         for (size_t i = 0; i < size; i++) {
@@ -159,8 +159,13 @@ void CHelpersStepsPackGPU::compare(StepsParams &params, uint64_t row) {
 //            free(temp);
 //        }
 //    }
-    uint64_t s = 4;
-    writeDataToFile("gpu.txt", (uint64_t *)params.pols +offsetsStages[s] + row*nColsStages[s], subDomainSize *nColsStages[s]);
+
+    for (uint64_t s = 1; s < 11; s++) {
+        if (offsetsStagesGPU[s] != MAX_U64) {
+            printf("write s:%lu\n", s);
+            writeDataToFile("gpu.txt", (uint64_t *)params.pols +offsetsStages[s] + row*nColsStages[s], subDomainSize *nColsStages[s]);
+        }
+    }
     assert(0);
 }
 
