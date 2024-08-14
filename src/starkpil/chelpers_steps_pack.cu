@@ -163,7 +163,7 @@ void CHelpersStepsPackGPU::compare(StepsParams &params, uint64_t row) {
     for (uint64_t s = 1; s < 11; s++) {
         if (offsetsStagesGPU[s] != MAX_U64) {
             printf("write s:%lu\n", s);
-            writeDataToFile("cpu.txt", (uint64_t *)params.pols +offsetsStages[s] + row*nColsStages[s], (subDomainSize + nextStride) *nColsStages[s]);
+            writeDataToFile("gpu.txt", (uint64_t *)params.pols +offsetsStages[s] + row*nColsStages[s], (subDomainSize + nextStride) *nColsStages[s]);
         }
     }
 
@@ -175,9 +175,9 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     CHECKCUDAERR(cudaSetDevice(0));
 
     prepareGPU(starkInfo, params, parserArgs, parserParams);
-    //calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
+    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
     cleanupGPU();
-    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
+    //calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
     compare(params, 0);
 }
 
@@ -371,14 +371,10 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
         uint64_t nStages = 3;
         for(uint64_t s = 2; s <= nStages + 1; ++s) {
             for(uint64_t k = 0; k < nColsStages[s]; ++k) {
-                //uint64_t dim = storePols[nColsStagesAcc[s] + k];
-                //assert(nColsStagesAcc[s] + k < nStorePols);
-                if(storePols[nColsStagesAcc[s] + k]) {
-                    //assert((nColsStagesAcc[s] + k)* nrowsPack < nBufferT);
-                    gl64_t *buffT = &bufferT_[(nColsStagesAcc[s] + k)* nrowsPack];
-                    //assert(offsetsStages[s] + k + row * nColsStages[s] < nPols);
-                    gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k + row * nColsStages[s]], nColsStages[s], buffT);
-                }
+                //assert((nColsStagesAcc[s] + k)* nrowsPack < nBufferT);
+                gl64_t *buffT = &bufferT_[(nColsStagesAcc[s] + k)* nrowsPack];
+                //assert(offsetsStages[s] + k + row * nColsStages[s] < nPols);
+                gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k + row * nColsStages[s]], nColsStages[s], buffT);
             }
         }
     }
