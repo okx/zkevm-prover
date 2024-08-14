@@ -136,24 +136,26 @@ void CHelpersStepsPackGPU::cleanupGPU() {
 }
 
 void CHelpersStepsPackGPU::compare(StepsParams &params, uint64_t row) {
-    for (uint64_t s = 1; s < 11; s++) {
-        if (offsetsStagesGPU[s] != MAX_U64) {
-            printf("compare s:%lu\n", s);
-            Goldilocks::Element *temp = (Goldilocks::Element *)malloc(subDomainSize *nColsStages[s] * sizeof(uint64_t));
-            CHECKCUDAERR(cudaMemcpy(temp, pols_d + offsetsStagesGPU[s], subDomainSize *nColsStages[s] * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-            for (uint64_t i=0; i<subDomainSize *nColsStages[s]; i++) {
-                uint64_t left = Goldilocks::toU64(params.pols[offsetsStages[s] + row*nColsStages[s] + i]);
-                uint64_t right = Goldilocks::toU64(temp[i]);
-                if (left != right) {
-                    printf("compare not equal, s:%lu, i:%lu, left:%lu, right:%lu\n", s, i, left, right);
-                    writeDataToFile("left.txt", (uint64_t *)params.pols +offsetsStages[s] + row*nColsStages[s], subDomainSize *nColsStages[s]);
-                    writeDataToFile("right.txt", (uint64_t *)temp, subDomainSize *nColsStages[s]);
-                    break;
-                }
-            }
-            free(temp);
-        }
-    }
+//    for (uint64_t s = 1; s < 11; s++) {
+//        if (offsetsStagesGPU[s] != MAX_U64) {
+//            printf("compare s:%lu\n", s);
+//            Goldilocks::Element *temp = (Goldilocks::Element *)malloc(subDomainSize *nColsStages[s] * sizeof(uint64_t));
+//            CHECKCUDAERR(cudaMemcpy(temp, pols_d + offsetsStagesGPU[s], subDomainSize *nColsStages[s] * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+//            for (uint64_t i=0; i<subDomainSize *nColsStages[s]; i++) {
+//                uint64_t left = Goldilocks::toU64(params.pols[offsetsStages[s] + row*nColsStages[s] + i]);
+//                uint64_t right = Goldilocks::toU64(temp[i]);
+//                if (left != right) {
+//                    printf("compare not equal, s:%lu, i:%lu, left:%lu, right:%lu\n", s, i, left, right);
+//                    writeDataToFile("left.txt", (uint64_t *)params.pols +offsetsStages[s] + row*nColsStages[s], subDomainSize *nColsStages[s]);
+//                    writeDataToFile("right.txt", (uint64_t *)temp, subDomainSize *nColsStages[s]);
+//                    break;
+//                }
+//            }
+//            free(temp);
+//        }
+//    }
+    uint64_t s = 4;
+    writeDataToFile("cpu.txt", (uint64_t *)params.pols +offsetsStages[s] + row*nColsStages[s], subDomainSize *nColsStages[s]);
 
 }
 
@@ -162,7 +164,7 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     CHECKCUDAERR(cudaSetDevice(0));
 
     prepareGPU(starkInfo, params, parserArgs, parserParams);
-    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
+    //calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
     calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
     compare(params, 0);
     cleanupGPU();
@@ -197,7 +199,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         writeDataToFile("output2.txt", temp, nBufferT * nCudaThreads);
         storePolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
 
-        //storeData(starkInfo, params, i, parserParams.stage);
+        storeData(starkInfo, params, i, parserParams.stage);
     }
 
     cudaFree(cHelpersSteps_d);
@@ -350,6 +352,7 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
 //    uint32_t nStorePols = cHelpersSteps->nStorePols;
 
     if(domainExtended) {
+        assert(0);
         // Store either polinomial f or polinomial q
         for(uint64_t k = 0; k < nColsStages[10]; ++k) {
             gl64_t *buffT = &bufferT_[(nColsStagesAcc[10] + k)* nrowsPack];
@@ -375,9 +378,9 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
 //                            assert((nColsStagesAcc[s] + k + i)* nrowsPack < nBufferT);
                             for (uint64_t r = 0; r < nrowsPack; r++) {
                                 if (k * subDomainSize + row * dim + i + r*dim == 15) {
-                                    printf("storePolinomialsGPU r:%lu, k:%lu, dim:%lu, i:%lu\n", r, k, dim, i);
+                                    printf("storePolinomialsGPU, s:%lu, r:%lu, k:%lu, dim:%lu, i:%lu, value:%lu\n", s, r, k, dim, i, uint64_t(buffT[i*nrowsPack+j]));
                                     for (uint64_t j = 0; j < nrowsPack; j++) {
-                                        printf("%lu\n", uint64_t(buffT[i*nrowsPack+j]));
+                                        printf("%lu\n", );
                                     }
                                 }
                             }
