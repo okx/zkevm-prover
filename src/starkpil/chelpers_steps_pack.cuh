@@ -51,7 +51,7 @@ public:
     void calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams);
     void calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams, uint64_t rowIni, uint64_t rowEnd);
     void prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams);
-    void compare();
+    void compare(StepsParams &params, uint64_t row);
     void cleanupGPU();
 
     void loadData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint64_t stage);

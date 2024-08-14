@@ -763,7 +763,6 @@ public:
             }
 
             writeDataToFile("output.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
-            assert(0);
 
             storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
 

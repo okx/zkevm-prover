@@ -135,7 +135,7 @@ void CHelpersStepsPackGPU::cleanupGPU() {
     cudaFree(tmp3_d);
 }
 
-void CHelpersStepsPackGPU::compare() {
+void CHelpersStepsPackGPU::compare(StepsParams &params, uint64_t row) {
     for (uint64_t s = 1; s < 11; s++) {
         if (offsetsStagesGPU[s] != MAX_U64) {
             Goldilocks::Element *temp = (Goldilocks::Element *)malloc(subDomainSize *nColsStages[s] * sizeof(uint64_t));
@@ -160,8 +160,9 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     prepareGPU(starkInfo, params, parserArgs, parserParams);
     calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
     calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
-    compare();
+    compare(params, 0);
     cleanupGPU();
+    assert(0);
 }
 
 void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams,
