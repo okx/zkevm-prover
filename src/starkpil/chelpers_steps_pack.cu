@@ -33,7 +33,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     prepare(starkInfo, params, parserArgs, parserParams);
 
-    nCudaThreads = 1;
+    nCudaThreads = 1 << 14;
     domainExtended = parserParams.stage > 3 ? true : false;
     domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
     subDomainSize = nrowsPack * nCudaThreads;
@@ -175,9 +175,9 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     CHECKCUDAERR(cudaSetDevice(0));
 
     prepareGPU(starkInfo, params, parserArgs, parserParams);
-    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
+    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads * 100);
     cleanupGPU();
-    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*nCudaThreads, domainSize);
+    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*nCudaThreads * 100, domainSize);
     //compare(params, 0);
 }
 
@@ -351,7 +351,7 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
     uint64_t *nColsStagesAcc = cHelpersSteps->nColsStagesAcc_d;
     uint64_t *offsetsStages = cHelpersSteps->offsetsStages_d;
 
-    uint8_t *storePols = cHelpersSteps->storePols_d;
+    // uint8_t *storePols = cHelpersSteps->storePols_d;
 
     gl64_t *bufferT_ = cHelpersSteps->gBufferT_ + idx * nBufferT;
     gl64_t *pols = cHelpersSteps->pols_d;
