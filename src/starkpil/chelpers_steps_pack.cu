@@ -34,7 +34,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     printf("into prepareGPU...\n");
     prepare(starkInfo, params, parserArgs, parserParams);
 
-    nCudaThreads = 1 << 10;
+    nCudaThreads = 1 << 14;
     domainExtended = parserParams.stage > 3 ? true : false;
     domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
     subDomainSize = nrowsPack * nCudaThreads;
