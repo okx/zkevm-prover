@@ -135,14 +135,33 @@ void CHelpersStepsPackGPU::cleanupGPU() {
     cudaFree(tmp3_d);
 }
 
+void CHelpersStepsPackGPU::compare() {
+    for (uint64_t s = 1; s < 11; s++) {
+        if (offsetsStagesGPU[s] != MAX_U64) {
+            Goldilocks::Element *temp = (Goldilocks::Element *)malloc(subDomainSize *nColsStages[s] * sizeof(uint64_t));
+            CHECKCUDAERR(cudaMemcpy(temp, pols_d + offsetsStagesGPU[s], subDomainSize *nColsStages[s] * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+            for (uint64_t i=0; i<subDomainSize *nColsStages[s]; i++) {
+                uint64_t left = Goldilocks::toU64(temp[i]);
+                uint64_t right = Goldilocks::toU64(params.pols[offsetsStages[s] + row*nColsStages[s] + i]);
+                if (left != right) {
+                    printf("compare not equal, s:%lu, i:%lu, left:%lu, right:%lu\n", s, i, left, right);
+                    assert(0);
+                }
+            }
+        }
+    }
+
+}
+
 void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
 
     CHECKCUDAERR(cudaSetDevice(0));
 
     prepareGPU(starkInfo, params, parserArgs, parserParams);
     calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
+    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
+    compare();
     cleanupGPU();
-    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, 0, domainSize);
 }
 
 void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams,
@@ -200,12 +219,12 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
 }
 
 void CHelpersStepsPackGPU::storeData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint64_t stage) {
-    ConstantPolsStarks *constPols = domainExtended ? params.pConstPols2ns : params.pConstPols;
-    Polinomial &x = domainExtended ? params.x_2ns : params.x_n;
-
-    CHECKCUDAERR(cudaMemcpy(((Goldilocks::Element *)constPols->address()) + row * starkInfo.nConstants, constPols_d, starkInfo.nConstants * (subDomainSize + nextStride) * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-    CHECKCUDAERR(cudaMemcpy(x[row], x_d, subDomainSize * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-    CHECKCUDAERR(cudaMemcpy(params.zi[row], zi_d, subDomainSize * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+//    ConstantPolsStarks *constPols = domainExtended ? params.pConstPols2ns : params.pConstPols;
+//    Polinomial &x = domainExtended ? params.x_2ns : params.x_n;
+//
+//    CHECKCUDAERR(cudaMemcpy(((Goldilocks::Element *)constPols->address()) + row * starkInfo.nConstants, constPols_d, starkInfo.nConstants * (subDomainSize + nextStride) * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+//    CHECKCUDAERR(cudaMemcpy(x[row], x_d, subDomainSize * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+//    CHECKCUDAERR(cudaMemcpy(params.zi[row], zi_d, subDomainSize * sizeof(uint64_t), cudaMemcpyDeviceToHost));
 
     for (uint64_t s = 1; s < 11; s++) {
         if (offsetsStagesGPU[s] != MAX_U64) {
@@ -213,8 +232,8 @@ void CHelpersStepsPackGPU::storeData(StarkInfo &starkInfo, StepsParams &params, 
         }
     }
 
-    CHECKCUDAERR(cudaMemcpy(params.xDivXSubXi[row], xDivXSubXi_d, subDomainSize *FIELD_EXTENSION * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-    CHECKCUDAERR(cudaMemcpy(params.xDivXSubXi[domainSize + row], xDivXSubXi_d + subDomainSize *FIELD_EXTENSION, subDomainSize *FIELD_EXTENSION * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+//    CHECKCUDAERR(cudaMemcpy(params.xDivXSubXi[row], xDivXSubXi_d, subDomainSize *FIELD_EXTENSION * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+//    CHECKCUDAERR(cudaMemcpy(params.xDivXSubXi[domainSize + row], xDivXSubXi_d + subDomainSize *FIELD_EXTENSION, subDomainSize *FIELD_EXTENSION * sizeof(uint64_t), cudaMemcpyDeviceToHost));
 }
 
 __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t nConstants, uint64_t stage) {
