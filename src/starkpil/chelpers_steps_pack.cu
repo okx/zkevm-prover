@@ -195,9 +195,12 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
             nCudaThreads = (rowEnd - i) / nrowsPack;
             subDomainSize = nrowsPack*nCudaThreads;
         }
+        TimerStart(Memcpy_H_to_D);
         loadData(starkInfo, params, i, parserParams.stage);
-        loadPolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d, starkInfo.nConstants, parserParams.stage);
+        TimerStopAndLog(Memcpy_H_to_D);
 
+        TimerStart(EXP_Kernel);
+        loadPolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d, starkInfo.nConstants, parserParams.stage);
         // debug
 //        uint64_t *temp = (uint64_t *)malloc(nBufferT * nCudaThreads * sizeof(uint64_t));
 //        CHECKCUDAERR(cudaMemcpy(temp, gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t), cudaMemcpyDeviceToHost));
@@ -207,8 +210,11 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 //        CHECKCUDAERR(cudaMemcpy(temp, gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t), cudaMemcpyDeviceToHost));
 //        writeDataToFile("output2.txt", temp, nBufferT * nCudaThreads);
         storePolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
+        TimerStopAndLog(EXP_Kernel);
 
+        TimerStart(Memcpy_D_to_H);
         storeData(starkInfo, params, i, parserParams.stage);
+        TimerStopAndLog(Memcpy_D_to_H);
     }
 
     cudaFree(cHelpersSteps_d);
