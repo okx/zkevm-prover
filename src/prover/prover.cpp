@@ -613,7 +613,7 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
         CHelpersStepsPackGPU cHelpersStepsZkevm;
         //CHelpersSteps cHelpersStepsZkevm;
 #else
-        CHelpersSteps cHelpersStepsZkevm;
+        CHelpersStepsPacks cHelpersStepsZkevm;
 #endif
 
         CHelpersSteps cHelpersSteps;

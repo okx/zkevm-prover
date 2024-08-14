@@ -370,21 +370,7 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
                     //assert((nColsStagesAcc[s] + k)* nrowsPack < nBufferT);
                     gl64_t *buffT = &bufferT_[(nColsStagesAcc[s] + k)* nrowsPack];
                     if(isTmpPol) {
-                        for(uint64_t i = 0; i < dim; ++i) {
-//                            if (offsetsStages[s] + k * subDomainSize + row * dim + i >= nPols) {
-//                                printf("s:%lu, offset:%lu, k:%lu, subDomainSize:%lu, row:%lu, dim:%lu, i:%lu\n", s, offsetsStages[s], k, subDomainSize, row, dim, i);
-//                                assert(0);
-//                            }
-//                            assert(offsetsStages[s] + k * subDomainSize + row * dim + i + dim * nrowsPack < nPols);
-//                            assert((nColsStagesAcc[s] + k + i)* nrowsPack < nBufferT);
-                            for (uint64_t r = 0; r < nrowsPack; r++) {
-                                if (k * subDomainSize + row * dim + i + r*dim == 15) {
-                                    printf("storePolinomialsGPU, s:%lu, r:%lu, k:%lu, dim:%lu, i:%lu, value:%lu\n", s, r, k, dim, i, uint64_t(buffT[i*nrowsPack+r]));
-                                }
-                            }
-
-                            gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k * subDomainSize + row * dim + i], uint64_t(dim), &buffT[i*nrowsPack]);
-                        }
+                        gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k + row * nColsStages[s]], nColsStages[s], buffT);
                     } else {
                         //assert(offsetsStages[s] + k + row * nColsStages[s] < nPols);
                         gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k + row * nColsStages[s]], nColsStages[s], buffT);
