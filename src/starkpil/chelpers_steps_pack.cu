@@ -191,13 +191,13 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         loadPolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d, starkInfo.nConstants, parserParams.stage);
 
         // debug
-        uint64_t *temp = (uint64_t *)malloc(nBufferT * nCudaThreads * sizeof(uint64_t));
-        CHECKCUDAERR(cudaMemcpy(temp, gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-        writeDataToFile("input2.txt", temp, nBufferT * nCudaThreads);
+//        uint64_t *temp = (uint64_t *)malloc(nBufferT * nCudaThreads * sizeof(uint64_t));
+//        CHECKCUDAERR(cudaMemcpy(temp, gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+//        writeDataToFile("input2.txt", temp, nBufferT * nCudaThreads);
         //
         pack_kernel<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
-        CHECKCUDAERR(cudaMemcpy(temp, gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-        writeDataToFile("output2.txt", temp, nBufferT * nCudaThreads);
+//        CHECKCUDAERR(cudaMemcpy(temp, gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+//        writeDataToFile("output2.txt", temp, nBufferT * nCudaThreads);
         storePolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
 
         storeData(starkInfo, params, i, parserParams.stage);
@@ -377,7 +377,6 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
 //    uint32_t nStorePols = cHelpersSteps->nStorePols;
 
     if(domainExtended) {
-        assert(0);
         // Store either polinomial f or polinomial q
         for(uint64_t k = 0; k < nColsStages[10]; ++k) {
             gl64_t *buffT = &bufferT_[(nColsStagesAcc[10] + k)* nrowsPack];
