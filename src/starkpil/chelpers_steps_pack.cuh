@@ -4,11 +4,14 @@
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
 #include "chelpers_steps_pack.hpp"
 #include <cuda_runtime.h>
+const uint64_t MAX_GPU = 8;
 class gl64_t;
 class CHelpersStepsPackGPU: public CHelpersStepsPack {
 public:
 
-    int64_t nCudaThreads;
+    int nDevices = 0;
+    int64_t nCudaThreads = 1;
+    int groupIdx = 0;
 
     bool domainExtended;
     uint64_t domainSize;
@@ -24,29 +27,39 @@ public:
 
     vector<uint64_t> offsetsStagesGPU;
 
-    uint64_t *nColsStages_d;
-    uint64_t *nColsStagesAcc_d;
-    uint64_t *offsetsStages_d;
+    // ==== same on each device ====
+    uint64_t *nColsStages_d[MAX_GPU];
+    uint64_t *nColsStagesAcc_d[MAX_GPU];
+    uint64_t *offsetsStages_d[MAX_GPU];
 
-    uint8_t *ops_d;
-    uint16_t *args_d;
-    uint8_t *storePols_d;
+    uint8_t *ops_d[MAX_GPU];  //TODO change to uint32_t or uint64_t?
+    uint16_t *args_d[MAX_GPU];
+    //uint8_t *storePols_d[MAX_GPU];
 
-    gl64_t *challenges_d;
-    gl64_t *challenges_ops_d;
-    gl64_t *numbers_d;
-    gl64_t *publics_d;
-    gl64_t *evals_d;
+    gl64_t *challenges_d[MAX_GPU];
+    gl64_t *challenges_ops_d[MAX_GPU];
+    gl64_t *numbers_d[MAX_GPU];
+    gl64_t *publics_d[MAX_GPU];
+    gl64_t *evals_d[MAX_GPU];
+    // =================================
 
-    gl64_t *constPols_d;
-    gl64_t *x_d;
-    gl64_t *zi_d;
-    gl64_t *pols_d;
-    gl64_t *xDivXSubXi_d;
+    // ==== different on each device ====
+    gl64_t *constPols_d[MAX_GPU];
+    gl64_t *x_d[MAX_GPU];
+    gl64_t *zi_d[MAX_GPU];
+    gl64_t *pols_d[MAX_GPU];
+    gl64_t *xDivXSubXi_d[MAX_GPU];
 
-    gl64_t *gBufferT_;
-    gl64_t *tmp1_d;
-    gl64_t *tmp3_d;
+    gl64_t *gBufferT_[MAX_GPU];
+    gl64_t *tmp1_d[MAX_GPU];
+    gl64_t *tmp3_d[MAX_GPU];
+    // =================================
+
+    // three streams on each device
+    // one for copying data from Host to Device
+    // one for calculating on Device
+    // one for copying data from Device to Host
+    cudaStream_t gpu_stream[MAX_GPUS*3]
 
     void calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams);
     void calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams, uint64_t rowIni, uint64_t rowEnd);
@@ -54,13 +67,13 @@ public:
     void compare(StepsParams &params, uint64_t row);
     void cleanupGPU();
 
-    void loadData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint64_t stage);
-    void storeData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint64_t stage);
+    void loadData(StarkInfo &starkInfo, StepsParams &params, uint64_t row);
+    void storeData(StepsParams &params, uint64_t row);
 };
 
-__global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t nConstants, uint64_t stage);
-__global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps);
-__global__ void pack_kernel(CHelpersStepsPackGPU *cHelpersSteps);
+__global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t nConstants, uint64_t stage, uint32_t deviceIdx);
+__global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint32_t deviceIdx);
+__global__ void pack_kernel(CHelpersStepsPackGPU *cHelpersSteps, uint32_t deviceIdx);
 
 #endif
 #endif
