@@ -138,14 +138,16 @@ void CHelpersStepsPackGPU::cleanupGPU() {
 void CHelpersStepsPackGPU::compare(StepsParams &params, uint64_t row) {
     for (uint64_t s = 1; s < 11; s++) {
         if (offsetsStagesGPU[s] != MAX_U64) {
+            printf("compare s:%lu\n", s);
             Goldilocks::Element *temp = (Goldilocks::Element *)malloc(subDomainSize *nColsStages[s] * sizeof(uint64_t));
             CHECKCUDAERR(cudaMemcpy(temp, pols_d + offsetsStagesGPU[s], subDomainSize *nColsStages[s] * sizeof(uint64_t), cudaMemcpyDeviceToHost));
             for (uint64_t i=0; i<subDomainSize *nColsStages[s]; i++) {
-                uint64_t left = Goldilocks::toU64(temp[i]);
-                uint64_t right = Goldilocks::toU64(params.pols[offsetsStages[s] + row*nColsStages[s] + i]);
+                uint64_t left = Goldilocks::toU64(params.pols[offsetsStages[s] + row*nColsStages[s] + i]);
+                uint64_t right = Goldilocks::toU64(temp[i]);
                 if (left != right) {
                     printf("compare not equal, s:%lu, i:%lu, left:%lu, right:%lu\n", s, i, left, right);
-                    printf("previous:%lu, %lu, %lu\n", Goldilocks::toU64(temp[i-3]), Goldilocks::toU64(temp[i-2]), Goldilocks::toU64(temp[i-1]));
+                    writeDataToFile("left.txt", (uint64_t *)params.pols +offsetsStages[s] + row*nColsStages[s], subDomainSize *nColsStages[s]);
+                    writeDataToFile("right.txt", (uint64_t *)temp, subDomainSize *nColsStages[s]);
                     break;
                 }
             }
