@@ -177,8 +177,8 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     prepareGPU(starkInfo, params, parserArgs, parserParams);
     calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
     cleanupGPU();
-    //calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
-    compare(params, 0);
+    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*nCudaThreads, domainSize);
+    //compare(params, 0);
 }
 
 void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams,
@@ -200,13 +200,13 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         loadPolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d, starkInfo.nConstants, parserParams.stage);
 
         // debug
-        uint64_t *temp = (uint64_t *)malloc(nBufferT * nCudaThreads * sizeof(uint64_t));
-        CHECKCUDAERR(cudaMemcpy(temp, gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-        writeDataToFile("input2.txt", temp, nBufferT * nCudaThreads);
+//        uint64_t *temp = (uint64_t *)malloc(nBufferT * nCudaThreads * sizeof(uint64_t));
+//        CHECKCUDAERR(cudaMemcpy(temp, gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+//        writeDataToFile("input2.txt", temp, nBufferT * nCudaThreads);
         //
         pack_kernel<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
-        CHECKCUDAERR(cudaMemcpy(temp, gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-        writeDataToFile("output2.txt", temp, nBufferT * nCudaThreads);
+//        CHECKCUDAERR(cudaMemcpy(temp, gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+//        writeDataToFile("output2.txt", temp, nBufferT * nCudaThreads);
         storePolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d);
 
         storeData(starkInfo, params, i, parserParams.stage);

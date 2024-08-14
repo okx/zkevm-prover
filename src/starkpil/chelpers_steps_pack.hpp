@@ -146,10 +146,8 @@ public:
                 for(uint64_t k = 0; k < nColsStages[s]; ++k) {
                     uint64_t dim = storePol[nColsStagesAcc[s] + k];
                     if(!TRANSPOSE_TMP_POLS) {
-                        for(uint64_t k = 0; k < nColsStages[s]; ++k) {
-                            Goldilocks::Element *buffT = &bufferT_[(nColsStagesAcc[s] + k)* nrowsPack];
-                            Goldilocks::copy_pack(nrowsPack, &params.pols[offsetsStages[s] + k + row * nColsStages[s]], nColsStages[s], buffT);
-                        }
+                        Goldilocks::Element *buffT = &bufferT_[(nColsStagesAcc[s] + k)* nrowsPack];
+                        Goldilocks::copy_pack(nrowsPack, &params.pols[offsetsStages[s] + k + row * nColsStages[s]], nColsStages[s], buffT);
                     } else {
                         assert(0);
                         if(storePol[nColsStagesAcc[s] + k]) {
@@ -266,13 +264,13 @@ public:
             Goldilocks::Element tmp1[parserParams.nTemp1*nrowsPack];
             Goldilocks::Element tmp3[parserParams.nTemp3*nrowsPack*FIELD_EXTENSION];
 
-            for (uint64_t j=0; j<2*nCols*nrowsPack; j++) {
-                bufferT_[j] = Goldilocks::zero();
-            }
+//            for (uint64_t j=0; j<2*nCols*nrowsPack; j++) {
+//                bufferT_[j] = Goldilocks::zero();
+//            }
 
             loadPolinomials(starkInfo, params, bufferT_, i, parserParams.stage, nrowsPack, domainExtended);
 
-            writeDataToFile("input.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
+            // writeDataToFile("input.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
 
             for (uint64_t kk = 0; kk < parserParams.nOps; ++kk) {
                 switch (ops[kk]) {
@@ -765,7 +763,7 @@ public:
 
             writeDataToFile("output.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
 
-            storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
+            // storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
 
             if (i_args != parserParams.nArgs) std::cout << " " << i_args << " - " << parserParams.nArgs << std::endl;
             assert(i_args == parserParams.nArgs);
