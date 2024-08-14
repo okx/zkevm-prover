@@ -109,7 +109,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     CHECKCUDAERR(cudaMalloc(&tmp1_d, nTemp1 * nCudaThreads * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMalloc(&tmp3_d, nTemp3 * nCudaThreads * sizeof(uint64_t)));
 
-    tmpExp = (Goldilocks::Element *)malloc((subDomainSize+nextStride) *nColsStages[s] * sizeof(Goldilocks::Element));
+    tmpExp = (Goldilocks::Element *)malloc((subDomainSize+nextStride) *nColsStages[4] * sizeof(Goldilocks::Element));
 }
 
 void CHelpersStepsPackGPU::cleanupGPU() {
