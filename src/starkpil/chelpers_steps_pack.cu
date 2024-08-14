@@ -379,9 +379,6 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
                             for (uint64_t r = 0; r < nrowsPack; r++) {
                                 if (k * subDomainSize + row * dim + i + r*dim == 15) {
                                     printf("storePolinomialsGPU, s:%lu, r:%lu, k:%lu, dim:%lu, i:%lu, value:%lu\n", s, r, k, dim, i, uint64_t(buffT[i*nrowsPack+j]));
-                                    for (uint64_t j = 0; j < nrowsPack; j++) {
-                                        printf("%lu\n", );
-                                    }
                                 }
                             }
 
