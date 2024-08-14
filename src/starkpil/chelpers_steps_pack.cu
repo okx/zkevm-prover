@@ -28,6 +28,7 @@ bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t s
 }
 
 const uint64_t MAX_U64 = 0xFFFFFFFFFFFFFFFF;
+CHelpersStepsPackGPU *cHelpersSteps_d[MAX_GPUS];
 
 void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
     printf("into prepareGPU...\n");
@@ -196,6 +197,14 @@ void CHelpersStepsPackGPU::compare(StepsParams &params, uint64_t row) {
 void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
 
     prepareGPU(starkInfo, params, parserArgs, parserParams);
+
+    #pragma omp parallel for num_threads(nDevices)
+    for (uint32_t d = 0; d < nDevices; d++) {
+        CHECKCUDAERR(cudaSetDevice(d));
+        CHECKCUDAERR(cudaMalloc((void **)&(cHelpersSteps_d[d]), sizeof(CHelpersStepsPackGPU)));
+        CHECKCUDAERR(cudaMemcpy(cHelpersSteps_d[d], this, sizeof(CHelpersStepsPackGPU), cudaMemcpyHostToDevice));
+    }
+
     calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, domainSize-nrowsPack*nCudaThreads*nDevices);
     calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, domainSize-nrowsPack*nCudaThreads*nDevices, domainSize);
     for (uint32_t d = 0; d < nDevices; d++)
@@ -204,6 +213,11 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
         CHECKCUDAERR(cudaStreamSynchronize(gpu_stream[nDevices+d]));
         CHECKCUDAERR(cudaStreamSynchronize(gpu_stream[2*nDevices+d]));
     }
+    #pragma omp parallel for num_threads(nDevices)
+    for (uint32_t d = 0; d < nDevices; d++) {
+        cudaFree(cHelpersSteps_d[d]);
+    }
+
     cleanupGPU();
     //compare(params, 0);
 }
@@ -215,10 +229,6 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         zklog.info("Invalid range for rowIni " + to_string(rowIni) + " and rowEnd " + to_string(rowEnd));
         exitProcess();
     }
-
-    CHelpersStepsPackGPU *cHelpersSteps_d;
-    CHECKCUDAERR(cudaMalloc((void **)&(cHelpersSteps_d), sizeof(CHelpersStepsPackGPU)));
-    CHECKCUDAERR(cudaMemcpy(cHelpersSteps_d, this, sizeof(CHelpersStepsPackGPU), cudaMemcpyHostToDevice));
 
     for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack*nCudaThreads*nDevices) {
         printf("rows:%lu\n", i);
@@ -233,12 +243,12 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
         TimerStart(EXP_Kernel);
 
-        #pragma omp parallel for num_threads(nDevices)
+        //#pragma omp parallel for num_threads(nDevices)
         for (uint32_t d = 0; d < nDevices; d++) {
             cudaStream_t stream = gpu_stream[groupIdx*nDevices+d];
-            loadPolinomialsGPU<<<(nCudaThreads+15)/16, 16, 0, stream>>>(cHelpersSteps_d, starkInfo.nConstants, parserParams.stage, d);
-            pack_kernel<<<(nCudaThreads+15)/16, 16, 0, stream>>>(cHelpersSteps_d, d);
-            storePolinomialsGPU<<<(nCudaThreads+15)/16, 16, 0, stream>>>(cHelpersSteps_d, d);
+            loadPolinomialsGPU<<<(nCudaThreads+15)/16, 16, 0, stream>>>(cHelpersSteps_d[d], starkInfo.nConstants, parserParams.stage, d);
+            pack_kernel<<<(nCudaThreads+15)/16, 16, 0, stream>>>(cHelpersSteps_d[d], d);
+            storePolinomialsGPU<<<(nCudaThreads+15)/16, 16, 0, stream>>>(cHelpersSteps_d[d], d);
         }
 
         // debug
@@ -258,8 +268,6 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
         groupIdx = (groupIdx + 1) % 3;
     }
-
-    cudaFree(cHelpersSteps_d);
 }
 
 void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, uint64_t row) {
@@ -267,7 +275,7 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
     ConstantPolsStarks *constPols = domainExtended ? params.pConstPols2ns : params.pConstPols;
     Polinomial &x = domainExtended ? params.x_2ns : params.x_n;
 
-    #pragma omp parallel for num_threads(nDevices)
+    //#pragma omp parallel for num_threads(nDevices)
     for (uint32_t d = 0; d < nDevices; d++) {
         cudaStream_t stream = gpu_stream[groupIdx*nDevices+d];
         Goldilocks::Element *constPols_h = ((Goldilocks::Element *)constPols->address()) + (row+d*subDomainSize)*starkInfo.nConstants;
@@ -289,7 +297,7 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
 
 void CHelpersStepsPackGPU::storeData(StepsParams &params, uint64_t row) {
 
-    #pragma omp parallel for num_threads(nDevices)
+    //#pragma omp parallel for num_threads(nDevices)
     for (uint32_t d = 0; d < nDevices; d++) {
         cudaStream_t stream = gpu_stream[groupIdx*nDevices+d];
         for (uint64_t s = 1; s < 11; s++) {
