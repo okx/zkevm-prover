@@ -160,12 +160,12 @@ void CHelpersStepsPackGPU::compare(StepsParams &params, uint64_t row) {
 //        }
 //    }
 
-    for (uint64_t s = 1; s < 11; s++) {
-        if (offsetsStagesGPU[s] != MAX_U64) {
-            printf("write s:%lu\n", s);
-            writeDataToFile("gpu.txt", (uint64_t *)params.pols +offsetsStages[s] + row*nColsStages[s], (subDomainSize + nextStride) *nColsStages[s]);
-        }
+    uint64_t s = 4;
+
+    for (uint64_t i = 0; i < nColsStages[s]; i++) {
+        writeDataToFile("gpu.txt", (uint64_t *)params.pols +offsetsStages[s] + i*domainSize, subDomainSize + nextStride);
     }
+
     assert(0);
 }
 
