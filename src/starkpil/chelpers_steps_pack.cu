@@ -155,7 +155,7 @@ void CHelpersStepsPackGPU::compare(StepsParams &params, uint64_t row) {
 //        }
 //    }
     uint64_t s = 4;
-    writeDataToFile("cpu.txt", (uint64_t *)params.pols +offsetsStages[s] + row*nColsStages[s], subDomainSize *nColsStages[s]);
+    writeDataToFile("gpu.txt", (uint64_t *)params.pols +offsetsStages[s] + row*nColsStages[s], subDomainSize *nColsStages[s]);
 
 }
 
@@ -164,8 +164,8 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     CHECKCUDAERR(cudaSetDevice(0));
 
     prepareGPU(starkInfo, params, parserArgs, parserParams);
-    //calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
-    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
+    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
+    //calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
     compare(params, 0);
     cleanupGPU();
     assert(0);
