@@ -148,6 +148,7 @@ void CHelpersStepsPackGPU::compare(StepsParams &params, uint64_t row) {
                     assert(0);
                 }
             }
+            free(temp);
         }
     }
 
@@ -369,6 +370,12 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
 //                            }
 //                            assert(offsetsStages[s] + k * subDomainSize + row * dim + i + dim * nrowsPack < nPols);
 //                            assert((nColsStagesAcc[s] + k + i)* nrowsPack < nBufferT);
+                            if (k * subDomainSize + row * dim + i == 12) {
+                                printf("storePolinomialsGPU, k:%lu, subDomainSize:%lu, row:%lu, dim:%lu, i:%lu\n", k, subDomainSize, row, dim, i);
+                                for (uint64_t j = 0; j < nrowsPack; j++) {
+                                    printf("%lu\n", uint64_t(buffT[i*nrowsPack+j]));
+                                }
+                            }
                             gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k * subDomainSize + row * dim + i], uint64_t(dim), &buffT[i*nrowsPack]);
                         }
                     } else {
