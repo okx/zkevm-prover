@@ -160,10 +160,11 @@ void CHelpersStepsPackGPU::compare(StepsParams &params, uint64_t row) {
 //        }
 //    }
 
-    uint64_t s = 4;
-
-    for (uint64_t i = 0; i < nColsStages[s]; i++) {
-        writeDataToFile("cpu.txt", (uint64_t *)params.pols +offsetsStages[s] + i*domainSize, subDomainSize + nextStride);
+    for (uint64_t s = 1; s < 11; s++) {
+        if (offsetsStagesGPU[s] != MAX_U64) {
+            printf("write s:%lu\n", s);
+            writeDataToFile("cpu.txt", (uint64_t *)params.pols +offsetsStages[s] + row*nColsStages[s], (subDomainSize + nextStride) *nColsStages[s]);
+        }
     }
 
     assert(0);
@@ -226,19 +227,7 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
 
     for (uint64_t s = 1; s < 11; s++) {
         if (offsetsStagesGPU[s] != MAX_U64) {
-            bool isTmpPol = !domainExtended && s == 4;
-            if (isTmpPol) {
-                #pragma omp parallel for
-                for (uint64_t i=0; i<(subDomainSize+nextStride); i++) {
-                    for (uint64_t j=0; j<nColsStages[s]; j++) {
-                        tmpExp[i*nColsStages[s]+j] = params.pols[offsetsStages[s] + j*domainSize + i];
-                    }
-                }
-                CHECKCUDAERR(cudaMemcpy(pols_d + offsetsStagesGPU[s], tmpExp, (subDomainSize+nextStride) *nColsStages[s] * sizeof(uint64_t), cudaMemcpyHostToDevice));
-            } else {
-                CHECKCUDAERR(cudaMemcpy(pols_d + offsetsStagesGPU[s], &params.pols[offsetsStages[s] + row*nColsStages[s]], (subDomainSize+nextStride) *nColsStages[s] * sizeof(uint64_t), cudaMemcpyHostToDevice));
-            }
-
+            CHECKCUDAERR(cudaMemcpy(pols_d + offsetsStagesGPU[s], &params.pols[offsetsStages[s] + row*nColsStages[s]], (subDomainSize+nextStride) *nColsStages[s] * sizeof(uint64_t), cudaMemcpyHostToDevice));
         }
     }
 
@@ -256,19 +245,7 @@ void CHelpersStepsPackGPU::storeData(StarkInfo &starkInfo, StepsParams &params, 
 
     for (uint64_t s = 1; s < 11; s++) {
         if (offsetsStagesGPU[s] != MAX_U64) {
-            bool isTmpPol = !domainExtended && s == 4;
-            if (isTmpPol) {
-                CHECKCUDAERR(cudaMemcpy(tmpExp, pols_d + offsetsStagesGPU[s], subDomainSize *nColsStages[s] * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-                #pragma omp parallel for
-                for (uint64_t i=0; i<subDomainSize; i++) {
-                    for (uint64_t j=0; j<nColsStages[s]; j++) {
-                        params.pols[offsetsStages[s] + j*domainSize + i] = tmpExp[i*nColsStages[s]+j];
-                    }
-                }
-            } else {
-                CHECKCUDAERR(cudaMemcpy(&params.pols[offsetsStages[s] + row*nColsStages[s]], pols_d + offsetsStagesGPU[s], subDomainSize *nColsStages[s] * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-            }
-
+            CHECKCUDAERR(cudaMemcpy(&params.pols[offsetsStages[s] + row*nColsStages[s]], pols_d + offsetsStagesGPU[s], subDomainSize *nColsStages[s] * sizeof(uint64_t), cudaMemcpyDeviceToHost));
         }
     }
 
@@ -393,34 +370,14 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps) {
     } else {
         uint64_t nStages = 3;
         for(uint64_t s = 2; s <= nStages + 1; ++s) {
-            bool isTmpPol = !domainExtended && s == 4;
             for(uint64_t k = 0; k < nColsStages[s]; ++k) {
                 uint64_t dim = storePols[nColsStagesAcc[s] + k];
                 //assert(nColsStagesAcc[s] + k < nStorePols);
                 if(storePols[nColsStagesAcc[s] + k]) {
                     //assert((nColsStagesAcc[s] + k)* nrowsPack < nBufferT);
                     gl64_t *buffT = &bufferT_[(nColsStagesAcc[s] + k)* nrowsPack];
-                    if(isTmpPol) {
-//                        for(uint64_t i = 0; i < dim; ++i) {
-////                            if (offsetsStages[s] + k * subDomainSize + row * dim + i >= nPols) {
-////                                printf("s:%lu, offset:%lu, k:%lu, subDomainSize:%lu, row:%lu, dim:%lu, i:%lu\n", s, offsetsStages[s], k, subDomainSize, row, dim, i);
-////                                assert(0);
-////                            }
-////                            assert(offsetsStages[s] + k * subDomainSize + row * dim + i + dim * nrowsPack < nPols);
-////                            assert((nColsStagesAcc[s] + k + i)* nrowsPack < nBufferT);
-//                            for (uint64_t r = 0; r < nrowsPack; r++) {
-//                                if (k * subDomainSize + row * dim + i + r*dim == 15) {
-//                                    printf("storePolinomialsGPU, s:%lu, r:%lu, k:%lu, dim:%lu, i:%lu, value:%lu\n", s, r, k, dim, i, uint64_t(buffT[i*nrowsPack+r]));
-//                                }
-//                            }
-//
-//                            gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k * subDomainSize + row * dim + i], uint64_t(dim), &buffT[i*nrowsPack]);
-//                        }
-                        gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k + row * nColsStages[s]], nColsStages[s], buffT);
-                    } else {
-                        //assert(offsetsStages[s] + k + row * nColsStages[s] < nPols);
-                        gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k + row * nColsStages[s]], nColsStages[s], buffT);
-                    }
+                    //assert(offsetsStages[s] + k + row * nColsStages[s] < nPols);
+                    gl64_t::copy_pack(nrowsPack, &pols[offsetsStages[s] + k + row * nColsStages[s]], nColsStages[s], buffT);
                 }
             }
         }
