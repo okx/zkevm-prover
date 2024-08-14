@@ -257,7 +257,7 @@ public:
         printf("numbersOffset:%lu\n", parserParams.numbersOffset);
         printf("storePolsOffset:%u\n", parserParams.storePolsOffset);
 
-    //#pragma omp parallel for
+    #pragma omp parallel for
         for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack) {
             uint64_t i_args = 0;
 
@@ -265,13 +265,13 @@ public:
             Goldilocks::Element tmp1[parserParams.nTemp1*nrowsPack];
             Goldilocks::Element tmp3[parserParams.nTemp3*nrowsPack*FIELD_EXTENSION];
 
-            for (uint64_t j=0; j<2*nCols*nrowsPack; j++) {
-                bufferT_[j] = Goldilocks::zero();
-            }
+//            for (uint64_t j=0; j<2*nCols*nrowsPack; j++) {
+//                bufferT_[j] = Goldilocks::zero();
+//            }
 
             loadPolinomials(starkInfo, params, bufferT_, i, parserParams.stage, nrowsPack, domainExtended);
 
-            writeDataToFile("input.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
+            //writeDataToFile("input.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
 
             for (uint64_t kk = 0; kk < parserParams.nOps; ++kk) {
                 switch (ops[kk]) {
@@ -762,7 +762,7 @@ public:
                 }
             }
 
-            writeDataToFile("output.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
+            //writeDataToFile("output.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
 
             storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
 

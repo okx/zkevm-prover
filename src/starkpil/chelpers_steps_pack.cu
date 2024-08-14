@@ -168,10 +168,8 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
 
     prepareGPU(starkInfo, params, parserArgs, parserParams);
     calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
-    //calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, 0, nrowsPack*nCudaThreads);
-    compare(params, 0);
     cleanupGPU();
-    assert(0);
+    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack*nCudaThreads, domainSize);
 }
 
 void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams,
