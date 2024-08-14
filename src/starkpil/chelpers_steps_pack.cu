@@ -30,7 +30,7 @@ bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t s
 const uint64_t MAX_U64 = 0xFFFFFFFFFFFFFFFF;
 
 void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
-
+    printf("into prepareGPU...\n");
     prepare(starkInfo, params, parserArgs, parserParams);
 
     nCudaThreads = 1 << 10;
@@ -56,7 +56,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     uint64_t total_offsets = 0;
     for (uint64_t s = 1; s < 11; s++) {
         if (s < 4 || (s == 4 && parserParams.stage != 4) || (s == 10 && domainExtended)) {
-            printf("s=%lu, offsets=%lu\n", s, total_offsets);
+            printf("s:%lu, offsets:%lu\n", s, total_offsets);
             offsetsStagesGPU[s] = total_offsets;
             total_offsets += nColsStages[s] * (nrowsPack * nCudaThreads + nextStride);
         } else {
