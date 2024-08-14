@@ -145,6 +145,7 @@ void CHelpersStepsPackGPU::compare(StepsParams &params, uint64_t row) {
                 uint64_t right = Goldilocks::toU64(params.pols[offsetsStages[s] + row*nColsStages[s] + i]);
                 if (left != right) {
                     printf("compare not equal, s:%lu, i:%lu, left:%lu, right:%lu\n", s, i, left, right);
+                    printf("previous:%lu, %lu, %lu\n", Goldilocks::toU64(temp[i-3]), Goldilocks::toU64(temp[i-2]), Goldilocks::toU64(temp[i-1]));
                     assert(0);
                 }
             }
