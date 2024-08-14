@@ -59,7 +59,7 @@ public:
     // one for copying data from Host to Device
     // one for calculating on Device
     // one for copying data from Device to Host
-    cudaStream_t gpu_stream[MAX_GPUS*3]
+    cudaStream_t gpu_stream[MAX_GPUS*3];
 
     void calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams);
     void calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams, uint64_t rowIni, uint64_t rowEnd);
