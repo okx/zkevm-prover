@@ -33,7 +33,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     prepare(starkInfo, params, parserArgs, parserParams);
 
-    nCudaThreads = 1 << 12;
+    nCudaThreads = 1 << 15;
     domainExtended = parserParams.stage > 3 ? true : false;
     domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
     subDomainSize = nrowsPack * nCudaThreads;
@@ -171,9 +171,9 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     CHECKCUDAERR(cudaSetDevice(0));
 
     prepareGPU(starkInfo, params, parserArgs, parserParams);
-    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, domainSize-nrowsPack*nCudaThreads);
+    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, domainSize-nextStride*nrowsPack);
     cleanupGPU();
-    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, domainSize-nrowsPack*nCudaThreads, domainSize);
+    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, domainSize-nextStride*nrowsPack, domainSize);
     //compare(params, 0);
 }
 
@@ -191,7 +191,10 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
     for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack*nCudaThreads) {
         printf("rows:%lu\n", i);
-        assert(i % (nrowsPack*nCudaThreads) == 0);
+        if (i + nrowsPack*nCudaThreads > rowEnd) {
+            nCudaThreads = (rowEnd - i) / nrowsPack;
+            subDomainSize = nrowsPack*nCudaThreads;
+        }
         loadData(starkInfo, params, i, parserParams.stage);
         loadPolinomialsGPU<<<(nCudaThreads+15)/16,16>>>(cHelpersSteps_d, starkInfo.nConstants, parserParams.stage);
 
