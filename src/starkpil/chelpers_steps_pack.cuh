@@ -10,6 +10,8 @@ public:
 
     int64_t nCudaThreads;
 
+    int nGroup = 2;
+
     bool domainExtended;
     uint64_t domainSize;
     uint64_t subDomainSize;
@@ -38,15 +40,17 @@ public:
     gl64_t *publics_d;
     gl64_t *evals_d;
 
-    gl64_t *constPols_d;
-    gl64_t *x_d;
-    gl64_t *zi_d;
-    gl64_t *pols_d;
-    gl64_t *xDivXSubXi_d;
+    gl64_t *constPols_d[nGroup];
+    gl64_t *x_d[nGroup];
+    gl64_t *zi_d[nGroup];
+    gl64_t *pols_d[nGroup];
+    gl64_t *xDivXSubXi_d[nGroup];
 
-    gl64_t *gBufferT_;
-    gl64_t *tmp1_d;
-    gl64_t *tmp3_d;
+    gl64_t *gBufferT_[nGroup];
+    gl64_t *tmp1_d[nGroup];
+    gl64_t *tmp3_d[nGroup];
+
+    cudaStream_t gpu_stream[nGroup];
 
     void calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams);
     void calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams, uint64_t rowIni, uint64_t rowEnd);
@@ -54,13 +58,13 @@ public:
     void compare(StepsParams &params, uint64_t row);
     void cleanupGPU();
 
-    void loadData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint64_t stage);
-    void storeData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint64_t stage);
+    void loadData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint64_t stage, uint64_t groupIdx);
+    void storeData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint64_t stage, uint64_t groupIdx);
 };
 
-__global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t nConstants, uint64_t stage);
-__global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps);
-__global__ void pack_kernel(CHelpersStepsPackGPU *cHelpersSteps);
+__global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t nConstants, uint64_t stage, uint64_t groupIdx);
+__global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t groupIdx);
+__global__ void pack_kernel(CHelpersStepsPackGPU *cHelpersSteps, uint64_t groupIdx);
 
 #endif
 #endif
