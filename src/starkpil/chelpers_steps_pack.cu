@@ -97,7 +97,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     CHECKCUDAERR(cudaMalloc(&offsetsStages_d, offsetsStagesGPU.size() * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMemcpy(offsetsStages_d, offsetsStagesGPU.data(), offsetsStagesGPU.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
-    #pragma omp parallel for num_threads(nDevices)
+    #pragma omp parallel for num_threads(nGroup)
     for (uint64_t d = 0; d <nGroup;d++) {
         CHECKCUDAERR(cudaStreamCreate(gpu_stream + d));
         CHECKCUDAERR(cudaMalloc(&constPols_d[d], starkInfo.nConstants * (subDomainSize + nextStride) * sizeof(uint64_t)));
