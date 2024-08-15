@@ -97,7 +97,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     CHECKCUDAERR(cudaMalloc(&offsetsStages_d, offsetsStagesGPU.size() * sizeof(uint64_t)));
     CHECKCUDAERR(cudaMemcpy(offsetsStages_d, offsetsStagesGPU.data(), offsetsStagesGPU.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
-    for (uint64_t i = 0; i <nGroup;i++) {
+    for (uint64_t d = 0; d <nGroup;d++) {
         CHECKCUDAERR(cudaStreamCreate(gpu_stream + i));
         CHECKCUDAERR(cudaMalloc(&constPols_d[d], starkInfo.nConstants * (subDomainSize + nextStride) * sizeof(uint64_t)));
         CHECKCUDAERR(cudaMalloc(&x_d[d], subDomainSize * sizeof(uint64_t)));
@@ -262,9 +262,9 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
     uint64_t subDomainSize = cHelpersSteps->subDomainSize;
     uint64_t nBufferT = cHelpersSteps->nBufferT;
 
-    uint64_t *nColsStages = cHelpersSteps->nColsStages_d[groupIdx];
-    uint64_t *nColsStagesAcc = cHelpersSteps->nColsStagesAcc_d[groupIdx];
-    uint64_t *offsetsStages = cHelpersSteps->offsetsStages_d[groupIdx];
+    uint64_t *nColsStages = cHelpersSteps->nColsStages_d;
+    uint64_t *nColsStagesAcc = cHelpersSteps->nColsStagesAcc_d;
+    uint64_t *offsetsStages = cHelpersSteps->offsetsStages_d;
 
     gl64_t *bufferT_ = cHelpersSteps->gBufferT_[groupIdx] + idx * nBufferT;
     for (uint64_t i = 0; i < nBufferT; i++) {

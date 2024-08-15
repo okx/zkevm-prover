@@ -4,13 +4,14 @@
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
 #include "chelpers_steps_pack.hpp"
 #include <cuda_runtime.h>
+
+const int nGroup = 2;
+
 class gl64_t;
 class CHelpersStepsPackGPU: public CHelpersStepsPack {
 public:
 
     int64_t nCudaThreads;
-
-    int nGroup = 2;
 
     bool domainExtended;
     uint64_t domainSize;
