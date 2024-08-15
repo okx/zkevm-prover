@@ -98,7 +98,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     CHECKCUDAERR(cudaMemcpy(offsetsStages_d, offsetsStagesGPU.data(), offsetsStagesGPU.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
     for (uint64_t d = 0; d <nGroup;d++) {
-        CHECKCUDAERR(cudaStreamCreate(gpu_stream + i));
+        CHECKCUDAERR(cudaStreamCreate(gpu_stream + d));
         CHECKCUDAERR(cudaMalloc(&constPols_d[d], starkInfo.nConstants * (subDomainSize + nextStride) * sizeof(uint64_t)));
         CHECKCUDAERR(cudaMalloc(&x_d[d], subDomainSize * sizeof(uint64_t)));
         CHECKCUDAERR(cudaMalloc(&zi_d[d], subDomainSize * sizeof(uint64_t)));
@@ -267,9 +267,7 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
     uint64_t *offsetsStages = cHelpersSteps->offsetsStages_d;
 
     gl64_t *bufferT_ = cHelpersSteps->gBufferT_[groupIdx] + idx * nBufferT;
-    for (uint64_t i = 0; i < nBufferT; i++) {
-        bufferT_[i] = gl64_t(uint64_t(0));
-    }
+
     gl64_t *pols = cHelpersSteps->pols_d[groupIdx];
     gl64_t *constPols = cHelpersSteps->constPols_d[groupIdx];
 
@@ -319,7 +317,7 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
        for(uint64_t d = 0; d < 2; ++d) {
            for(uint64_t i = 0; i < FIELD_EXTENSION; ++i) {
                for(uint64_t j = 0; j < nrowsPack; ++j) {
-                  bufferT_[(nColsStagesAcc[11] + FIELD_EXTENSION*d + i)*nrowsPack + j] = cHelpersSteps->xDivXSubXi_d[(d*subDomainSize + row + j) * FIELD_EXTENSION + i];
+                  bufferT_[(nColsStagesAcc[11] + FIELD_EXTENSION*d + i)*nrowsPack + j] = cHelpersSteps->xDivXSubXi_d[groupIdx][(d*subDomainSize + row + j) * FIELD_EXTENSION + i];
                }
            }
        }
@@ -345,8 +343,8 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_
     uint64_t *nColsStagesAcc = cHelpersSteps->nColsStagesAcc_d;
     uint64_t *offsetsStages = cHelpersSteps->offsetsStages_d;
 
-    gl64_t *bufferT_ = cHelpersSteps->gBufferT_ + idx * nBufferT;
-    gl64_t *pols = cHelpersSteps->pols_d;
+    gl64_t *bufferT_ = cHelpersSteps->gBufferT_[groupIdx] + idx * nBufferT;
+    gl64_t *pols = cHelpersSteps->pols_d[groupIdx];
 
     if(domainExtended) {
         // Store either polinomial f or polinomial q
