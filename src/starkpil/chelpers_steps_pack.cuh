@@ -5,7 +5,7 @@
 #include "chelpers_steps_pack.hpp"
 #include <cuda_runtime.h>
 
-const int nGroup = 2;
+const int nGroup = 1;
 
 class gl64_t;
 class CHelpersStepsPackGPU: public CHelpersStepsPack {
