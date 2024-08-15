@@ -171,9 +171,9 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     CHECKCUDAERR(cudaSetDevice(0));
 
     prepareGPU(starkInfo, params, parserArgs, parserParams);
-    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, nrowsPack * nCudaThreads*50);
+    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, domainSize-nrowsPack * nCudaThreads);
     cleanupGPU();
-    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, nrowsPack * nCudaThreads*50, domainSize);
+    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, domainSize-nrowsPack * nCudaThreads, domainSize);
     //compare(params, 0);
 }
 
