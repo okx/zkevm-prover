@@ -187,8 +187,8 @@ void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParam
     CHECKCUDAERR(cudaSetDevice(0));
 
     prepareGPU(starkInfo, params, parserArgs, parserParams);
-    calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, domainSize-nrowsPack * nCudaThreads * nStreams, domainSize);
-    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, domainSize-nrowsPack * nCudaThreads*nStreams);
+    //calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, domainSize-nrowsPack * nCudaThreads * nStreams, domainSize);
+    calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, domainSize);
     cleanupGPU();
     //compare(params, 0);
 }
@@ -209,6 +209,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
     for (uint32_t s=0; s<nStreams; s++) {
         assert(rowIni+(s+1)*nrowPerStream <= rowEnd);
+        #pragma omp parallel for
         for (uint64_t i = rowIni+s*nrowPerStream; i < rowIni+(s+1)*nrowPerStream; i+= nrowsPack*nCudaThreads) {
             printf("rows:%lu\n", i);
             cudaStream_t stream = streams[s];
@@ -250,13 +251,25 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
     cudaStream_t stream = streams[s];
 
     // TODO may overflow and cycle
-    CHECKCUDAERR(cudaMemcpyAsync(constPols_d, ((Goldilocks::Element *)constPols->address()) + row * starkInfo.nConstants, starkInfo.nConstants * (subDomainSize + nextStride) * sizeof(uint64_t), cudaMemcpyHostToDevice, stream));
+    if (row + subDomainSize != domainSize) {
+        CHECKCUDAERR(cudaMemcpyAsync(constPols_d, ((Goldilocks::Element *)constPols->address()) + row * starkInfo.nConstants, starkInfo.nConstants * (subDomainSize + nextStride) * sizeof(uint64_t), cudaMemcpyHostToDevice, stream));
+    } else {
+        CHECKCUDAERR(cudaMemcpyAsync(constPols_d, ((Goldilocks::Element *)constPols->address()) + row * starkInfo.nConstants, starkInfo.nConstants * subDomainSize * sizeof(uint64_t), cudaMemcpyHostToDevice, stream));
+        CHECKCUDAERR(cudaMemcpyAsync(constPols_d + starkInfo.nConstants * subDomainSize, (Goldilocks::Element *)constPols->address(), starkInfo.nConstants * nextStride * sizeof(uint64_t), cudaMemcpyHostToDevice, stream));
+    }
+
     CHECKCUDAERR(cudaMemcpyAsync(x_d, x[row], subDomainSize * sizeof(uint64_t), cudaMemcpyHostToDevice, stream));
     CHECKCUDAERR(cudaMemcpyAsync(zi_d, params.zi[row], subDomainSize * sizeof(uint64_t), cudaMemcpyHostToDevice, stream));
 
     for (uint64_t s = 1; s < 11; s++) {
         if (offsetsStagesGPU[s] != MAX_U64) {
-            CHECKCUDAERR(cudaMemcpyAsync(pols_d + offsetsStagesGPU[s], &params.pols[offsetsStages[s] + row*nColsStages[s]], (subDomainSize+nextStride) *nColsStages[s] * sizeof(uint64_t), cudaMemcpyHostToDevice, stream));
+            if (row + subDomainSize != domainSize) {
+                CHECKCUDAERR(cudaMemcpyAsync(pols_d + offsetsStagesGPU[s], &params.pols[offsetsStages[s] + row*nColsStages[s]], (subDomainSize+nextStride) *nColsStages[s] * sizeof(uint64_t), cudaMemcpyHostToDevice, stream));
+            } else {
+                CHECKCUDAERR(cudaMemcpyAsync(pols_d + offsetsStagesGPU[s], &params.pols[offsetsStages[s] + row*nColsStages[s]], subDomainSize *nColsStages[s] * sizeof(uint64_t), cudaMemcpyHostToDevice, stream));
+                CHECKCUDAERR(cudaMemcpyAsync(pols_d + offsetsStagesGPU[s] + subDomainSize *nColsStages[s], &params.pols[offsetsStages[s]], nextStride *nColsStages[s] * sizeof(uint64_t), cudaMemcpyHostToDevice, stream));
+            }
+
         }
     }
 
