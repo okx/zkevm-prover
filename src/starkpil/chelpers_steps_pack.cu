@@ -205,11 +205,13 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     CHECKCUDAERR(cudaMalloc((void **)&(cHelpersSteps_d), sizeof(CHelpersStepsPackGPU)));
     CHECKCUDAERR(cudaMemcpy(cHelpersSteps_d, this, sizeof(CHelpersStepsPackGPU), cudaMemcpyHostToDevice));
 
-    for (uint64_t i = rowIni; i < rowEnd; i+= nrowsPack*nCudaThreads*nStreams) {
-        printf("rows:%lu\n", i);
-        for (uint32_t s=0; s<nStreams; s++) {
+    uint64_t nrowPerStream = (rowEnd - rowIni) / nStreams;
+
+    for (uint32_t s=0; s<nStreams; s++) {
+        assert(rowIni+(s+1)*nrowPerStream <= rowEnd);
+        for (uint64_t i = rowIni+s*nrowPerStream; i < rowIni+(s+1)*nrowPerStream; i+= nrowsPack*nCudaThreads) {
+            printf("rows:%lu\n", i);
             cudaStream_t stream = streams[s];
-            uint64_t row = i + nrowsPack*nCudaThreads*s;
             TimerStart(Memcpy_H_to_D);
             loadData(starkInfo, params, row, s);
             TimerStopAndLog(Memcpy_H_to_D);
@@ -225,6 +227,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
             TimerStopAndLog(Memcpy_D_to_H);
         }
     }
+
 
     for (uint32_t s = 0; s < nStreams; s++) {
         CHECKCUDAERR(cudaStreamSynchronize(streams[s]));
