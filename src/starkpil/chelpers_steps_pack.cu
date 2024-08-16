@@ -183,15 +183,15 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
     //#pragma omp parallel for
     for (uint32_t s=0; s<nStreams*nDevices; s++) {
+        cudaStream_t stream = streams[s];
+        CHelpersStepsPackGPU *cHelpersSteps_d = cHelpersSteps_GPU[s/nStreams];
         for (uint64_t i = rowIni+s*nrowPerStream; i < rowIni+(s+1)*nrowPerStream; i+= nrowsPack*nCudaThreads) {
             printf("rows:%lu\n", i);
-            cudaStream_t stream = streams[s];
             TimerStart(Memcpy_H_to_D);
             loadData(starkInfo, params, i, s);
             TimerStopAndLog(Memcpy_H_to_D);
 
             TimerStart(EXP_Kernel);
-            CHelpersStepsPackGPU *cHelpersSteps_d = cHelpersSteps_GPU[s/nStreams];
             loadPolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, starkInfo.nConstants, parserParams.stage, s);
             pack_kernel<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, s);
             storePolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, s);
@@ -204,10 +204,9 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     }
 
     for (int s = 0; s < nStreams*nDevices; s++) {
-        CHECKCUDAERR(cudaSetDevice(s/nStreams));
+        printf("wait stream:%d\n", s);
         CHECKCUDAERR(cudaStreamSynchronize(streams[s]));
     }
-
 }
 
 void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint32_t s) {
