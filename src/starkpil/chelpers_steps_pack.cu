@@ -280,7 +280,7 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
 
     uint64_t *nColsStages = cHelpersSteps->sharedStorage + cHelpersSteps->nColsStages_offset;
     uint64_t *nColsStagesAcc = cHelpersSteps->sharedStorage + cHelpersSteps->nColsStagesAcc_offset;
-    uint64_t *offsetsStages = cHelpersSteps->sharedStorage + offsetsStages_offset;
+    uint64_t *offsetsStages = cHelpersSteps->sharedStorage + cHelpersSteps->offsetsStages_offset;
 
     gl64_t *bufferT_ = (gl64_t *)cHelpersSteps->exclusiveStorage[g] + cHelpersSteps->bufferT_offset + idx * nBufferT;
     gl64_t *pols = (gl64_t *)cHelpersSteps->exclusiveStorage[g] + cHelpersSteps->pols_offset;
