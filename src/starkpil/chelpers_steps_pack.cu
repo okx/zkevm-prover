@@ -94,6 +94,8 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     evals_offset = sharedStorageSize;
     sharedStorageSize += evals.size();
 
+    printf("sharedStorageSize:%lu\n", sharedStorageSize);
+
     CHECKCUDAERR(cudaMalloc(&sharedStorage, sharedStorageSize * sizeof(uint64_t)));
 
     uint64_t *ops64 = (uint64_t *)malloc(nOps * sizeof(uint64_t));
@@ -116,7 +118,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     CHECKCUDAERR(cudaMemcpy(sharedStorage+evals_offset, evals.data(), evals.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
 
-    assert(exclusiveStorageSize==0)
+    assert(exclusiveStorageSize==0);
     constPols_offset = exclusiveStorageSize;
     exclusiveStorageSize += starkInfo.nConstants * (subDomainSize + nextStride);
 
@@ -141,10 +143,11 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     tmp3_offset = exclusiveStorageSize;
     exclusiveStorageSize += nTemp3 * nCudaThreads;
 
+    printf("exclusiveStorageSize:%lu\n", exclusiveStorageSize);
 
     for (uint32_t g = 0; g < nGroups; g++) {
         CHECKCUDAERR(cudaStreamCreate(&streams[g]));
-        CHECKCUDAERR(cudaMalloc(&exclusiveStorage[g], sharedStorageSize * sizeof(uint64_t)));
+        CHECKCUDAERR(cudaMalloc(&exclusiveStorage[g], exclusiveStorageSize * sizeof(uint64_t)));
 //        CHECKCUDAERR(cudaMalloc(&constPols_d, starkInfo.nConstants * (subDomainSize + nextStride) * sizeof(uint64_t)));
 //        CHECKCUDAERR(cudaMalloc(&x_d, subDomainSize * sizeof(uint64_t)));
 //        CHECKCUDAERR(cudaMalloc(&zi_d, subDomainSize * sizeof(uint64_t)));
