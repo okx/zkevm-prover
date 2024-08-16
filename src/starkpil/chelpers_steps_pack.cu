@@ -63,6 +63,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     printf("total_pols:%lu\n", total_pols);
 
+    assert(sharedStorageSize == 0);
     ops_offset = sharedStorageSize;
     sharedStorageSize += nOps;
 
@@ -115,6 +116,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     CHECKCUDAERR(cudaMemcpy(sharedStorage+evals_offset, evals.data(), evals.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
 
+    assert(exclusiveStorageSize==0)
     constPols_offset = exclusiveStorageSize;
     exclusiveStorageSize += starkInfo.nConstants * (subDomainSize + nextStride);
 

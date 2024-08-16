@@ -50,30 +50,30 @@ public:
     uint32_t tmp3_offset;
 
 
-    // gpu shared data
-    uint64_t *offsetsStages_d;
-    uint64_t *nColsStages_d;
-    uint64_t *nColsStagesAcc_d;
-
-    uint8_t *ops_d;
-    uint16_t *args_d;
-
-    gl64_t *challenges_d;
-    gl64_t *challenges_ops_d;
-    gl64_t *numbers_d;
-    gl64_t *publics_d;
-    gl64_t *evals_d;
-
-    // stream exclusive data
-    gl64_t *constPols_d;
-    gl64_t *x_d;
-    gl64_t *zi_d;
-    gl64_t *pols_d;
-    gl64_t *xDivXSubXi_d;
-
-    gl64_t *gBufferT_;
-    gl64_t *tmp1_d;
-    gl64_t *tmp3_d;
+//    // gpu shared data
+//    uint64_t *offsetsStages_d;
+//    uint64_t *nColsStages_d;
+//    uint64_t *nColsStagesAcc_d;
+//
+//    uint8_t *ops_d;
+//    uint16_t *args_d;
+//
+//    gl64_t *challenges_d;
+//    gl64_t *challenges_ops_d;
+//    gl64_t *numbers_d;
+//    gl64_t *publics_d;
+//    gl64_t *evals_d;
+//
+//    // stream exclusive data
+//    gl64_t *constPols_d;
+//    gl64_t *x_d;
+//    gl64_t *zi_d;
+//    gl64_t *pols_d;
+//    gl64_t *xDivXSubXi_d;
+//
+//    gl64_t *gBufferT_;
+//    gl64_t *tmp1_d;
+//    gl64_t *tmp3_d;
 
     void calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams);
     void calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams, uint64_t rowIni, uint64_t rowEnd);
