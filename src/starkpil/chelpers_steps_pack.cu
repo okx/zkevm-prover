@@ -207,6 +207,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
     uint64_t nrowPerStream = (rowEnd - rowIni) / nStreams;
 
+    #pragma omp parallel for
     for (uint32_t s=0; s<nStreams; s++) {
         assert(rowIni+(s+1)*nrowPerStream <= rowEnd);
         for (uint64_t i = rowIni+s*nrowPerStream; i < rowIni+(s+1)*nrowPerStream; i+= nrowsPack*nCudaThreads) {
