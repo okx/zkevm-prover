@@ -4,7 +4,7 @@
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
 #include "chelpers_steps_pack.hpp"
 #include <cuda_runtime.h>
-const int nGroup = 2;
+const int nGroups = 2;
 class gl64_t;
 class CHelpersStepsPackGPU: public CHelpersStepsPack {
 public:
@@ -23,7 +23,7 @@ public:
 
     vector<uint64_t> offsetsStagesGPU;
 
-    cudaStream_t streams[nGroup];
+    cudaStream_t streams[nGroups];
 
     uint64_t *sharedStorage;
     uint32_t sharedStorageSize = 0;
@@ -38,7 +38,7 @@ public:
     uint32_t publics_offset;
     uint32_t evals_offset;
 
-    uint64_t *exclusiveStorage[nGroup];
+    uint64_t *exclusiveStorage[nGroups];
     uint32_t exclusiveStorageSize = 0;
     uint32_t constPols_offset;
     uint32_t x_offset;
