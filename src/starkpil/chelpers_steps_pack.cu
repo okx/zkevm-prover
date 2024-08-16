@@ -278,9 +278,9 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
     uint64_t subDomainSize = cHelpersSteps->subDomainSize;
     uint64_t nBufferT = cHelpersSteps->nBufferT;
 
-    uint64_t *nColsStages = cHelpersSteps->sharedStorage[g] + cHelpersSteps->nColsStages_offset;
-    uint64_t *nColsStagesAcc = cHelpersSteps->sharedStorage[g] + cHelpersSteps->nColsStagesAcc_offset;
-    uint64_t *offsetsStages = cHelpersSteps->sharedStorage[g] + offsetsStages_offset;
+    uint64_t *nColsStages = cHelpersSteps->sharedStorage + cHelpersSteps->nColsStages_offset;
+    uint64_t *nColsStagesAcc = cHelpersSteps->sharedStorage + cHelpersSteps->nColsStagesAcc_offset;
+    uint64_t *offsetsStages = cHelpersSteps->sharedStorage + offsetsStages_offset;
 
     gl64_t *bufferT_ = (gl64_t *)cHelpersSteps->exclusiveStorage[g] + cHelpersSteps->bufferT_offset + idx * nBufferT;
     gl64_t *pols = (gl64_t *)cHelpersSteps->exclusiveStorage[g] + cHelpersSteps->pols_offset;
@@ -354,9 +354,9 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint32_
 
     uint64_t row = idx*nrowsPack;
 
-    uint64_t *nColsStages = cHelpersSteps->sharedStorage[g] + cHelpersSteps->nColsStages_offset;
-    uint64_t *nColsStagesAcc = cHelpersSteps->sharedStorage[g] + cHelpersSteps->nColsStagesAcc_offset;
-    uint64_t *offsetsStages = cHelpersSteps->sharedStorage[g] + cHelpersSteps->offsetsStages_offset;
+    uint64_t *nColsStages = cHelpersSteps->sharedStorage + cHelpersSteps->nColsStages_offset;
+    uint64_t *nColsStagesAcc = cHelpersSteps->sharedStorage + cHelpersSteps->nColsStagesAcc_offset;
+    uint64_t *offsetsStages = cHelpersSteps->sharedStorage + cHelpersSteps->offsetsStages_offset;
 
     gl64_t *bufferT_ = (gl64_t *)cHelpersSteps->exclusiveStorage[g] + cHelpersSteps->bufferT_offset + idx * nBufferT;
     gl64_t *pols = (gl64_t *)cHelpersSteps->exclusiveStorage[g] + cHelpersSteps->pols_offset;
@@ -394,14 +394,14 @@ __global__ void pack_kernel(CHelpersStepsPackGPU *cHelpersSteps, uint32_t g)
     uint64_t nTemp1 = cHelpersSteps->nTemp1;
     uint64_t nTemp3 = cHelpersSteps->nTemp3;
 
-    uint64_t *nColsStagesAcc = cHelpersSteps->sharedStorage[g] + cHelpersSteps->nColsStagesAcc_offset;
-    uint64_t *ops = cHelpersSteps->sharedStorage[g] + cHelpersSteps->ops_offset;
-    uint64_t *args = cHelpersSteps->sharedStorage[g] + cHelpersSteps->args_offset;
-    gl64_t *challenges = (gl64_t *)cHelpersSteps->sharedStorage[g] + cHelpersSteps->challenges_offset;
-    gl64_t *challenges_ops = (gl64_t *)cHelpersSteps->sharedStorage[g] + cHelpersSteps->challenges_ops_offset;
-    gl64_t *numbers_ = (gl64_t *)cHelpersSteps->sharedStorage[g] + cHelpersSteps->numbers_offset;
-    gl64_t *publics = (gl64_t *)cHelpersSteps->sharedStorage[g] + cHelpersSteps->publics_offset;
-    gl64_t *evals = (gl64_t *)cHelpersSteps->sharedStorage[g] + cHelpersSteps->evals_offset;
+    uint64_t *nColsStagesAcc = cHelpersSteps->sharedStorage + cHelpersSteps->nColsStagesAcc_offset;
+    uint64_t *ops = cHelpersSteps->sharedStorage + cHelpersSteps->ops_offset;
+    uint64_t *args = cHelpersSteps->sharedStorage + cHelpersSteps->args_offset;
+    gl64_t *challenges = (gl64_t *)cHelpersSteps->sharedStorage + cHelpersSteps->challenges_offset;
+    gl64_t *challenges_ops = (gl64_t *)cHelpersSteps->sharedStorage + cHelpersSteps->challenges_ops_offset;
+    gl64_t *numbers_ = (gl64_t *)cHelpersSteps->sharedStorage + cHelpersSteps->numbers_offset;
+    gl64_t *publics = (gl64_t *)cHelpersSteps->sharedStorage + cHelpersSteps->publics_offset;
+    gl64_t *evals = (gl64_t *)cHelpersSteps->sharedStorage + cHelpersSteps->evals_offset;
 
     gl64_t *bufferT_ = (gl64_t *)cHelpersSteps->exclusiveStorage[g] + cHelpersSteps->bufferT_offset + idx * nBufferT;
     gl64_t *tmp1 = (gl64_t *)cHelpersSteps->exclusiveStorage[g] + cHelpersSteps->tmp1_offset + nTemp1*idx;
