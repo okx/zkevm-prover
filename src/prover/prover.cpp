@@ -139,7 +139,7 @@ Prover::Prover(Goldilocks &fr,
             }
 
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
-            alloc_pinned_mem(uint64_t(1<<25) * 100);
+            alloc_pinned_mem(uint64_t(1<<25) * 96);
             warmup_gpu();
 #endif
             
@@ -520,7 +520,9 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
         json recursive2Verkey;
         file2json(config.recursive2Verkey, recursive2Verkey);
 
-        Goldilocks::Element publics[starksRecursive1->starkInfo.nPublics];
+        TimerStart(MALLOC_PUBLICS);
+        Goldilocks::Element *publics = (Goldilocks::Element *)malloc_zkevm(starksRecursive1->starkInfo.nPublics);
+        TimerStopAndLog(MALLOC_PUBLICS);
 
         // oldStateRoot
         publics[0] = cmPols.Main.B0[0];
@@ -737,6 +739,11 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
             jProofRecursive1["publics"] = publicStarkJson;
             json2file(jProofRecursive1, pProverRequest->filePrefix + "batch_proof.proof.json");
         }
+
+        TimerStart(FREE_PUBLICS);
+        free_zkevm(publics);
+        TimerStopAndLog(FREE_PUBLICS);
+
         TimerStopAndLog(SAVE_PROOF);
     }
 
