@@ -203,10 +203,11 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         }
     }
 
-
-    for (uint32_t s = 0; s < nStreams; s++) {
+    for (int s = 0; s < nStreams*nDevices; s++) {
+        CHECKCUDAERR(cudaSetDevice(s/nStreams));
         CHECKCUDAERR(cudaStreamSynchronize(streams[s]));
     }
+
 }
 
 void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint32_t s) {
