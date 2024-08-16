@@ -213,7 +213,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
             printf("rows:%lu\n", i);
             cudaStream_t stream = streams[s];
             TimerStart(Memcpy_H_to_D);
-            loadData(starkInfo, params, row, s);
+            loadData(starkInfo, params, i, s);
             TimerStopAndLog(Memcpy_H_to_D);
 
             TimerStart(EXP_Kernel);
@@ -223,7 +223,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
             TimerStopAndLog(EXP_Kernel);
 
             TimerStart(Memcpy_D_to_H);
-            storeData(starkInfo, params, row, s);
+            storeData(starkInfo, params, i, s);
             TimerStopAndLog(Memcpy_D_to_H);
         }
     }

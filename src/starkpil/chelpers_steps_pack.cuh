@@ -21,8 +21,6 @@ public:
     uint32_t nTemp1;
     uint32_t nTemp3;
 
-    nStreams
-
     vector<uint64_t> offsetsStagesGPU;
 
     cudaStream_t streams[nStreams];
