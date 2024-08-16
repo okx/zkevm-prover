@@ -9,24 +9,7 @@
 #include "cuda_utils.hpp"
 #include "timer.hpp"
 
-bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t size) {
-    // 打开文件
-    std::ofstream file(filename, std::ios::app);
-    if (file.is_open()) {
-        // 逐行写入数据
-        for (size_t i = 0; i < size; i++) {
-            file << (data[i] % 18446744069414584321) << std::endl;
-        }
-        // 关闭文件
-        file.close();
-        std::cout << "Data written to file successfully!" << std::endl;
-        return true;
-    } else {
-        std::cerr << "Unable to open file." << std::endl;
-        return false;
-    }
-}
-
+CHelpersStepsPackGPU *cHelpersSteps_GPU[MAX_GPUS];
 const uint64_t MAX_U64 = 0xFFFFFFFFFFFFFFFF;
 
 void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
@@ -34,6 +17,9 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     prepare(starkInfo, params, parserArgs, parserParams);
 
     nCudaThreads = 1<<15;
+    printf("nCudaThreads: %u\n", nCudaThreads)
+    CHECKCUDAERR(cudaGetDeviceCount(&nDevices));
+    printf("nDevices: %u\n", nDevices);
     domainExtended = parserParams.stage > 3 ? true : false;
     domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
     subDomainSize = nrowsPack * nCudaThreads;
@@ -47,7 +33,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     printf("nCols:%lu\n", nCols);
     printf("nrowsPack:%lu\n", nrowsPack);
-    printf("buffer:%lu\n", nBufferT);
+    printf("buffer:%u\n", nBufferT);
 
     offsetsStagesGPU.resize(offsetsStages.size());
     uint64_t total_pols = 0;
@@ -95,32 +81,34 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     evals_offset = sharedStorageSize;
     sharedStorageSize += evals.size();
 
-    printf("sharedStorageSize:%lu\n", sharedStorageSize);
-
-    CHECKCUDAERR(cudaMalloc(&sharedStorage, sharedStorageSize * sizeof(uint64_t)));
+    printf("sharedStorageSize:%u\n", sharedStorageSize);
 
     uint64_t *ops64 = (uint64_t *)malloc(nOps * sizeof(uint64_t));
     for (uint32_t i=0; i<nOps; i++) {
         ops64[i] = uint64_t(parserArgs.ops[parserParams.opsOffset+i]);
     }
-    CHECKCUDAERR(cudaMemcpy(sharedStorage+ops_offset, ops64, nOps * sizeof(uint64_t), cudaMemcpyHostToDevice));
     uint64_t *args64 = (uint64_t *)malloc(nArgs * sizeof(uint64_t));
     for (uint32_t i=0; i<nArgs; i++) {
         args64[i] = uint64_t(parserArgs.args[parserParams.argsOffset+i]);
     }
-    CHECKCUDAERR(cudaMemcpy(sharedStorage+args_offset, args64, nArgs * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(sharedStorage+offsetsStages_offset, offsetsStagesGPU.data(), offsetsStagesGPU.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(sharedStorage+nColsStages_offset, nColsStages.data(), nColsStages.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(sharedStorage+nColsStagesAcc_offset, nColsStagesAcc.data(), nColsStagesAcc.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(sharedStorage+challenges_offset, challenges.data(), challenges.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(sharedStorage+challenges_ops_offset, challenges_ops.data(), challenges_ops.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(sharedStorage+numbers_offset, numbers_.data(), numbers_.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(sharedStorage+publics_offset, publics.data(), publics.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(sharedStorage+evals_offset, evals.data(), evals.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
+    for (int d=0; d<nDevices; d++) {
+        CHECKCUDAERR(cudaSetDevice(d));
+        uint64_t *sharedStorage = gpuSharedStorage[d];
+        CHECKCUDAERR(cudaMalloc(&sharedStorage, sharedStorageSize * sizeof(uint64_t)));
+        CHECKCUDAERR(cudaMemcpy(sharedStorage+ops_offset, ops64, nOps * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(sharedStorage+args_offset, args64, nArgs * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(sharedStorage+offsetsStages_offset, offsetsStagesGPU.data(), offsetsStagesGPU.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(sharedStorage+nColsStages_offset, nColsStages.data(), nColsStages.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(sharedStorage+nColsStagesAcc_offset, nColsStagesAcc.data(), nColsStagesAcc.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(sharedStorage+challenges_offset, challenges.data(), challenges.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(sharedStorage+challenges_ops_offset, challenges_ops.data(), challenges_ops.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(sharedStorage+numbers_offset, numbers_.data(), numbers_.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(sharedStorage+publics_offset, publics.data(), publics.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(sharedStorage+evals_offset, evals.data(), evals.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+    }
 
     exclusiveStorageSize = 0;
-    assert(exclusiveStorageSize==0);
     constPols_offset = exclusiveStorageSize;
     exclusiveStorageSize += starkInfo.nConstants * (subDomainSize + nextStride);
 
@@ -145,52 +133,41 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     tmp3_offset = exclusiveStorageSize;
     exclusiveStorageSize += nTemp3 * nCudaThreads;
 
-    printf("exclusiveStorageSize:%lu\n", exclusiveStorageSize);
+    printf("exclusiveStorageSize:%u\n", exclusiveStorageSize);
 
-    for (uint32_t s = 0; s < nStreams; s++) {
-        CHECKCUDAERR(cudaStreamCreate(&streams[s]));
-        CHECKCUDAERR(cudaMalloc(&exclusiveStorage[s], exclusiveStorageSize * sizeof(uint64_t)));
-//        CHECKCUDAERR(cudaMalloc(&constPols_d, starkInfo.nConstants * (subDomainSize + nextStride) * sizeof(uint64_t)));
-//        CHECKCUDAERR(cudaMalloc(&x_d, subDomainSize * sizeof(uint64_t)));
-//        CHECKCUDAERR(cudaMalloc(&zi_d, subDomainSize * sizeof(uint64_t)));
-//        CHECKCUDAERR(cudaMalloc(&pols_d, total_offsets * sizeof(uint64_t)));
-//        CHECKCUDAERR(cudaMalloc(&xDivXSubXi_d, 2 * subDomainSize * FIELD_EXTENSION * sizeof(uint64_t)));
-//
-//        CHECKCUDAERR(cudaMalloc(&gBufferT_, nBufferT * nCudaThreads * sizeof(uint64_t)));
-//        CHECKCUDAERR(cudaMalloc(&tmp1_d, nTemp1 * nCudaThreads * sizeof(uint64_t)));
-//        CHECKCUDAERR(cudaMalloc(&tmp3_d, nTemp3 * nCudaThreads * sizeof(uint64_t)));
+    for (int d=0; d<nDevices; d++) {
+        CHECKCUDAERR(cudaSetDevice(d));
+        for (uint32_t s = 0; s < nStreams; s++) {
+            uint32_t streamIdx = d*nStreams+s;
+            CHECKCUDAERR(cudaStreamCreate(&streams[streamIdx]));
+            CHECKCUDAERR(cudaMalloc(&streamExclusiveStorage[streamIdx], exclusiveStorageSize * sizeof(uint64_t)));
+        }
+    }
+
+    for (int d=0; d<nDevices; d++) {
+        CHECKCUDAERR(cudaSetDevice(d));
+        CHECKCUDAERR(cudaMalloc((void **)&(cHelpersSteps_GPU[d]), sizeof(CHelpersStepsPackGPU)));
+        CHECKCUDAERR(cudaMemcpy(cHelpersSteps_GPU[d], this, sizeof(CHelpersStepsPackGPU), cudaMemcpyHostToDevice));
     }
 }
 
 void CHelpersStepsPackGPU::cleanupGPU() {
-    cudaFree(sharedStorage);
-    for (uint32_t s = 0; s < nStreams; s++) {
+    for (int d=0; d<nDevices; d++) {
+        cudaFree(gpuSharedStorage[d]);
+        cudaFree(cHelpersSteps_GPU[d]);
+    }
+
+    for (uint32_t s = 0; s < nStreams*nDevices; s++) {
         CHECKCUDAERR(cudaStreamDestroy(streams[s]));
-        cudaFree(exclusiveStorage[s]);
+        cudaFree(streamExclusiveStorage[s]);
     }
-}
-
-void CHelpersStepsPackGPU::compare(StepsParams &params, uint64_t row) {
-
-    for (uint64_t s = 1; s < 11; s++) {
-        if (offsetsStagesGPU[s] != MAX_U64) {
-            printf("write s:%lu\n", s);
-            writeDataToFile("gpu.txt", (uint64_t *)params.pols +offsetsStages[s] + row*nColsStages[s], (subDomainSize + nextStride) *nColsStages[s]);
-        }
-    }
-
-    assert(0);
 }
 
 void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
 
-    CHECKCUDAERR(cudaSetDevice(0));
-
     prepareGPU(starkInfo, params, parserArgs, parserParams);
-    //calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, domainSize-nrowsPack * nCudaThreads * nStreams, domainSize);
     calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, domainSize);
     cleanupGPU();
-    //compare(params, 0);
 }
 
 void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams,
@@ -201,15 +178,11 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         exitProcess();
     }
 
-    CHelpersStepsPackGPU *cHelpersSteps_d;
-    CHECKCUDAERR(cudaMalloc((void **)&(cHelpersSteps_d), sizeof(CHelpersStepsPackGPU)));
-    CHECKCUDAERR(cudaMemcpy(cHelpersSteps_d, this, sizeof(CHelpersStepsPackGPU), cudaMemcpyHostToDevice));
+    assert((rowEnd - rowIni) % (nrowsPack*nCudaThreads*nStreams*nDevices) == 0);
+    uint64_t nrowPerStream = (rowEnd - rowIni) / nStreams / nDevices;
 
-    uint64_t nrowPerStream = (rowEnd - rowIni) / nStreams;
-
-    #pragma omp parallel for
-    for (uint32_t s=0; s<nStreams; s++) {
-        assert(rowIni+(s+1)*nrowPerStream <= rowEnd);
+    //#pragma omp parallel for
+    for (uint32_t s=0; s<nStreams*nDevices; s++) {
         for (uint64_t i = rowIni+s*nrowPerStream; i < rowIni+(s+1)*nrowPerStream; i+= nrowsPack*nCudaThreads) {
             printf("rows:%lu\n", i);
             cudaStream_t stream = streams[s];
@@ -218,6 +191,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
             TimerStopAndLog(Memcpy_H_to_D);
 
             TimerStart(EXP_Kernel);
+            CHelpersStepsPackGPU *cHelpersSteps_d = cHelpersSteps_GPU[s/nStreams];
             loadPolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, starkInfo.nConstants, parserParams.stage, s);
             pack_kernel<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, s);
             storePolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, s);
@@ -233,14 +207,14 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     for (uint32_t s = 0; s < nStreams; s++) {
         CHECKCUDAERR(cudaStreamSynchronize(streams[s]));
     }
-
-    cudaFree(cHelpersSteps_d);
 }
 
 void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint32_t s) {
 
     ConstantPolsStarks *constPols = domainExtended ? params.pConstPols2ns : params.pConstPols;
     Polinomial &x = domainExtended ? params.x_2ns : params.x_n;
+
+    uint64_t *exclusiveStorage = streamExclusiveStorage[s];
 
     uint64_t *constPols_d = exclusiveStorage[s] + constPols_offset;
     uint64_t *x_d = exclusiveStorage[s] + x_offset;
@@ -278,7 +252,7 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
 }
 
 void CHelpersStepsPackGPU::storeData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint32_t s) {
-    uint64_t *pols_d = exclusiveStorage[s] + pols_offset;
+    uint64_t *pols_d = streamExclusiveStorage[s] + pols_offset;
     cudaStream_t stream = streams[s];
     for (uint64_t s = 1; s < 11; s++) {
         if (offsetsStagesGPU[s] != MAX_U64) {
@@ -301,13 +275,15 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
     uint64_t subDomainSize = cHelpersSteps->subDomainSize;
     uint64_t nBufferT = cHelpersSteps->nBufferT;
 
-    uint64_t *nColsStages = cHelpersSteps->sharedStorage + cHelpersSteps->nColsStages_offset;
-    uint64_t *nColsStagesAcc = cHelpersSteps->sharedStorage + cHelpersSteps->nColsStagesAcc_offset;
-    uint64_t *offsetsStages = cHelpersSteps->sharedStorage + cHelpersSteps->offsetsStages_offset;
+    uint64_t *sharedStorage = cHelpersSteps->gpuSharedStorage[s/nStreams];
+    uint64_t *nColsStages = sharedStorage + cHelpersSteps->nColsStages_offset;
+    uint64_t *nColsStagesAcc = sharedStorage + cHelpersSteps->nColsStagesAcc_offset;
+    uint64_t *offsetsStages = sharedStorage + cHelpersSteps->offsetsStages_offset;
 
-    gl64_t *bufferT_ = (gl64_t *)cHelpersSteps->exclusiveStorage[s] + cHelpersSteps->bufferT_offset + idx * nBufferT;
-    gl64_t *pols = (gl64_t *)cHelpersSteps->exclusiveStorage[s] + cHelpersSteps->pols_offset;
-    gl64_t *constPols = (gl64_t *)cHelpersSteps->exclusiveStorage[s] + cHelpersSteps->constPols_offset;
+    uint64_t *exclusiveStorage = cHelpersSteps->streamExclusiveStorage[s];
+    gl64_t *bufferT_ = (gl64_t *) + cHelpersSteps->bufferT_offset + idx * nBufferT;
+    gl64_t *pols = (gl64_t *)exclusiveStorage + cHelpersSteps->pols_offset;
+    gl64_t *constPols = (gl64_t *)exclusiveStorage + cHelpersSteps->constPols_offset;
 
     uint64_t row = idx*nrowsPack;
     uint64_t nStages = 3;
@@ -324,10 +300,10 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
 
     // Load x and Zi
     for(uint64_t j = 0; j < nrowsPack; ++j) {
-        bufferT_[nConstants*nrowsPack + j] = (cHelpersSteps->exclusiveStorage[s] + cHelpersSteps->x_offset)[row + j];
+        bufferT_[nConstants*nrowsPack + j] = (exclusiveStorage + cHelpersSteps->x_offset)[row + j];
     }
     for(uint64_t j = 0; j < nrowsPack; ++j) {
-        bufferT_[(nConstants + 1)*nrowsPack + j] = (cHelpersSteps->exclusiveStorage[s] + cHelpersSteps->zi_offset)[row + j];
+        bufferT_[(nConstants + 1)*nrowsPack + j] = (exclusiveStorage + cHelpersSteps->zi_offset)[row + j];
     }
 
     for(uint64_t s = 1; s <= nStages; ++s) {
@@ -355,7 +331,7 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
        for(uint64_t d = 0; d < 2; ++d) {
            for(uint64_t i = 0; i < FIELD_EXTENSION; ++i) {
                for(uint64_t j = 0; j < nrowsPack; ++j) {
-                  bufferT_[(nColsStagesAcc[11] + FIELD_EXTENSION*d + i)*nrowsPack + j] = (cHelpersSteps->exclusiveStorage[s] + cHelpersSteps->xDivXSubXi_offset)[(d*subDomainSize + row + j) * FIELD_EXTENSION + i];
+                  bufferT_[(nColsStagesAcc[11] + FIELD_EXTENSION*d + i)*nrowsPack + j] = (cHelpersSteps->streasmExclusiveStorage[s] + cHelpersSteps->xDivXSubXi_offset)[(d*subDomainSize + row + j) * FIELD_EXTENSION + i];
                }
            }
        }
@@ -377,12 +353,13 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint32_
 
     uint64_t row = idx*nrowsPack;
 
-    uint64_t *nColsStages = cHelpersSteps->sharedStorage + cHelpersSteps->nColsStages_offset;
-    uint64_t *nColsStagesAcc = cHelpersSteps->sharedStorage + cHelpersSteps->nColsStagesAcc_offset;
-    uint64_t *offsetsStages = cHelpersSteps->sharedStorage + cHelpersSteps->offsetsStages_offset;
+    uint64_t *sharedStorage = cHelpersSteps->gpuSharedStorage;
+    uint64_t *nColsStages = sharedStorage + cHelpersSteps->nColsStages_offset;
+    uint64_t *nColsStagesAcc = sharedStorage + cHelpersSteps->nColsStagesAcc_offset;
+    uint64_t *offsetsStages = sharedStorage + cHelpersSteps->offsetsStages_offset;
 
-    gl64_t *bufferT_ = (gl64_t *)cHelpersSteps->exclusiveStorage[s] + cHelpersSteps->bufferT_offset + idx * nBufferT;
-    gl64_t *pols = (gl64_t *)cHelpersSteps->exclusiveStorage[s] + cHelpersSteps->pols_offset;
+    gl64_t *bufferT_ = (gl64_t *)cHelpersSteps->streasmExclusiveStorage[s] + cHelpersSteps->bufferT_offset + idx * nBufferT;
+    gl64_t *pols = (gl64_t *)cHelpersSteps->streasmExclusiveStorage[s] + cHelpersSteps->pols_offset;
 
     if(domainExtended) {
         // Store either polinomial f or polinomial q
@@ -417,18 +394,19 @@ __global__ void pack_kernel(CHelpersStepsPackGPU *cHelpersSteps, uint32_t s)
     uint64_t nTemp1 = cHelpersSteps->nTemp1;
     uint64_t nTemp3 = cHelpersSteps->nTemp3;
 
-    uint64_t *nColsStagesAcc = cHelpersSteps->sharedStorage + cHelpersSteps->nColsStagesAcc_offset;
-    uint64_t *ops = cHelpersSteps->sharedStorage + cHelpersSteps->ops_offset;
-    uint64_t *args = cHelpersSteps->sharedStorage + cHelpersSteps->args_offset;
-    gl64_t *challenges = (gl64_t *)cHelpersSteps->sharedStorage + cHelpersSteps->challenges_offset;
-    gl64_t *challenges_ops = (gl64_t *)cHelpersSteps->sharedStorage + cHelpersSteps->challenges_ops_offset;
-    gl64_t *numbers_ = (gl64_t *)cHelpersSteps->sharedStorage + cHelpersSteps->numbers_offset;
-    gl64_t *publics = (gl64_t *)cHelpersSteps->sharedStorage + cHelpersSteps->publics_offset;
-    gl64_t *evals = (gl64_t *)cHelpersSteps->sharedStorage + cHelpersSteps->evals_offset;
+    uint64_t *sharedStorage = cHelpersSteps->gpuSharedStorage[s/nStreams];
+    uint64_t *nColsStagesAcc = sharedStorage + cHelpersSteps->nColsStagesAcc_offset;
+    uint64_t *ops = sharedStorage + cHelpersSteps->ops_offset;
+    uint64_t *args = sharedStorage + cHelpersSteps->args_offset;
+    gl64_t *challenges = (gl64_t *)sharedStorage + cHelpersSteps->challenges_offset;
+    gl64_t *challenges_ops = (gl64_t *)sharedStorage + cHelpersSteps->challenges_ops_offset;
+    gl64_t *numbers_ = (gl64_t *)sharedStorage + cHelpersSteps->numbers_offset;
+    gl64_t *publics = (gl64_t *)sharedStorage + cHelpersSteps->publics_offset;
+    gl64_t *evals = (gl64_t *)sharedStorage + cHelpersSteps->evals_offset;
 
-    gl64_t *bufferT_ = (gl64_t *)cHelpersSteps->exclusiveStorage[s] + cHelpersSteps->bufferT_offset + idx * nBufferT;
-    gl64_t *tmp1 = (gl64_t *)cHelpersSteps->exclusiveStorage[s] + cHelpersSteps->tmp1_offset + nTemp1*idx;
-    gl64_t *tmp3 = (gl64_t *)cHelpersSteps->exclusiveStorage[s] + cHelpersSteps->tmp3_offset + nTemp3*idx;
+    gl64_t *bufferT_ = (gl64_t *)cHelpersSteps->streasmExclusiveStorage[s] + cHelpersSteps->bufferT_offset + idx * nBufferT;
+    gl64_t *tmp1 = (gl64_t *)cHelpersSteps->streasmExclusiveStorage[s] + cHelpersSteps->tmp1_offset + nTemp1*idx;
+    gl64_t *tmp3 = (gl64_t *)cHelpersSteps->streasmExclusiveStorage[s] + cHelpersSteps->tmp3_offset + nTemp3*idx;
 
     uint64_t i_args = 0;
 

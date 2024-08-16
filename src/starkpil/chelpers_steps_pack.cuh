@@ -5,11 +5,13 @@
 #include "chelpers_steps_pack.hpp"
 #include <cuda_runtime.h>
 const int nStreams = 2; // streams per device
+const int MAX_GPUS = 8;
 class gl64_t;
 class CHelpersStepsPackGPU: public CHelpersStepsPack {
 public:
 
     int32_t nCudaThreads;
+    int32_t nDevices;
 
     bool domainExtended;
     uint64_t domainSize;
@@ -23,9 +25,9 @@ public:
 
     vector<uint64_t> offsetsStagesGPU;
 
-    cudaStream_t streams[nStreams];
+    cudaStream_t streams[nStreams*MAX_GPUS];
 
-    uint64_t *sharedStorage;
+    uint64_t *gpuSharedStorage[MAX_GPUS];
     uint32_t sharedStorageSize = 0;
     uint32_t ops_offset;
     uint32_t args_offset;
@@ -38,7 +40,7 @@ public:
     uint32_t publics_offset;
     uint32_t evals_offset;
 
-    uint64_t *exclusiveStorage[nStreams];
+    uint64_t *streamExclusiveStorage[nStreams*MAX_GPUS];
     uint32_t exclusiveStorageSize = 0;
     uint32_t constPols_offset;
     uint32_t x_offset;
