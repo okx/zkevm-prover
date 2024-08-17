@@ -25,9 +25,6 @@ public:
 
     vector<uint64_t> offsetsStagesGPU;
 
-    cudaStream_t streams[nStreams*MAX_GPUS];
-
-    uint64_t *gpuSharedStorage[MAX_GPUS];
     uint32_t sharedStorageSize = 0;
     uint32_t ops_offset;
     uint32_t args_offset;
@@ -40,7 +37,6 @@ public:
     uint32_t publics_offset;
     uint32_t evals_offset;
 
-    uint64_t *streamExclusiveStorage[nStreams*MAX_GPUS];
     uint32_t exclusiveStorageSize = 0;
     uint32_t constPols_offset;
     uint32_t x_offset;
@@ -61,9 +57,9 @@ public:
     void storeData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint32_t streamIdx);
 };
 
-__global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t nConstants, uint64_t stage, uint32_t streamIdx);
-__global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint32_t streamIdx);
-__global__ void pack_kernel(CHelpersStepsPackGPU *cHelpersSteps, uint32_t streamIdx);
+__global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t *sharedStorage, uint64_t *exclusiveStorage, uint64_t nConstants, uint64_t stage);
+__global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t *sharedStorage, uint64_t *exclusiveStorage);
+__global__ void pack_kernel(CHelpersStepsPackGPU *cHelpersSteps, uint64_t *sharedStorage, uint64_t *exclusiveStorage);
 
 #endif
 #endif

@@ -10,6 +10,9 @@
 #include "timer.hpp"
 
 CHelpersStepsPackGPU *cHelpersSteps_GPU[MAX_GPUS];
+uint64_t *gpuSharedStorage[MAX_GPUS];
+uint64_t *streamExclusiveStorage[nStreams*MAX_GPUS];
+cudaStream_t streams[nStreams*MAX_GPUS];
 const uint64_t MAX_U64 = 0xFFFFFFFFFFFFFFFF;
 
 void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
@@ -183,8 +186,10 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
     //#pragma omp parallel for
     for (uint32_t s=0; s<nStreams*nDevices; s++) {
-        cudaStream_t stream = streams[s];
         CHelpersStepsPackGPU *cHelpersSteps_d = cHelpersSteps_GPU[s/nStreams];
+        uint64_t *sharedStorage = gpuSharedStorage[s/nStreams];
+        uint64_t *exclusiveStorage = streamExclusiveStorage[s];
+        cudaStream_t stream = streams[s];
         for (uint64_t i = rowIni+s*nrowPerStream; i < rowIni+(s+1)*nrowPerStream; i+= nrowsPack*nCudaThreads) {
             printf("rows:%lu\n", i);
             TimerStart(Memcpy_H_to_D);
@@ -192,9 +197,9 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
             TimerStopAndLog(Memcpy_H_to_D);
 
             TimerStart(EXP_Kernel);
-            loadPolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, starkInfo.nConstants, parserParams.stage, s);
-            pack_kernel<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, s);
-            storePolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, s);
+            loadPolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, sharedStorage, exclusiveStorage, starkInfo.nConstants, parserParams.stage);
+            pack_kernel<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, sharedStorage, exclusiveStorage);
+            storePolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, sharedStorage, exclusiveStorage);
             TimerStopAndLog(EXP_Kernel);
 
             TimerStart(Memcpy_D_to_H);
@@ -261,7 +266,7 @@ void CHelpersStepsPackGPU::storeData(StarkInfo &starkInfo, StepsParams &params, 
     }
 }
 
-__global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t nConstants, uint64_t stage, uint32_t s) {
+__global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t *sharedStorage, uint64_t *exclusiveStorage, uint64_t nConstants, uint64_t stage) {
 
     uint64_t nCudaThreads = cHelpersSteps->nCudaThreads;
 
@@ -275,12 +280,10 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
     uint64_t subDomainSize = cHelpersSteps->subDomainSize;
     uint64_t nBufferT = cHelpersSteps->nBufferT;
 
-    uint64_t *sharedStorage = cHelpersSteps->gpuSharedStorage[s/nStreams];
     uint64_t *nColsStages = sharedStorage + cHelpersSteps->nColsStages_offset;
     uint64_t *nColsStagesAcc = sharedStorage + cHelpersSteps->nColsStagesAcc_offset;
     uint64_t *offsetsStages = sharedStorage + cHelpersSteps->offsetsStages_offset;
 
-    uint64_t *exclusiveStorage = cHelpersSteps->streamExclusiveStorage[s];
     gl64_t *bufferT_ = (gl64_t *) + cHelpersSteps->bufferT_offset + idx * nBufferT;
     gl64_t *pols = (gl64_t *)exclusiveStorage + cHelpersSteps->pols_offset;
     gl64_t *constPols = (gl64_t *)exclusiveStorage + cHelpersSteps->constPols_offset;
@@ -331,7 +334,7 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
        for(uint64_t d = 0; d < 2; ++d) {
            for(uint64_t i = 0; i < FIELD_EXTENSION; ++i) {
                for(uint64_t j = 0; j < nrowsPack; ++j) {
-                  bufferT_[(nColsStagesAcc[11] + FIELD_EXTENSION*d + i)*nrowsPack + j] = (cHelpersSteps->streamExclusiveStorage[s] + cHelpersSteps->xDivXSubXi_offset)[(d*subDomainSize + row + j) * FIELD_EXTENSION + i];
+                  bufferT_[(nColsStagesAcc[11] + FIELD_EXTENSION*d + i)*nrowsPack + j] = (exclusiveStorage + cHelpersSteps->xDivXSubXi_offset)[(d*subDomainSize + row + j) * FIELD_EXTENSION + i];
                }
            }
        }
@@ -339,7 +342,7 @@ __global__ void loadPolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t
 }
 
 
-__global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint32_t s) {
+__global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint64_t *sharedStorage, uint64_t *exclusiveStorage) {
     uint64_t nCudaThreads = cHelpersSteps->nCudaThreads;
 
     uint64_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -353,13 +356,12 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint32_
 
     uint64_t row = idx*nrowsPack;
 
-    uint64_t *sharedStorage = cHelpersSteps->gpuSharedStorage[s/nStreams];
     uint64_t *nColsStages = sharedStorage + cHelpersSteps->nColsStages_offset;
     uint64_t *nColsStagesAcc = sharedStorage + cHelpersSteps->nColsStagesAcc_offset;
     uint64_t *offsetsStages = sharedStorage + cHelpersSteps->offsetsStages_offset;
 
-    gl64_t *bufferT_ = (gl64_t *)cHelpersSteps->streamExclusiveStorage[s] + cHelpersSteps->bufferT_offset + idx * nBufferT;
-    gl64_t *pols = (gl64_t *)cHelpersSteps->streamExclusiveStorage[s] + cHelpersSteps->pols_offset;
+    gl64_t *bufferT_ = (gl64_t *)exclusiveStorage + cHelpersSteps->bufferT_offset + idx * nBufferT;
+    gl64_t *pols = (gl64_t *)exclusiveStorage + cHelpersSteps->pols_offset;
 
     if(domainExtended) {
         // Store either polinomial f or polinomial q
@@ -378,7 +380,7 @@ __global__ void storePolinomialsGPU(CHelpersStepsPackGPU *cHelpersSteps, uint32_
     }
 }
 
-__global__ void pack_kernel(CHelpersStepsPackGPU *cHelpersSteps, uint32_t s)
+__global__ void pack_kernel(CHelpersStepsPackGPU *cHelpersSteps, uint64_t *sharedStorage, uint64_t *exclusiveStorage)
 {
     uint64_t nCudaThreads = cHelpersSteps->nCudaThreads;
 
@@ -394,7 +396,6 @@ __global__ void pack_kernel(CHelpersStepsPackGPU *cHelpersSteps, uint32_t s)
     uint64_t nTemp1 = cHelpersSteps->nTemp1;
     uint64_t nTemp3 = cHelpersSteps->nTemp3;
 
-    uint64_t *sharedStorage = cHelpersSteps->gpuSharedStorage[s/nStreams];
     uint64_t *nColsStagesAcc = sharedStorage + cHelpersSteps->nColsStagesAcc_offset;
     uint64_t *ops = sharedStorage + cHelpersSteps->ops_offset;
     uint64_t *args = sharedStorage + cHelpersSteps->args_offset;
@@ -404,9 +405,9 @@ __global__ void pack_kernel(CHelpersStepsPackGPU *cHelpersSteps, uint32_t s)
     gl64_t *publics = (gl64_t *)sharedStorage + cHelpersSteps->publics_offset;
     gl64_t *evals = (gl64_t *)sharedStorage + cHelpersSteps->evals_offset;
 
-    gl64_t *bufferT_ = (gl64_t *)cHelpersSteps->streamExclusiveStorage[s] + cHelpersSteps->bufferT_offset + idx * nBufferT;
-    gl64_t *tmp1 = (gl64_t *)cHelpersSteps->streamExclusiveStorage[s] + cHelpersSteps->tmp1_offset + nTemp1*idx;
-    gl64_t *tmp3 = (gl64_t *)cHelpersSteps->streamExclusiveStorage[s] + cHelpersSteps->tmp3_offset + nTemp3*idx;
+    gl64_t *bufferT_ = (gl64_t *)exclusiveStorage + cHelpersSteps->bufferT_offset + idx * nBufferT;
+    gl64_t *tmp1 = (gl64_t *)exclusiveStorage + cHelpersSteps->tmp1_offset + nTemp1*idx;
+    gl64_t *tmp3 = (gl64_t *)exclusiveStorage + cHelpersSteps->tmp3_offset + nTemp3*idx;
 
     uint64_t i_args = 0;
 
