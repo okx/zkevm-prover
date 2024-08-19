@@ -230,36 +230,40 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     assert((rowEnd - rowIni) % (nrowsPack*nCudaThreads*nStreams*nDevices) == 0);
     uint64_t nrowPerStream = (rowEnd - rowIni) / nStreams /nDevices;
 
-    for (uint32_t s=0; s<nStreams*nDevices; s++) {
+    for (int s=0; s<nStreams*nDevices; s++) {
         int d = s/nStreams;
-        printf("current device:%d\n", d);
+        printf("current device:%d, stream:%d\n", d, s);
         CHECKCUDAERR(cudaSetDevice(d));
         CHelpersStepsPackGPU *cHelpersSteps_d = cHelpersSteps[d];
         uint64_t *sharedStorage = gpuSharedStorage[d];
         uint64_t *exclusiveStorage = streamExclusiveStorage[s];
         cudaStream_t stream = streams[s];
+        TimerStart(STREAM_OPS);
         for (uint64_t i = rowIni+s*nrowPerStream; i < rowIni+(s+1)*nrowPerStream; i+= nrowsPack*nCudaThreads) {
-            printf("rows:%lu\n", i);
-            TimerStart(Memcpy_H_to_D);
+            //printf("rows:%lu\n", i);
+            //TimerStart(Memcpy_H_to_D);
             loadData(starkInfo, params, i, s);
-            TimerStopAndLog(Memcpy_H_to_D);
+            //TimerStopAndLog(Memcpy_H_to_D);
 
-            TimerStart(EXP_Kernel);
+            //TimerStart(EXP_Kernel);
             loadPolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, sharedStorage, exclusiveStorage, starkInfo.nConstants, parserParams.stage);
             pack_kernel<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, sharedStorage, exclusiveStorage);
             storePolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, sharedStorage, exclusiveStorage);
-            TimerStopAndLog(EXP_Kernel);
+            //TimerStopAndLog(EXP_Kernel);
 
-            TimerStart(Memcpy_D_to_H);
+            //TimerStart(Memcpy_D_to_H);
             storeData(starkInfo, params, i, s);
-            TimerStopAndLog(Memcpy_D_to_H);
+            //TimerStopAndLog(Memcpy_D_to_H);
         }
+        TimerStopAndLog(STREAM_OPS);
     }
 
 
+    TimerStart(WAIT_STREAM);
     for (uint32_t s = 0; s < nStreams*nDevices; s++) {
         CHECKCUDAERR(cudaStreamSynchronize(streams[s]));
     }
+    TimerStopAndLog(WAIT_STREAM);
 }
 
 void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, uint64_t row, uint32_t s) {
