@@ -238,7 +238,7 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
     ConstantPolsStarks *constPols = domainExtended ? params.pConstPols2ns : params.pConstPols;
     Polinomial &x = domainExtended ? params.x_2ns : params.x_n;
 
-    uint64_t exclusiveStorage = streamExclusiveStorage[s];
+    uint64_t *exclusiveStorage = streamExclusiveStorage[s];
     uint64_t *constPols_d = exclusiveStorage + constPols_offset;
     uint64_t *x_d = exclusiveStorage + x_offset;
     uint64_t *zi_d = exclusiveStorage + zi_offset;
