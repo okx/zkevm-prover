@@ -5,6 +5,7 @@
 #include "chelpers_steps_pack.hpp"
 #include <cuda_runtime.h>
 const int nStreams = 2; // streams per device
+const int MAX_GPUS = 8;
 class gl64_t;
 class CHelpersStepsPackGPU: public CHelpersStepsPack {
 public:
