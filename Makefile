@@ -45,6 +45,7 @@ else
       CXXFLAGS += -O3
 endif
 
+PROVER_FORK_ID := 10
 ifdef PROVER_FORK_ID
 	  CXXFLAGS += -DPROVER_FORK_ID=$(PROVER_FORK_ID)
 endif
