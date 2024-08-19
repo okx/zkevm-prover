@@ -40,6 +40,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
 
     CHECKCUDAERR(cudaGetDeviceCount(&nDevices));
+    nDevices = 1;
     printf("nDevices: %d\n", nDevices);
     nCudaThreads = 1<<15;
     domainExtended = parserParams.stage > 3 ? true : false;
