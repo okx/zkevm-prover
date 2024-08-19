@@ -9,30 +9,12 @@
 #include "cuda_utils.hpp"
 #include "timer.hpp"
 
+const uint64_t MAX_U64 = 0xFFFFFFFFFFFFFFFF;
+
 CHelpersStepsPackGPU *cHelpersSteps[MAX_GPUS];
 uint64_t *gpuSharedStorage[MAX_GPUS];
 uint64_t *streamExclusiveStorage[nStreams*MAX_GPUS];
 cudaStream_t streams[nStreams*MAX_GPUS];
-
-bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t size) {
-    // 打开文件
-    std::ofstream file(filename, std::ios::app);
-    if (file.is_open()) {
-        // 逐行写入数据
-        for (size_t i = 0; i < size; i++) {
-            file << (data[i] % 18446744069414584321) << std::endl;
-        }
-        // 关闭文件
-        file.close();
-        std::cout << "Data written to file successfully!" << std::endl;
-        return true;
-    } else {
-        std::cerr << "Unable to open file." << std::endl;
-        return false;
-    }
-}
-
-const uint64_t MAX_U64 = 0xFFFFFFFFFFFFFFFF;
 
 void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
 
@@ -194,27 +176,12 @@ void CHelpersStepsPackGPU::cleanupGPU() {
     }
 }
 
-void CHelpersStepsPackGPU::compare(StepsParams &params, uint64_t row) {
-
-    for (uint64_t s = 1; s < 11; s++) {
-        if (offsetsStagesGPU[s] != MAX_U64) {
-            printf("write s:%lu\n", s);
-            writeDataToFile("gpu.txt", (uint64_t *)params.pols +offsetsStages[s] + row*nColsStages[s], (subDomainSize + nextStride) *nColsStages[s]);
-        }
-    }
-
-    assert(0);
-}
 
 void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
 
-    //CHECKCUDAERR(cudaSetDevice(0));
-
     prepareGPU(starkInfo, params, parserArgs, parserParams);
-    //calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, domainSize-nrowsPack * nCudaThreads * nStreams, domainSize);
     calculateExpressionsRowsGPU(starkInfo, params, parserArgs, parserParams, 0, domainSize);
     cleanupGPU();
-    //compare(params, 0);
 }
 
 void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams,
@@ -238,7 +205,6 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         cudaStream_t stream = streams[s];
         TimerStart(STREAM_OPS);
         for (uint64_t i = rowIni+s*nrowPerStream; i < rowIni+(s+1)*nrowPerStream; i+= nrowsPack*nCudaThreads) {
-            //printf("rows:%lu\n", i);
             //TimerStart(Memcpy_H_to_D);
             loadData(starkInfo, params, i, s);
             //TimerStopAndLog(Memcpy_H_to_D);
@@ -278,7 +244,6 @@ void CHelpersStepsPackGPU::loadData(StarkInfo &starkInfo, StepsParams &params, u
 
     cudaStream_t stream = streams[s];
 
-    // TODO may overflow and cycle
     if (row + subDomainSize != domainSize) {
         CHECKCUDAERR(cudaMemcpyAsync(constPols_d, ((Goldilocks::Element *)constPols->address()) + row * starkInfo.nConstants, starkInfo.nConstants * (subDomainSize + nextStride) * sizeof(uint64_t), cudaMemcpyHostToDevice, stream));
     } else {

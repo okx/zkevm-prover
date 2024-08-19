@@ -7,12 +7,6 @@
 #include "zklog.hpp"
 #include "exit_process.hpp"
 
-#include <iostream>
-#include <fstream>
-#include <cstdint>
-
-bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t size);
-
 class CHelpersStepsPack : public CHelpersSteps {
 public:
     uint64_t nrowsPack = 4;
@@ -264,13 +258,7 @@ public:
             Goldilocks::Element tmp1[parserParams.nTemp1*nrowsPack];
             Goldilocks::Element tmp3[parserParams.nTemp3*nrowsPack*FIELD_EXTENSION];
 
-//            for (uint64_t j=0; j<2*nCols*nrowsPack; j++) {
-//                bufferT_[j] = Goldilocks::zero();
-//            }
-
             loadPolinomials(starkInfo, params, bufferT_, i, parserParams.stage, nrowsPack, domainExtended);
-
-            // writeDataToFile("input.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
 
             for (uint64_t kk = 0; kk < parserParams.nOps; ++kk) {
                 switch (ops[kk]) {
@@ -760,8 +748,6 @@ public:
                     }
                 }
             }
-
-            // writeDataToFile("output.txt", (uint64_t *)bufferT_, 2*nCols*nrowsPack);
 
             storePolinomials(starkInfo, params, bufferT_, storePol, i, nrowsPack, domainExtended);
 
