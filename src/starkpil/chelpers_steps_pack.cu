@@ -10,7 +10,7 @@
 #include "timer.hpp"
 
 uint64_t *gpuSharedStorage;
-uint64_t *exclusiveStorage[nStreams];
+uint64_t *streamExclusiveStorage[nStreams];
 cudaStream_t streams[nStreams];
 
 bool writeDataToFile(const std::string& filename, const uint64_t* data, size_t size) {
