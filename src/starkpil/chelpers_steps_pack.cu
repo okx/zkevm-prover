@@ -172,17 +172,10 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
         CHECKCUDAERR(cudaMemcpy(cHelpersSteps[d], this, sizeof(CHelpersStepsPackGPU), cudaMemcpyHostToDevice));
     }
 
-    nDevices = 1;
-
     for (uint32_t s = 0; s < nStreams*nDevices; s++) {
         CHECKCUDAERR(cudaSetDevice(s/nStreams));
         CHECKCUDAERR(cudaStreamCreate(&streams[s]));
     }
-
-    //debug
-//    CHECKCUDAERR(cudaSetDevice(1));
-//    CHECKCUDAERR(cudaStreamCreate(&streams[1]));
-//    CHECKCUDAERR(cudaSetDevice(0));
 }
 
 void CHelpersStepsPackGPU::cleanupGPU() {
