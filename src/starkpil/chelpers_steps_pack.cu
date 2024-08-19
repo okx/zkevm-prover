@@ -40,7 +40,6 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
 
     CHECKCUDAERR(cudaGetDeviceCount(&nDevices));
-    nDevices = 1;
     printf("nDevices: %d\n", nDevices);
     nCudaThreads = 1<<15;
     domainExtended = parserParams.stage > 3 ? true : false;
@@ -173,6 +172,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 }
 
 void CHelpersStepsPackGPU::cleanupGPU() {
+    CHECKCUDAERR(cudaGetDeviceCount(&nDevices));
     for (int d=0;d<nDevices;d++) {
         cudaFree(gpuSharedStorage[d]);
         cudaFree(cHelpersSteps[d]);
@@ -214,6 +214,8 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         zklog.info("Invalid range for rowIni " + to_string(rowIni) + " and rowEnd " + to_string(rowEnd));
         exitProcess();
     }
+
+    nDevices = 1;
 
     assert((rowEnd - rowIni) % (nrowsPack*nCudaThreads*nStreams*nDevices) == 0);
     uint64_t nrowPerStream = (rowEnd - rowIni) / nStreams /nDevices;
