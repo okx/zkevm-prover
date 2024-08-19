@@ -612,8 +612,8 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
 //#endif
 
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
-        CHelpersStepsPackGPU cHelpersStepsZkevm;
-        //CHelpersSteps cHelpersStepsZkevm;
+        //CHelpersStepsPackGPU cHelpersStepsZkevm;
+        CHelpersSteps cHelpersStepsZkevm;
 #else
         CHelpersSteps cHelpersStepsZkevm;
 #endif
