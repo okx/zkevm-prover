@@ -38,6 +38,9 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     prepare(starkInfo, params, parserArgs, parserParams);
 
+
+    CHECKCUDAERR(cudaGetDeviceCount(&nDevices));
+    printf("nDevices: %d\n", nDevices);
     nCudaThreads = 1<<15;
     domainExtended = parserParams.stage > 3 ? true : false;
     domainSize = domainExtended ? 1 << starkInfo.starkStruct.nBitsExt : 1 << starkInfo.starkStruct.nBits;
@@ -111,17 +114,20 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
         args64[i] = uint64_t(parserArgs.args[parserParams.argsOffset+i]);
     }
 
-    CHECKCUDAERR(cudaMalloc(&gpuSharedStorage[0], sharedStorageSize * sizeof(uint64_t)));
-    CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[0]+ops_offset, ops64, nOps * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[0]+args_offset, args64, nArgs * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[0]+offsetsStages_offset, offsetsStagesGPU.data(), offsetsStagesGPU.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[0]+nColsStages_offset, nColsStages.data(), nColsStages.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[0]+nColsStagesAcc_offset, nColsStagesAcc.data(), nColsStagesAcc.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[0]+challenges_offset, challenges.data(), challenges.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[0]+challenges_ops_offset, challenges_ops.data(), challenges_ops.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[0]+numbers_offset, numbers_.data(), numbers_.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[0]+publics_offset, publics.data(), publics.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
-    CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[0]+evals_offset, evals.data(), evals.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+    for (int d=0;d<nDevices;d++) {
+        CHECKCUDAERR(cudaSetDevice(d));
+        CHECKCUDAERR(cudaMalloc(&gpuSharedStorage[d], sharedStorageSize * sizeof(uint64_t)));
+        CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[d]+ops_offset, ops64, nOps * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[d]+args_offset, args64, nArgs * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[d]+offsetsStages_offset, offsetsStagesGPU.data(), offsetsStagesGPU.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[d]+nColsStages_offset, nColsStages.data(), nColsStages.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[d]+nColsStagesAcc_offset, nColsStagesAcc.data(), nColsStagesAcc.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[d]+challenges_offset, challenges.data(), challenges.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[d]+challenges_ops_offset, challenges_ops.data(), challenges_ops.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[d]+numbers_offset, numbers_.data(), numbers_.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[d]+publics_offset, publics.data(), publics.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+        CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[d]+evals_offset, evals.data(), evals.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
+    }
 
 
     exclusiveStorageSize = 0;
@@ -152,19 +158,26 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     printf("exclusiveStorageSize:%u\n", exclusiveStorageSize);
 
-    for (uint32_t s = 0; s < nStreams; s++) {
+    for (uint32_t s = 0; s < nStreams*nDevices; s++) {
+        CHECKCUDAERR(cudaSetDevice(s/nStreams));
         CHECKCUDAERR(cudaStreamCreate(&streams[s]));
         CHECKCUDAERR(cudaMalloc(&streamExclusiveStorage[s], exclusiveStorageSize * sizeof(uint64_t)));
     }
 
-    CHECKCUDAERR(cudaMalloc((void **)&(cHelpersSteps[0]), sizeof(CHelpersStepsPackGPU)));
-    CHECKCUDAERR(cudaMemcpy(cHelpersSteps[0], this, sizeof(CHelpersStepsPackGPU), cudaMemcpyHostToDevice));
+    for (int d=0;d<nDevices;d++) {
+        CHECKCUDAERR(cudaSetDevice(d));
+        CHECKCUDAERR(cudaMalloc((void **)&(cHelpersSteps[d]), sizeof(CHelpersStepsPackGPU)));
+        CHECKCUDAERR(cudaMemcpy(cHelpersSteps[d], this, sizeof(CHelpersStepsPackGPU), cudaMemcpyHostToDevice));
+    }
 }
 
 void CHelpersStepsPackGPU::cleanupGPU() {
-    cudaFree(gpuSharedStorage[0]);
-    cudaFree(cHelpersSteps[0]);
-    for (uint32_t s = 0; s < nStreams; s++) {
+    for (int d=0;d<nDevices;d++) {
+        cudaFree(gpuSharedStorage[d]);
+        cudaFree(cHelpersSteps[d]);
+    }
+
+    for (uint32_t s = 0; s < nStreams*nDevices; s++) {
         CHECKCUDAERR(cudaStreamDestroy(streams[s]));
         cudaFree(streamExclusiveStorage[s]);
     }
@@ -184,7 +197,7 @@ void CHelpersStepsPackGPU::compare(StepsParams &params, uint64_t row) {
 
 void CHelpersStepsPackGPU::calculateExpressions(StarkInfo &starkInfo, StepsParams &params, ParserArgs &parserArgs, ParserParams &parserParams) {
 
-    CHECKCUDAERR(cudaSetDevice(0));
+    //CHECKCUDAERR(cudaSetDevice(0));
 
     prepareGPU(starkInfo, params, parserArgs, parserParams);
     //calculateExpressionsRows(starkInfo, params, parserArgs, parserParams, domainSize-nrowsPack * nCudaThreads * nStreams, domainSize);
@@ -201,11 +214,12 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         exitProcess();
     }
 
-    uint64_t nrowPerStream = (rowEnd - rowIni) / nStreams;
+    assert((rowEnd - rowIni) % (nrowsPack*nCudaThreads*nStreams*nDevices) == 0);
+    uint64_t nrowPerStream = (rowEnd - rowIni) / nStreams /nDevices;
 
-    for (uint32_t s=0; s<nStreams; s++) {
-        assert(rowIni+(s+1)*nrowPerStream <= rowEnd);
-        uint64_t *sharedStorage = gpuSharedStorage[0];
+    for (uint32_t s=0; s<nStreams*nDevices; s++) {
+        CHelpersStepsPackGPU *cHelpersSteps_d = cHelpersSteps[s/nStreams];
+        uint64_t *sharedStorage = gpuSharedStorage[s/nStreams];
         uint64_t *exclusiveStorage = streamExclusiveStorage[s];
         cudaStream_t stream = streams[s];
         for (uint64_t i = rowIni+s*nrowPerStream; i < rowIni+(s+1)*nrowPerStream; i+= nrowsPack*nCudaThreads) {
@@ -215,9 +229,9 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
             TimerStopAndLog(Memcpy_H_to_D);
 
             TimerStart(EXP_Kernel);
-            loadPolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps[0], sharedStorage, exclusiveStorage, starkInfo.nConstants, parserParams.stage);
-            pack_kernel<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps[0], sharedStorage, exclusiveStorage);
-            storePolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps[0], sharedStorage, exclusiveStorage);
+            loadPolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, sharedStorage, exclusiveStorage, starkInfo.nConstants, parserParams.stage);
+            pack_kernel<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, sharedStorage, exclusiveStorage);
+            storePolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, sharedStorage, exclusiveStorage);
             TimerStopAndLog(EXP_Kernel);
 
             TimerStart(Memcpy_D_to_H);

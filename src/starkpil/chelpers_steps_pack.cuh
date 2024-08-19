@@ -10,6 +10,7 @@ class gl64_t;
 class CHelpersStepsPackGPU: public CHelpersStepsPack {
 public:
 
+    int nDevices;
     int32_t nCudaThreads;
 
     bool domainExtended;
