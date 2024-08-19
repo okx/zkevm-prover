@@ -225,8 +225,6 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
         exitProcess();
     }
 
-    nDevices = 1;
-
     assert((rowEnd - rowIni) % (nrowsPack*nCudaThreads*nStreams*nDevices) == 0);
     uint64_t nrowPerStream = (rowEnd - rowIni) / nStreams /nDevices;
 
