@@ -235,9 +235,11 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     uint64_t nrowPerStream = (rowEnd - rowIni) / nStreams /nDevices;
 
     for (uint32_t s=0; s<nStreams*nDevices; s++) {
-        CHECKCUDAERR(cudaSetDevice(s/nStreams));
-        CHelpersStepsPackGPU *cHelpersSteps_d = cHelpersSteps[s/nStreams];
-        uint64_t *sharedStorage = gpuSharedStorage[s/nStreams];
+        int d = s/nStreams;
+        printf("current device:%d\n", d);
+        CHECKCUDAERR(cudaSetDevice(d));
+        CHelpersStepsPackGPU *cHelpersSteps_d = cHelpersSteps[d];
+        uint64_t *sharedStorage = gpuSharedStorage[d];
         uint64_t *exclusiveStorage = streamExclusiveStorage[s];
         cudaStream_t stream = streams[s];
         for (uint64_t i = rowIni+s*nrowPerStream; i < rowIni+(s+1)*nrowPerStream; i+= nrowsPack*nCudaThreads) {
