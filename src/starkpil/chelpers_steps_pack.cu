@@ -129,6 +129,9 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
         CHECKCUDAERR(cudaMemcpy(gpuSharedStorage[d]+evals_offset, evals.data(), evals.size() * sizeof(uint64_t), cudaMemcpyHostToDevice));
     }
 
+    free(ops64);
+    free(args64);
+
 
     exclusiveStorageSize = 0;
     assert(exclusiveStorageSize==0);
@@ -170,15 +173,16 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     }
 
     nDevices = 1;
+
     for (uint32_t s = 0; s < nStreams*nDevices; s++) {
         CHECKCUDAERR(cudaSetDevice(s/nStreams));
         CHECKCUDAERR(cudaStreamCreate(&streams[s]));
     }
 
     //debug
-    CHECKCUDAERR(cudaSetDevice(1));
-    CHECKCUDAERR(cudaStreamCreate(&streams[1]));
-    CHECKCUDAERR(cudaSetDevice(0));
+//    CHECKCUDAERR(cudaSetDevice(1));
+//    CHECKCUDAERR(cudaStreamCreate(&streams[1]));
+//    CHECKCUDAERR(cudaSetDevice(0));
 }
 
 void CHelpersStepsPackGPU::cleanupGPU() {
@@ -192,7 +196,6 @@ void CHelpersStepsPackGPU::cleanupGPU() {
         cudaFree(streamExclusiveStorage[s]);
     }
 
-    nDevices = 1;
     for (uint32_t s = 0; s < nStreams*nDevices; s++) {
         CHECKCUDAERR(cudaStreamDestroy(streams[s]));
     }
