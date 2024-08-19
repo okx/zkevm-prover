@@ -25,7 +25,6 @@ public:
 
     vector<uint64_t> offsetsStagesGPU;
 
-    uint64_t *sharedStorage;
     uint32_t sharedStorageSize = 0;
     uint32_t ops_offset;
     uint32_t args_offset;
