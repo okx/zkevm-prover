@@ -103,7 +103,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     evals_offset = sharedStorageSize;
     sharedStorageSize += evals.size();
 
-    printf("sharedStorageSize:%l\n", sharedStorageSize);
+    printf("sharedStorageSize:%u\n", sharedStorageSize);
 
     uint64_t *ops64 = (uint64_t *)malloc(nOps * sizeof(uint64_t));
     for (uint32_t i=0; i<nOps; i++) {
