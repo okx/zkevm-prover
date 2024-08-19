@@ -174,6 +174,11 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
         CHECKCUDAERR(cudaSetDevice(s/nStreams));
         CHECKCUDAERR(cudaStreamCreate(&streams[s]));
     }
+
+    //debug
+    CHECKCUDAERR(cudaSetDevice(1));
+    CHECKCUDAERR(cudaStreamCreate(&streams[1]));
+    CHECKCUDAERR(cudaSetDevice(0));
 }
 
 void CHelpersStepsPackGPU::cleanupGPU() {
