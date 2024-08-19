@@ -52,7 +52,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     printf("nCols:%lu\n", nCols);
     printf("nrowsPack:%lu\n", nrowsPack);
-    printf("buffer:%lu\n", nBufferT);
+    printf("buffer:%u\n", nBufferT);
 
     offsetsStagesGPU.resize(offsetsStages.size());
     uint64_t total_pols = 0;
@@ -100,7 +100,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     evals_offset = sharedStorageSize;
     sharedStorageSize += evals.size();
 
-    printf("sharedStorageSize:%lu\n", sharedStorageSize);
+    printf("sharedStorageSize:%l\n", sharedStorageSize);
 
     uint64_t *ops64 = (uint64_t *)malloc(nOps * sizeof(uint64_t));
     for (uint32_t i=0; i<nOps; i++) {
@@ -150,7 +150,7 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
     tmp3_offset = exclusiveStorageSize;
     exclusiveStorageSize += nTemp3 * nCudaThreads;
 
-    printf("exclusiveStorageSize:%lu\n", exclusiveStorageSize);
+    printf("exclusiveStorageSize:%u\n", exclusiveStorageSize);
 
     for (uint32_t s = 0; s < nStreams; s++) {
         CHECKCUDAERR(cudaStreamCreate(&streams[s]));
