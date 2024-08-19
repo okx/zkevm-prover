@@ -205,7 +205,7 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
     for (uint32_t s=0; s<nStreams; s++) {
         assert(rowIni+(s+1)*nrowPerStream <= rowEnd);
         uint64_t *sharedStorage = gpuSharedStorage;
-        uint64_t *exclusiveStorage = StreamExclusiveStorage[s];
+        uint64_t *exclusiveStorage = streamExclusiveStorage[s];
         cudaStream_t stream = streams[s];
         for (uint64_t i = rowIni+s*nrowPerStream; i < rowIni+(s+1)*nrowPerStream; i+= nrowsPack*nCudaThreads) {
             printf("rows:%lu\n", i);
@@ -215,8 +215,8 @@ void CHelpersStepsPackGPU::calculateExpressionsRowsGPU(StarkInfo &starkInfo, Ste
 
             TimerStart(EXP_Kernel);
             loadPolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, sharedStorage, exclusiveStorage, starkInfo.nConstants, parserParams.stage);
-            pack_kernel<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, sharedStorage, exclusiveStorage, );
-            storePolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, sharedStorage, exclusiveStorage, );
+            pack_kernel<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, sharedStorage, exclusiveStorage);
+            storePolinomialsGPU<<<(nCudaThreads+15)/16,16,0,stream>>>(cHelpersSteps_d, sharedStorage, exclusiveStorage);
             TimerStopAndLog(EXP_Kernel);
 
             TimerStart(Memcpy_D_to_H);
