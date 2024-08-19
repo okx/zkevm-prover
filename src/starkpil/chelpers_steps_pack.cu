@@ -160,7 +160,6 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
 
     for (uint32_t s = 0; s < nStreams*nDevices; s++) {
         CHECKCUDAERR(cudaSetDevice(s/nStreams));
-        CHECKCUDAERR(cudaStreamCreate(&streams[s]));
         CHECKCUDAERR(cudaMalloc(&streamExclusiveStorage[s], exclusiveStorageSize * sizeof(uint64_t)));
     }
 
@@ -168,6 +167,12 @@ void CHelpersStepsPackGPU::prepareGPU(StarkInfo &starkInfo, StepsParams &params,
         CHECKCUDAERR(cudaSetDevice(d));
         CHECKCUDAERR(cudaMalloc((void **)&(cHelpersSteps[d]), sizeof(CHelpersStepsPackGPU)));
         CHECKCUDAERR(cudaMemcpy(cHelpersSteps[d], this, sizeof(CHelpersStepsPackGPU), cudaMemcpyHostToDevice));
+    }
+
+    nDevices = 1;
+    for (uint32_t s = 0; s < nStreams*nDevices; s++) {
+        CHECKCUDAERR(cudaSetDevice(s/nStreams));
+        CHECKCUDAERR(cudaStreamCreate(&streams[s]));
     }
 }
 
@@ -179,8 +184,12 @@ void CHelpersStepsPackGPU::cleanupGPU() {
     }
 
     for (uint32_t s = 0; s < nStreams*nDevices; s++) {
-        CHECKCUDAERR(cudaStreamDestroy(streams[s]));
         cudaFree(streamExclusiveStorage[s]);
+    }
+
+    nDevices = 1;
+    for (uint32_t s = 0; s < nStreams*nDevices; s++) {
+        CHECKCUDAERR(cudaStreamDestroy(streams[s]));
     }
 }
 
