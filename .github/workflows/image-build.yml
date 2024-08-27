@@ -19,6 +19,7 @@ jobs:
         id: checkout
         with:
           ref: ${{ github.event.inputs.branch || github.event.inputs.tag }}
+          submodules: true 
 
       - name: check param
         run: |
