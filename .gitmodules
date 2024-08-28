@@ -1,4 +1,4 @@
 [submodule "src/goldilocks"]
 	path = src/goldilocks
 	url = https://github.com/okx/goldilocks.git
-	branch = "develop"
+	branch = "yxq/develop-base"

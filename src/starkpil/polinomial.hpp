@@ -69,7 +69,7 @@ public:
         if (degree == 0 || dim == 0)
             return;
         if (_pinned) {
-            _pAddress = (Goldilocks::Element *)calloc_zkevm(_degree * _dim, sizeof(Goldilocks::Element));
+            _pAddress = (Goldilocks::Element *)calloc(_degree * _dim, sizeof(Goldilocks::Element));
         } else {
             _pAddress = (Goldilocks::Element *)calloc(_degree * _dim, sizeof(Goldilocks::Element));
         }
@@ -86,7 +86,7 @@ public:
     ~Polinomial()
     {
         if (_allocated) {
-            if (_pinned) { free_zkevm(_pAddress); }
+            if (_pinned) { free(_pAddress); }
             else { free(_pAddress); }
         }
 

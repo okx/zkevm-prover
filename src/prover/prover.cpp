@@ -518,7 +518,7 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
         json recursive2Verkey;
         file2json(config.recursive2Verkey, recursive2Verkey);
 
-#ifdef __USE_CUDA__
+#ifdef ____USE_CUDA__
         Goldilocks::Element *publics = (Goldilocks::Element *)malloc_zkevm(starksRecursive1->starkInfo.nPublics);
 #else
         Goldilocks::Element publics[starksRecursive1->starkInfo.nPublics];
@@ -599,7 +599,7 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
         /*  Generate stark proof            */
         /*************************************/
 
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+#if defined(____USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
         CHelpersStepsPackGPU cHelpersSteps;
 #elif defined(__AVX512__)
         CHelpersStepsAvx512 cHelpersSteps;
@@ -730,7 +730,7 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
             json2file(jProofRecursive1, pProverRequest->filePrefix + "batch_proof.proof.json");
         }
 
-#ifdef __USE_CUDA__
+#ifdef ____USE_CUDA__
         free_zkevm(publics);
 #endif
         TimerStopAndLog(SAVE_PROOF);
