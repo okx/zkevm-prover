@@ -600,17 +600,15 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
         /*************************************/
 
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
-        CHelpersStepsPackGPU cHelpersStepsZkevm;
+        CHelpersStepsPackGPU cHelpersSteps;
 #elif defined(__AVX512__)
-        CHelpersStepsAvx512 cHelpersStepsZkevm;
+        CHelpersStepsAvx512 cHelpersSteps;
 #elif defined(__PACK__)
-        CHelpersStepsPack cHelpersStepsZkevm;
+        CHelpersStepsPack cHelpersSteps;
         cHelpersSteps.nrowsPack = NROWS_PACK;
 #else
-        CHelpersSteps cHelpersStepsZkevm;
-#endif
-
         CHelpersSteps cHelpersSteps;
+#endif
 
         TimerStart(STARK_PROOF_BATCH_PROOF);
 
@@ -619,7 +617,7 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
         FRIProof fproof((1 << polBits), FIELD_EXTENSION, starkZkevm->starkInfo.starkStruct.steps.size(), starkZkevm->starkInfo.evMap.size(), starkZkevm->starkInfo.nPublics);
         
         if(USE_GENERIC_PARSER) {
-            starkZkevm->genProof(fproof, &publics[0], zkevmVerkey, &cHelpersStepsZkevm);
+            starkZkevm->genProof(fproof, &publics[0], zkevmVerkey, &cHelpersSteps);
         } else {
             starkZkevm->genProof(fproof, &publics[0], zkevmVerkey, &zkevmChelpersSteps);
         }
