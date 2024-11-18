@@ -1,0 +1,585 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.12kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:22.04
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [build  1/10] FROM docker.io/library/ubuntu:22.04
+#4 DONE 0.0s
+
+#5 [build  2/10] WORKDIR /usr/src/app
+#5 CACHED
+
+#6 [internal] load build context
+#6 transferring context: 133.41kB 0.1s done
+#6 DONE 0.1s
+
+#7 [build  3/10] RUN apt update && apt install -y build-essential libgmp-dev libbenchmark-dev nasm nlohmann-json3-dev libsecp256k1-dev libomp-dev libpqxx-dev git libssl-dev cmake libgrpc++-dev libprotobuf-dev grpc-proto libsodium-dev protobuf-compiler protobuf-compiler-grpc uuid-dev
+#7 CACHED
+
+#8 [build  4/10] COPY ./src ./src
+#8 CACHED
+
+#9 [build  6/10] COPY ./tools ./tools
+#9 CACHED
+
+#10 [build  7/10] COPY ./config ./config
+#10 CACHED
+
+#11 [build  8/10] COPY Makefile .
+#11 CACHED
+
+#12 [build  5/10] COPY ./test ./test
+#12 CACHED
+
+#13 [build  9/10] RUN make generate
+#13 CACHED
+
+#14 [build 10/10] RUN EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU=1 make -j4
+#14 1.072 mkdir -p build/./src/executor/
+#14 1.073 mkdir -p build/./src/starkpil/merkleTree/
+#14 1.074 mkdir -p build/./src/starkpil/merkleTree/
+#14 1.075 mkdir -p build/./src/starkpil/transcript/
+#14 1.088 g++ -fopenmp -I./src -I./src/witness2db -I./src/goldilocks -I./src/goldilocks/benchs -I./src/goldilocks/utils -I./src/goldilocks/src -I./src/goldilocks/.vscode -I./src/goldilocks/tests -I./src/pols_diff -I./src/executor -I./src/starkpil -I./src/starkpil/merkleTree -I./src/starkpil/transcript -I./src/starkpil/starkRecursiveF -I./src/starkpil/starkRecursiveF/witness -I./src/starkpil/starkRecursiveF/witness/fork_13 -I./src/starkpil/starkRecursiveF/witness/fork_12 -I./src/starkpil/starkRecursiveF/witness/fork_10 -I./src/starkpil/starkRecursiveF/chelpers -I./src/starkpil/zkevm -I./src/starkpil/zkevm/witness -I./src/starkpil/zkevm/witness/fork_13 -I./src/starkpil/zkevm/witness/fork_12 -I./src/starkpil/zkevm/chelpers -I./src/starkpil/starkRecursive1 -I./src/starkpil/starkRecursive1/witness -I./src/starkpil/starkRecursive1/witness/fork_13 -I./src/starkpil/starkRecursive1/witness/fork_12 -I./src/starkpil/starkRecursive1/witness/fork_10 -I./src/starkpil/starkRecursive1/chelpers -I./src/starkpil/starkC12a -I./src/starkpil/starkC12a/chelpers -I./src/starkpil/fri -I./src/starkpil/recursivefinal -I./src/starkpil/recursivefinal/witness -I./src/starkpil/recursivefinal/witness/fork_13 -I./src/starkpil/recursivefinal/witness/fork_12 -I./src/starkpil/recursivefinal/witness/fork_10 -I./src/starkpil/starkRecursive2 -I./src/starkpil/starkRecursive2/witness -I./src/starkpil/starkRecursive2/witness/fork_13 -I./src/starkpil/starkRecursive2/witness/fork_12 -I./src/starkpil/starkRecursive2/witness/fork_10 -I./src/starkpil/starkRecursive2/chelpers -I./src/XKCP -I./src/pols_generator -I./src/utils -I./src/poseidon_opt -I./src/prover -I./src/ffiasm -I./src/ecrecover -I./src/main_sm -I./src/main_sm/fork_7 -I./src/main_sm/fork_7/pols_generated -I./src/main_sm/fork_7/scripts -I./src/main_sm/fork_7/main -I./src/main_sm/fork_7/main_exec_generated -I./src/main_sm/fork_9 -I./src/main_sm/fork_9/pols_generated -I./src/main_sm/fork_9/scripts -I./src/main_sm/fork_9/main -I./src/main_sm/fork_9/main_exec_generated -I./src/main_sm/fork_8 -I./src/main_sm/fork_8/pols_generated -I./src/main_sm/fork_8/scripts -I./src/main_sm/fork_8/main -I./src/main_sm/fork_8/main_exec_generated -I./src/main_sm/fork_13 -I./src/main_sm/fork_13/pols_generated -I./src/main_sm/fork_13/scripts -I./src/main_sm/fork_13/helpers -I./src/main_sm/fork_13/main -I./src/main_sm/fork_13/main_exec_generated -I./src/main_sm/fork_12 -I./src/main_sm/fork_12/pols_generated -I./src/main_sm/fork_12/scripts -I./src/main_sm/fork_12/helpers -I./src/main_sm/fork_12/main -I./src/main_sm/fork_12/main_exec_generated -I./src/main_sm/fork_10 -I./src/main_sm/fork_10/pols_generated -I./src/main_sm/fork_10/scripts -I./src/main_sm/fork_10/helpers -I./src/main_sm/fork_10/main -I./src/main_sm/fork_10/main_exec_generated -I./src/main_sm/fork_3 -I./src/main_sm/fork_3/pols_generated -I./src/main_sm/fork_3/scripts -I./src/main_sm/fork_3/main -I./src/main_sm/fork_2 -I./src/main_sm/fork_2/pols_generated -I./src/main_sm/fork_2/scripts -I./src/main_sm/fork_2/main -I./src/main_sm/fork_6 -I./src/main_sm/fork_6/pols_generated -I./src/main_sm/fork_6/scripts -I./src/main_sm/fork_6/main -I./src/main_sm/fork_6/main_exec_generated -I./src/main_sm/fork_1 -I./src/main_sm/fork_1/pols_generated -I./src/main_sm/fork_1/scripts -I./src/main_sm/fork_1/main -I./src/main_sm/fork_4 -I./src/main_sm/fork_4/pols_generated -I./src/main_sm/fork_4/scripts -I./src/main_sm/fork_4/main -I./src/main_sm/fork_4/main_exec_generated -I./src/main_sm/fork_5 -I./src/main_sm/fork_5/pols_generated -I./src/main_sm/fork_5/scripts -I./src/main_sm/fork_5/main -I./src/main_sm/fork_5/main_exec_generated -I./src/hashdb -I./src/service -I./src/service/executor -I./src/service/aggregator -I./src/service/hashdb -I./src/rapidsnark -I./src/rapidsnark/polynomial -I./src/grpc -I./src/grpc/proto -I./src/grpc/gen -I./src/sm -I./src/sm/sha256_f -I./src/sm/gate -I./src/sm/memory -I./src/sm/bits2field -I./src/sm/pols_generated -I./src/sm/padding_kkbit -I./src/sm/poseidon_g -I./src/sm/padding_kk -I./src/sm/keccak_f -I./src/sm/padding_pg -I./src/sm/padding_sha256 -I./src/sm/padding_sha256bit -I./src/sm/bits2field_sha256 -I./src/sm/binary -I./src/sm/climb_key -I./src/sm/mem_align -I./src/sm/arith -I./src/sm/storage -I./src/main_generator -I./src/config -I./src/fflonk_setup -I./test -I./test/unit_test -I./test/examples -I./test/examples/all -I./test/examples/all/all.chelpers -I./test/utils -I./test/prover -I./test/main_sm -I./test/hashdb -I./test/expressions -I./test/service -I./test/service/executor -I./test/service/aggregator -I./test/service/aggregator/build -I./test/service/aggregator/build/CMakeFiles -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover/xlayer-prover -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover/xlayer-prover/src -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover/xlayer-prover/src/grpc -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover/xlayer-prover/src/grpc/gen -I./test/service/aggregator/build/CMakeFiles/3.31.0 -I./test/service/aggregator/build/CMakeFiles/3.31.0/CompilerIdCXX -I./test/service/aggregator/build/CMakeFiles/3.31.0/CompilerIdCXX/tmp -I./test/service/aggregator/build/CMakeFiles/3.31.0/CompilerIdC -I./test/service/aggregator/build/CMakeFiles/3.31.0/CompilerIdC/tmp -I./test/service/aggregator/build/CMakeFiles/CMakeScratch -I./test/service/aggregator/build/CMakeFiles/pkgRedirects -I./test/service/hashdb -I./test/sm -I./test/sm/keccak_f -I./test/sm/ecrecover -I./test/sm/binary -I./test/sm/climb_key -I./test/sm/mem_align -I./test/sm/arith -I./test/sm/storage -I./tools -I./tools/starkpil -I./tools/starkpil/bctree -I./tools/run_tests -I./tools/statedb -I./tools/sm -I./tools/sm/compare -I./tools/sm/keccak_f -I./tools/sm/sha256 -I./tools/sm/sha256/bcon -I./tools/sm/blake -MMD -MP -std=c++17 -Wall -pthread -flarge-source-files -Wno-unused-label -rdynamic  -O3 -c src/executor/executor.cpp -o build/./src/executor/executor.cpp.o
+#14 1.089 g++ -fopenmp -I./src -I./src/witness2db -I./src/goldilocks -I./src/goldilocks/benchs -I./src/goldilocks/utils -I./src/goldilocks/src -I./src/goldilocks/.vscode -I./src/goldilocks/tests -I./src/pols_diff -I./src/executor -I./src/starkpil -I./src/starkpil/merkleTree -I./src/starkpil/transcript -I./src/starkpil/starkRecursiveF -I./src/starkpil/starkRecursiveF/witness -I./src/starkpil/starkRecursiveF/witness/fork_13 -I./src/starkpil/starkRecursiveF/witness/fork_12 -I./src/starkpil/starkRecursiveF/witness/fork_10 -I./src/starkpil/starkRecursiveF/chelpers -I./src/starkpil/zkevm -I./src/starkpil/zkevm/witness -I./src/starkpil/zkevm/witness/fork_13 -I./src/starkpil/zkevm/witness/fork_12 -I./src/starkpil/zkevm/chelpers -I./src/starkpil/starkRecursive1 -I./src/starkpil/starkRecursive1/witness -I./src/starkpil/starkRecursive1/witness/fork_13 -I./src/starkpil/starkRecursive1/witness/fork_12 -I./src/starkpil/starkRecursive1/witness/fork_10 -I./src/starkpil/starkRecursive1/chelpers -I./src/starkpil/starkC12a -I./src/starkpil/starkC12a/chelpers -I./src/starkpil/fri -I./src/starkpil/recursivefinal -I./src/starkpil/recursivefinal/witness -I./src/starkpil/recursivefinal/witness/fork_13 -I./src/starkpil/recursivefinal/witness/fork_12 -I./src/starkpil/recursivefinal/witness/fork_10 -I./src/starkpil/starkRecursive2 -I./src/starkpil/starkRecursive2/witness -I./src/starkpil/starkRecursive2/witness/fork_13 -I./src/starkpil/starkRecursive2/witness/fork_12 -I./src/starkpil/starkRecursive2/witness/fork_10 -I./src/starkpil/starkRecursive2/chelpers -I./src/XKCP -I./src/pols_generator -I./src/utils -I./src/poseidon_opt -I./src/prover -I./src/ffiasm -I./src/ecrecover -I./src/main_sm -I./src/main_sm/fork_7 -I./src/main_sm/fork_7/pols_generated -I./src/main_sm/fork_7/scripts -I./src/main_sm/fork_7/main -I./src/main_sm/fork_7/main_exec_generated -I./src/main_sm/fork_9 -I./src/main_sm/fork_9/pols_generated -I./src/main_sm/fork_9/scripts -I./src/main_sm/fork_9/main -I./src/main_sm/fork_9/main_exec_generated -I./src/main_sm/fork_8 -I./src/main_sm/fork_8/pols_generated -I./src/main_sm/fork_8/scripts -I./src/main_sm/fork_8/main -I./src/main_sm/fork_8/main_exec_generated -I./src/main_sm/fork_13 -I./src/main_sm/fork_13/pols_generated -I./src/main_sm/fork_13/scripts -I./src/main_sm/fork_13/helpers -I./src/main_sm/fork_13/main -I./src/main_sm/fork_13/main_exec_generated -I./src/main_sm/fork_12 -I./src/main_sm/fork_12/pols_generated -I./src/main_sm/fork_12/scripts -I./src/main_sm/fork_12/helpers -I./src/main_sm/fork_12/main -I./src/main_sm/fork_12/main_exec_generated -I./src/main_sm/fork_10 -I./src/main_sm/fork_10/pols_generated -I./src/main_sm/fork_10/scripts -I./src/main_sm/fork_10/helpers -I./src/main_sm/fork_10/main -I./src/main_sm/fork_10/main_exec_generated -I./src/main_sm/fork_3 -I./src/main_sm/fork_3/pols_generated -I./src/main_sm/fork_3/scripts -I./src/main_sm/fork_3/main -I./src/main_sm/fork_2 -I./src/main_sm/fork_2/pols_generated -I./src/main_sm/fork_2/scripts -I./src/main_sm/fork_2/main -I./src/main_sm/fork_6 -I./src/main_sm/fork_6/pols_generated -I./src/main_sm/fork_6/scripts -I./src/main_sm/fork_6/main -I./src/main_sm/fork_6/main_exec_generated -I./src/main_sm/fork_1 -I./src/main_sm/fork_1/pols_generated -I./src/main_sm/fork_1/scripts -I./src/main_sm/fork_1/main -I./src/main_sm/fork_4 -I./src/main_sm/fork_4/pols_generated -I./src/main_sm/fork_4/scripts -I./src/main_sm/fork_4/main -I./src/main_sm/fork_4/main_exec_generated -I./src/main_sm/fork_5 -I./src/main_sm/fork_5/pols_generated -I./src/main_sm/fork_5/scripts -I./src/main_sm/fork_5/main -I./src/main_sm/fork_5/main_exec_generated -I./src/hashdb -I./src/service -I./src/service/executor -I./src/service/aggregator -I./src/service/hashdb -I./src/rapidsnark -I./src/rapidsnark/polynomial -I./src/grpc -I./src/grpc/proto -I./src/grpc/gen -I./src/sm -I./src/sm/sha256_f -I./src/sm/gate -I./src/sm/memory -I./src/sm/bits2field -I./src/sm/pols_generated -I./src/sm/padding_kkbit -I./src/sm/poseidon_g -I./src/sm/padding_kk -I./src/sm/keccak_f -I./src/sm/padding_pg -I./src/sm/padding_sha256 -I./src/sm/padding_sha256bit -I./src/sm/bits2field_sha256 -I./src/sm/binary -I./src/sm/climb_key -I./src/sm/mem_align -I./src/sm/arith -I./src/sm/storage -I./src/main_generator -I./src/config -I./src/fflonk_setup -I./test -I./test/unit_test -I./test/examples -I./test/examples/all -I./test/examples/all/all.chelpers -I./test/utils -I./test/prover -I./test/main_sm -I./test/hashdb -I./test/expressions -I./test/service -I./test/service/executor -I./test/service/aggregator -I./test/service/aggregator/build -I./test/service/aggregator/build/CMakeFiles -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover/xlayer-prover -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover/xlayer-prover/src -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover/xlayer-prover/src/grpc -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover/xlayer-prover/src/grpc/gen -I./test/service/aggregator/build/CMakeFiles/3.31.0 -I./test/service/aggregator/build/CMakeFiles/3.31.0/CompilerIdCXX -I./test/service/aggregator/build/CMakeFiles/3.31.0/CompilerIdCXX/tmp -I./test/service/aggregator/build/CMakeFiles/3.31.0/CompilerIdC -I./test/service/aggregator/build/CMakeFiles/3.31.0/CompilerIdC/tmp -I./test/service/aggregator/build/CMakeFiles/CMakeScratch -I./test/service/aggregator/build/CMakeFiles/pkgRedirects -I./test/service/hashdb -I./test/sm -I./test/sm/keccak_f -I./test/sm/ecrecover -I./test/sm/binary -I./test/sm/climb_key -I./test/sm/mem_align -I./test/sm/arith -I./test/sm/storage -I./tools -I./tools/starkpil -I./tools/starkpil/bctree -I./tools/run_tests -I./tools/statedb -I./tools/sm -I./tools/sm/compare -I./tools/sm/keccak_f -I./tools/sm/sha256 -I./tools/sm/sha256/bcon -I./tools/sm/blake -MMD -MP -std=c++17 -Wall -pthread -flarge-source-files -Wno-unused-label -rdynamic  -O3 -c src/starkpil/merkleTree/merkleTreeBN128.cpp -o build/./src/starkpil/merkleTree/merkleTreeBN128.cpp.o
+#14 1.090 g++ -fopenmp -I./src -I./src/witness2db -I./src/goldilocks -I./src/goldilocks/benchs -I./src/goldilocks/utils -I./src/goldilocks/src -I./src/goldilocks/.vscode -I./src/goldilocks/tests -I./src/pols_diff -I./src/executor -I./src/starkpil -I./src/starkpil/merkleTree -I./src/starkpil/transcript -I./src/starkpil/starkRecursiveF -I./src/starkpil/starkRecursiveF/witness -I./src/starkpil/starkRecursiveF/witness/fork_13 -I./src/starkpil/starkRecursiveF/witness/fork_12 -I./src/starkpil/starkRecursiveF/witness/fork_10 -I./src/starkpil/starkRecursiveF/chelpers -I./src/starkpil/zkevm -I./src/starkpil/zkevm/witness -I./src/starkpil/zkevm/witness/fork_13 -I./src/starkpil/zkevm/witness/fork_12 -I./src/starkpil/zkevm/chelpers -I./src/starkpil/starkRecursive1 -I./src/starkpil/starkRecursive1/witness -I./src/starkpil/starkRecursive1/witness/fork_13 -I./src/starkpil/starkRecursive1/witness/fork_12 -I./src/starkpil/starkRecursive1/witness/fork_10 -I./src/starkpil/starkRecursive1/chelpers -I./src/starkpil/starkC12a -I./src/starkpil/starkC12a/chelpers -I./src/starkpil/fri -I./src/starkpil/recursivefinal -I./src/starkpil/recursivefinal/witness -I./src/starkpil/recursivefinal/witness/fork_13 -I./src/starkpil/recursivefinal/witness/fork_12 -I./src/starkpil/recursivefinal/witness/fork_10 -I./src/starkpil/starkRecursive2 -I./src/starkpil/starkRecursive2/witness -I./src/starkpil/starkRecursive2/witness/fork_13 -I./src/starkpil/starkRecursive2/witness/fork_12 -I./src/starkpil/starkRecursive2/witness/fork_10 -I./src/starkpil/starkRecursive2/chelpers -I./src/XKCP -I./src/pols_generator -I./src/utils -I./src/poseidon_opt -I./src/prover -I./src/ffiasm -I./src/ecrecover -I./src/main_sm -I./src/main_sm/fork_7 -I./src/main_sm/fork_7/pols_generated -I./src/main_sm/fork_7/scripts -I./src/main_sm/fork_7/main -I./src/main_sm/fork_7/main_exec_generated -I./src/main_sm/fork_9 -I./src/main_sm/fork_9/pols_generated -I./src/main_sm/fork_9/scripts -I./src/main_sm/fork_9/main -I./src/main_sm/fork_9/main_exec_generated -I./src/main_sm/fork_8 -I./src/main_sm/fork_8/pols_generated -I./src/main_sm/fork_8/scripts -I./src/main_sm/fork_8/main -I./src/main_sm/fork_8/main_exec_generated -I./src/main_sm/fork_13 -I./src/main_sm/fork_13/pols_generated -I./src/main_sm/fork_13/scripts -I./src/main_sm/fork_13/helpers -I./src/main_sm/fork_13/main -I./src/main_sm/fork_13/main_exec_generated -I./src/main_sm/fork_12 -I./src/main_sm/fork_12/pols_generated -I./src/main_sm/fork_12/scripts -I./src/main_sm/fork_12/helpers -I./src/main_sm/fork_12/main -I./src/main_sm/fork_12/main_exec_generated -I./src/main_sm/fork_10 -I./src/main_sm/fork_10/pols_generated -I./src/main_sm/fork_10/scripts -I./src/main_sm/fork_10/helpers -I./src/main_sm/fork_10/main -I./src/main_sm/fork_10/main_exec_generated -I./src/main_sm/fork_3 -I./src/main_sm/fork_3/pols_generated -I./src/main_sm/fork_3/scripts -I./src/main_sm/fork_3/main -I./src/main_sm/fork_2 -I./src/main_sm/fork_2/pols_generated -I./src/main_sm/fork_2/scripts -I./src/main_sm/fork_2/main -I./src/main_sm/fork_6 -I./src/main_sm/fork_6/pols_generated -I./src/main_sm/fork_6/scripts -I./src/main_sm/fork_6/main -I./src/main_sm/fork_6/main_exec_generated -I./src/main_sm/fork_1 -I./src/main_sm/fork_1/pols_generated -I./src/main_sm/fork_1/scripts -I./src/main_sm/fork_1/main -I./src/main_sm/fork_4 -I./src/main_sm/fork_4/pols_generated -I./src/main_sm/fork_4/scripts -I./src/main_sm/fork_4/main -I./src/main_sm/fork_4/main_exec_generated -I./src/main_sm/fork_5 -I./src/main_sm/fork_5/pols_generated -I./src/main_sm/fork_5/scripts -I./src/main_sm/fork_5/main -I./src/main_sm/fork_5/main_exec_generated -I./src/hashdb -I./src/service -I./src/service/executor -I./src/service/aggregator -I./src/service/hashdb -I./src/rapidsnark -I./src/rapidsnark/polynomial -I./src/grpc -I./src/grpc/proto -I./src/grpc/gen -I./src/sm -I./src/sm/sha256_f -I./src/sm/gate -I./src/sm/memory -I./src/sm/bits2field -I./src/sm/pols_generated -I./src/sm/padding_kkbit -I./src/sm/poseidon_g -I./src/sm/padding_kk -I./src/sm/keccak_f -I./src/sm/padding_pg -I./src/sm/padding_sha256 -I./src/sm/padding_sha256bit -I./src/sm/bits2field_sha256 -I./src/sm/binary -I./src/sm/climb_key -I./src/sm/mem_align -I./src/sm/arith -I./src/sm/storage -I./src/main_generator -I./src/config -I./src/fflonk_setup -I./test -I./test/unit_test -I./test/examples -I./test/examples/all -I./test/examples/all/all.chelpers -I./test/utils -I./test/prover -I./test/main_sm -I./test/hashdb -I./test/expressions -I./test/service -I./test/service/executor -I./test/service/aggregator -I./test/service/aggregator/build -I./test/service/aggregator/build/CMakeFiles -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover/xlayer-prover -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover/xlayer-prover/src -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover/xlayer-prover/src/grpc -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover/xlayer-prover/src/grpc/gen -I./test/service/aggregator/build/CMakeFiles/3.31.0 -I./test/service/aggregator/build/CMakeFiles/3.31.0/CompilerIdCXX -I./test/service/aggregator/build/CMakeFiles/3.31.0/CompilerIdCXX/tmp -I./test/service/aggregator/build/CMakeFiles/3.31.0/CompilerIdC -I./test/service/aggregator/build/CMakeFiles/3.31.0/CompilerIdC/tmp -I./test/service/aggregator/build/CMakeFiles/CMakeScratch -I./test/service/aggregator/build/CMakeFiles/pkgRedirects -I./test/service/hashdb -I./test/sm -I./test/sm/keccak_f -I./test/sm/ecrecover -I./test/sm/binary -I./test/sm/climb_key -I./test/sm/mem_align -I./test/sm/arith -I./test/sm/storage -I./tools -I./tools/starkpil -I./tools/starkpil/bctree -I./tools/run_tests -I./tools/statedb -I./tools/sm -I./tools/sm/compare -I./tools/sm/keccak_f -I./tools/sm/sha256 -I./tools/sm/sha256/bcon -I./tools/sm/blake -MMD -MP -std=c++17 -Wall -pthread -flarge-source-files -Wno-unused-label -rdynamic  -O3 -c src/starkpil/merkleTree/merkleTreeGL.cpp -o build/./src/starkpil/merkleTree/merkleTreeGL.cpp.o
+#14 1.091 g++ -fopenmp -I./src -I./src/witness2db -I./src/goldilocks -I./src/goldilocks/benchs -I./src/goldilocks/utils -I./src/goldilocks/src -I./src/goldilocks/.vscode -I./src/goldilocks/tests -I./src/pols_diff -I./src/executor -I./src/starkpil -I./src/starkpil/merkleTree -I./src/starkpil/transcript -I./src/starkpil/starkRecursiveF -I./src/starkpil/starkRecursiveF/witness -I./src/starkpil/starkRecursiveF/witness/fork_13 -I./src/starkpil/starkRecursiveF/witness/fork_12 -I./src/starkpil/starkRecursiveF/witness/fork_10 -I./src/starkpil/starkRecursiveF/chelpers -I./src/starkpil/zkevm -I./src/starkpil/zkevm/witness -I./src/starkpil/zkevm/witness/fork_13 -I./src/starkpil/zkevm/witness/fork_12 -I./src/starkpil/zkevm/chelpers -I./src/starkpil/starkRecursive1 -I./src/starkpil/starkRecursive1/witness -I./src/starkpil/starkRecursive1/witness/fork_13 -I./src/starkpil/starkRecursive1/witness/fork_12 -I./src/starkpil/starkRecursive1/witness/fork_10 -I./src/starkpil/starkRecursive1/chelpers -I./src/starkpil/starkC12a -I./src/starkpil/starkC12a/chelpers -I./src/starkpil/fri -I./src/starkpil/recursivefinal -I./src/starkpil/recursivefinal/witness -I./src/starkpil/recursivefinal/witness/fork_13 -I./src/starkpil/recursivefinal/witness/fork_12 -I./src/starkpil/recursivefinal/witness/fork_10 -I./src/starkpil/starkRecursive2 -I./src/starkpil/starkRecursive2/witness -I./src/starkpil/starkRecursive2/witness/fork_13 -I./src/starkpil/starkRecursive2/witness/fork_12 -I./src/starkpil/starkRecursive2/witness/fork_10 -I./src/starkpil/starkRecursive2/chelpers -I./src/XKCP -I./src/pols_generator -I./src/utils -I./src/poseidon_opt -I./src/prover -I./src/ffiasm -I./src/ecrecover -I./src/main_sm -I./src/main_sm/fork_7 -I./src/main_sm/fork_7/pols_generated -I./src/main_sm/fork_7/scripts -I./src/main_sm/fork_7/main -I./src/main_sm/fork_7/main_exec_generated -I./src/main_sm/fork_9 -I./src/main_sm/fork_9/pols_generated -I./src/main_sm/fork_9/scripts -I./src/main_sm/fork_9/main -I./src/main_sm/fork_9/main_exec_generated -I./src/main_sm/fork_8 -I./src/main_sm/fork_8/pols_generated -I./src/main_sm/fork_8/scripts -I./src/main_sm/fork_8/main -I./src/main_sm/fork_8/main_exec_generated -I./src/main_sm/fork_13 -I./src/main_sm/fork_13/pols_generated -I./src/main_sm/fork_13/scripts -I./src/main_sm/fork_13/helpers -I./src/main_sm/fork_13/main -I./src/main_sm/fork_13/main_exec_generated -I./src/main_sm/fork_12 -I./src/main_sm/fork_12/pols_generated -I./src/main_sm/fork_12/scripts -I./src/main_sm/fork_12/helpers -I./src/main_sm/fork_12/main -I./src/main_sm/fork_12/main_exec_generated -I./src/main_sm/fork_10 -I./src/main_sm/fork_10/pols_generated -I./src/main_sm/fork_10/scripts -I./src/main_sm/fork_10/helpers -I./src/main_sm/fork_10/main -I./src/main_sm/fork_10/main_exec_generated -I./src/main_sm/fork_3 -I./src/main_sm/fork_3/pols_generated -I./src/main_sm/fork_3/scripts -I./src/main_sm/fork_3/main -I./src/main_sm/fork_2 -I./src/main_sm/fork_2/pols_generated -I./src/main_sm/fork_2/scripts -I./src/main_sm/fork_2/main -I./src/main_sm/fork_6 -I./src/main_sm/fork_6/pols_generated -I./src/main_sm/fork_6/scripts -I./src/main_sm/fork_6/main -I./src/main_sm/fork_6/main_exec_generated -I./src/main_sm/fork_1 -I./src/main_sm/fork_1/pols_generated -I./src/main_sm/fork_1/scripts -I./src/main_sm/fork_1/main -I./src/main_sm/fork_4 -I./src/main_sm/fork_4/pols_generated -I./src/main_sm/fork_4/scripts -I./src/main_sm/fork_4/main -I./src/main_sm/fork_4/main_exec_generated -I./src/main_sm/fork_5 -I./src/main_sm/fork_5/pols_generated -I./src/main_sm/fork_5/scripts -I./src/main_sm/fork_5/main -I./src/main_sm/fork_5/main_exec_generated -I./src/hashdb -I./src/service -I./src/service/executor -I./src/service/aggregator -I./src/service/hashdb -I./src/rapidsnark -I./src/rapidsnark/polynomial -I./src/grpc -I./src/grpc/proto -I./src/grpc/gen -I./src/sm -I./src/sm/sha256_f -I./src/sm/gate -I./src/sm/memory -I./src/sm/bits2field -I./src/sm/pols_generated -I./src/sm/padding_kkbit -I./src/sm/poseidon_g -I./src/sm/padding_kk -I./src/sm/keccak_f -I./src/sm/padding_pg -I./src/sm/padding_sha256 -I./src/sm/padding_sha256bit -I./src/sm/bits2field_sha256 -I./src/sm/binary -I./src/sm/climb_key -I./src/sm/mem_align -I./src/sm/arith -I./src/sm/storage -I./src/main_generator -I./src/config -I./src/fflonk_setup -I./test -I./test/unit_test -I./test/examples -I./test/examples/all -I./test/examples/all/all.chelpers -I./test/utils -I./test/prover -I./test/main_sm -I./test/hashdb -I./test/expressions -I./test/service -I./test/service/executor -I./test/service/aggregator -I./test/service/aggregator/build -I./test/service/aggregator/build/CMakeFiles -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover/xlayer-prover -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover/xlayer-prover/src -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover/xlayer-prover/src/grpc -I./test/service/aggregator/build/CMakeFiles/test_aggregator_mock.dir/Users/xianruiqin/Documents/okx/x-layer-prover/xlayer-prover/src/grpc/gen -I./test/service/aggregator/build/CMakeFiles/3.31.0 -I./test/service/aggregator/build/CMakeFiles/3.31.0/CompilerIdCXX -I./test/service/aggregator/build/CMakeFiles/3.31.0/CompilerIdCXX/tmp -I./test/service/aggregator/build/CMakeFiles/3.31.0/CompilerIdC -I./test/service/aggregator/build/CMakeFiles/3.31.0/CompilerIdC/tmp -I./test/service/aggregator/build/CMakeFiles/CMakeScratch -I./test/service/aggregator/build/CMakeFiles/pkgRedirects -I./test/service/hashdb -I./test/sm -I./test/sm/keccak_f -I./test/sm/ecrecover -I./test/sm/binary -I./test/sm/climb_key -I./test/sm/mem_align -I./test/sm/arith -I./test/sm/storage -I./tools -I./tools/starkpil -I./tools/starkpil/bctree -I./tools/run_tests -I./tools/statedb -I./tools/sm -I./tools/sm/compare -I./tools/sm/keccak_f -I./tools/sm/sha256 -I./tools/sm/sha256/bcon -I./tools/sm/blake -MMD -MP -std=c++17 -Wall -pthread -flarge-source-files -Wno-unused-label -rdynamic  -O3 -c src/starkpil/transcript/transcriptBN128.cpp -o build/./src/starkpil/transcript/transcriptBN128.cpp.o
+#14 5.970 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 5.970                  from src/starkpil/merkleTree/merkleTreeGL.hpp:4,
+#14 5.970                  from src/starkpil/merkleTree/merkleTreeGL.cpp:1:
+#14 5.970 ./src/goldilocks/src/goldilocks_base_field_avx.hpp: In function 'void __static_initialization_and_destruction_0(int, int)':
+#14 5.970 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:22:38: warning: AVX vector return without AVX enabled changes the ABI [-Wpsabi]
+#14 5.970    22 | const __m256i MSB = _mm256_set_epi64x(MSB_, MSB_, MSB_, MSB_);
+#14 5.970       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+#14 6.026 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 6.026                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 6.026                  from src/starkpil/merkleTree/merkleTreeGL.hpp:4,
+#14 6.026                  from src/starkpil/merkleTree/merkleTreeGL.cpp:1:
+#14 6.026 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 6.026  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 6.026       | ^~~~~~~~~~~~~~~~~
+#14 6.026 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 6.026                  from src/starkpil/merkleTree/merkleTreeGL.hpp:4,
+#14 6.026                  from src/starkpil/merkleTree/merkleTreeGL.cpp:1:
+#14 6.026 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:26:41: note: called from here
+#14 6.026    26 | const __m256i sqmask = _mm256_set_epi64x(0x1FFFFFFFF, 0x1FFFFFFFF, 0x1FFFFFFFF, 0x1FFFFFFFF);
+#14 6.026       |                        ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 6.027 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:47,
+#14 6.027                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 6.027                  from src/starkpil/merkleTree/merkleTreeGL.hpp:4,
+#14 6.027                  from src/starkpil/merkleTree/merkleTreeGL.cpp:1:
+#14 6.027 /usr/lib/gcc/x86_64-linux-gnu/11/include/avx2intrin.h:913:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_xor_si256(__m256i, __m256i)': target specific option mismatch
+#14 6.027   913 | _mm256_xor_si256 (__m256i __A, __m256i __B)
+#14 6.027       | ^~~~~~~~~~~~~~~~
+#14 6.027 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 6.027                  from src/starkpil/merkleTree/merkleTreeGL.hpp:4,
+#14 6.027                  from src/starkpil/merkleTree/merkleTreeGL.cpp:1:
+#14 6.027 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:25:37: note: called from here
+#14 6.027    25 | const __m256i P_s = _mm256_xor_si256(P, MSB);
+#14 6.027       |                     ~~~~~~~~~~~~~~~~^~~~~~~~
+#14 6.027 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 6.027                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 6.027                  from src/starkpil/merkleTree/merkleTreeGL.hpp:4,
+#14 6.027                  from src/starkpil/merkleTree/merkleTreeGL.cpp:1:
+#14 6.027 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 6.027  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 6.027       | ^~~~~~~~~~~~~~~~~
+#14 6.027 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 6.027                  from src/starkpil/merkleTree/merkleTreeGL.hpp:4,
+#14 6.027                  from src/starkpil/merkleTree/merkleTreeGL.cpp:1:
+#14 6.027 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:24:38: note: called from here
+#14 6.027    24 | const __m256i P_n = _mm256_set_epi64x(GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG);
+#14 6.027       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 6.027 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 6.027                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 6.027                  from src/starkpil/merkleTree/merkleTreeGL.hpp:4,
+#14 6.027                  from src/starkpil/merkleTree/merkleTreeGL.cpp:1:
+#14 6.027 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 6.027  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 6.027       | ^~~~~~~~~~~~~~~~~
+#14 6.027 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 6.027                  from src/starkpil/merkleTree/merkleTreeGL.hpp:4,
+#14 6.027                  from src/starkpil/merkleTree/merkleTreeGL.cpp:1:
+#14 6.027 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:23:36: note: called from here
+#14 6.027    23 | const __m256i P = _mm256_set_epi64x(GOLDILOCKS_PRIME, GOLDILOCKS_PRIME, GOLDILOCKS_PRIME, GOLDILOCKS_PRIME);
+#14 6.027       |                   ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 6.027 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 6.027                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 6.027                  from src/starkpil/merkleTree/merkleTreeGL.hpp:4,
+#14 6.027                  from src/starkpil/merkleTree/merkleTreeGL.cpp:1:
+#14 6.027 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 6.027  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 6.027       | ^~~~~~~~~~~~~~~~~
+#14 6.027 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 6.027                  from src/starkpil/merkleTree/merkleTreeGL.hpp:4,
+#14 6.027                  from src/starkpil/merkleTree/merkleTreeGL.cpp:1:
+#14 6.027 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:22:38: note: called from here
+#14 6.027    22 | const __m256i MSB = _mm256_set_epi64x(MSB_, MSB_, MSB_, MSB_);
+#14 6.027       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+#14 6.040 make: *** [Makefile:169: build/./src/starkpil/merkleTree/merkleTreeGL.cpp.o] Error 1
+#14 6.040 make: *** Waiting for unfinished jobs....
+#14 7.092 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.092                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.092                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.092 ./src/goldilocks/src/goldilocks_base_field_avx.hpp: In function 'void __static_initialization_and_destruction_0(int, int)':
+#14 7.092 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:22:38: warning: AVX vector return without AVX enabled changes the ABI [-Wpsabi]
+#14 7.092    22 | const __m256i MSB = _mm256_set_epi64x(MSB_, MSB_, MSB_, MSB_);
+#14 7.092       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.316 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.316                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.316                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.316 ./src/goldilocks/src/goldilocks_base_field_avx.hpp: In function 'void __static_initialization_and_destruction_0(int, int)':
+#14 7.316 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:22:38: warning: AVX vector return without AVX enabled changes the ABI [-Wpsabi]
+#14 7.316    22 | const __m256i MSB = _mm256_set_epi64x(MSB_, MSB_, MSB_, MSB_);
+#14 7.316       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.621 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 7.621                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.621                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.621                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.621 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 7.621  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 7.621       | ^~~~~~~~~~~~~~~~~
+#14 7.621 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.621                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.621                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.621 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:26:41: note: called from here
+#14 7.621    26 | const __m256i sqmask = _mm256_set_epi64x(0x1FFFFFFFF, 0x1FFFFFFFF, 0x1FFFFFFFF, 0x1FFFFFFFF);
+#14 7.621       |                        ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.622 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:47,
+#14 7.622                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.622                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.622                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.622 /usr/lib/gcc/x86_64-linux-gnu/11/include/avx2intrin.h:913:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_xor_si256(__m256i, __m256i)': target specific option mismatch
+#14 7.622   913 | _mm256_xor_si256 (__m256i __A, __m256i __B)
+#14 7.622       | ^~~~~~~~~~~~~~~~
+#14 7.622 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.622                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.622                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.622 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:25:37: note: called from here
+#14 7.622    25 | const __m256i P_s = _mm256_xor_si256(P, MSB);
+#14 7.622       |                     ~~~~~~~~~~~~~~~~^~~~~~~~
+#14 7.622 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 7.622                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.622                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.622                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.622 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 7.622  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 7.622       | ^~~~~~~~~~~~~~~~~
+#14 7.622 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.622                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.622                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.622 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:24:38: note: called from here
+#14 7.622    24 | const __m256i P_n = _mm256_set_epi64x(GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG);
+#14 7.622       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.622 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 7.622                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.622                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.622                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.622 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 7.622  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 7.622       | ^~~~~~~~~~~~~~~~~
+#14 7.622 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.622                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.622                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.622 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:23:36: note: called from here
+#14 7.622    23 | const __m256i P = _mm256_set_epi64x(GOLDILOCKS_PRIME, GOLDILOCKS_PRIME, GOLDILOCKS_PRIME, GOLDILOCKS_PRIME);
+#14 7.622       |                   ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.622 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 7.622                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.622                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.622                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.622 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 7.622  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 7.622       | ^~~~~~~~~~~~~~~~~
+#14 7.622 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.622                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.622                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.622 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:22:38: note: called from here
+#14 7.622    22 | const __m256i MSB = _mm256_set_epi64x(MSB_, MSB_, MSB_, MSB_);
+#14 7.622       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.629 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 7.629                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.629 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 7.629  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 7.629       | ^~~~~~~~~~~~~~~~~
+#14 7.629 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.629 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:26:41: note: called from here
+#14 7.629    26 | const __m256i sqmask = _mm256_set_epi64x(0x1FFFFFFFF, 0x1FFFFFFFF, 0x1FFFFFFFF, 0x1FFFFFFFF);
+#14 7.629       |                        ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.629 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:47,
+#14 7.629                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.629 /usr/lib/gcc/x86_64-linux-gnu/11/include/avx2intrin.h:913:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_xor_si256(__m256i, __m256i)': target specific option mismatch
+#14 7.629   913 | _mm256_xor_si256 (__m256i __A, __m256i __B)
+#14 7.629       | ^~~~~~~~~~~~~~~~
+#14 7.629 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.629 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:25:37: note: called from here
+#14 7.629    25 | const __m256i P_s = _mm256_xor_si256(P, MSB);
+#14 7.629       |                     ~~~~~~~~~~~~~~~~^~~~~~~~
+#14 7.629 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 7.629                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.629 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 7.629  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 7.629       | ^~~~~~~~~~~~~~~~~
+#14 7.629 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.629 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:24:38: note: called from here
+#14 7.629    24 | const __m256i P_n = _mm256_set_epi64x(GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG);
+#14 7.629       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.629 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 7.629                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.629 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 7.629  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 7.629       | ^~~~~~~~~~~~~~~~~
+#14 7.629 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.629 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:23:36: note: called from here
+#14 7.629    23 | const __m256i P = _mm256_set_epi64x(GOLDILOCKS_PRIME, GOLDILOCKS_PRIME, GOLDILOCKS_PRIME, GOLDILOCKS_PRIME);
+#14 7.629       |                   ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.629 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 7.629                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.629 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 7.629  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 7.629       | ^~~~~~~~~~~~~~~~~
+#14 7.629 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.hpp:6,
+#14 7.629                  from src/starkpil/merkleTree/merkleTreeBN128.cpp:2:
+#14 7.629 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:22:38: note: called from here
+#14 7.629    22 | const __m256i MSB = _mm256_set_epi64x(MSB_, MSB_, MSB_, MSB_);
+#14 7.629       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.679 make: *** [Makefile:169: build/./src/starkpil/merkleTree/merkleTreeBN128.cpp.o] Error 1
+#14 7.851 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 7.851                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.851                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.851                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.851 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 7.851  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 7.851       | ^~~~~~~~~~~~~~~~~
+#14 7.851 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.851                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.851                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.851 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:26:41: note: called from here
+#14 7.851    26 | const __m256i sqmask = _mm256_set_epi64x(0x1FFFFFFFF, 0x1FFFFFFFF, 0x1FFFFFFFF, 0x1FFFFFFFF);
+#14 7.851       |                        ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.851 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:47,
+#14 7.851                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.851                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.851                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.851 /usr/lib/gcc/x86_64-linux-gnu/11/include/avx2intrin.h:913:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_xor_si256(__m256i, __m256i)': target specific option mismatch
+#14 7.851   913 | _mm256_xor_si256 (__m256i __A, __m256i __B)
+#14 7.851       | ^~~~~~~~~~~~~~~~
+#14 7.851 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.851                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.851                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.851 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:25:37: note: called from here
+#14 7.851    25 | const __m256i P_s = _mm256_xor_si256(P, MSB);
+#14 7.851       |                     ~~~~~~~~~~~~~~~~^~~~~~~~
+#14 7.852 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 7.852                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.852                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.852                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.852 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 7.852  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 7.852       | ^~~~~~~~~~~~~~~~~
+#14 7.852 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.852                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.852                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.852 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:24:38: note: called from here
+#14 7.852    24 | const __m256i P_n = _mm256_set_epi64x(GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG);
+#14 7.852       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.852 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 7.852                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.852                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.852                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.852 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 7.852  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 7.852       | ^~~~~~~~~~~~~~~~~
+#14 7.852 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.852                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.852                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.852 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:23:36: note: called from here
+#14 7.852    23 | const __m256i P = _mm256_set_epi64x(GOLDILOCKS_PRIME, GOLDILOCKS_PRIME, GOLDILOCKS_PRIME, GOLDILOCKS_PRIME);
+#14 7.852       |                   ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.852 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 7.852                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.852                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.852                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.852 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 7.852  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 7.852       | ^~~~~~~~~~~~~~~~~
+#14 7.852 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.852                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.852                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.852 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:22:38: note: called from here
+#14 7.852    22 | const __m256i MSB = _mm256_set_epi64x(MSB_, MSB_, MSB_, MSB_);
+#14 7.852       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.866 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 7.866                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.866                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.866                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.866 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 7.866  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 7.866       | ^~~~~~~~~~~~~~~~~
+#14 7.866 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.866                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.866                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.866 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:26:41: note: called from here
+#14 7.866    26 | const __m256i sqmask = _mm256_set_epi64x(0x1FFFFFFFF, 0x1FFFFFFFF, 0x1FFFFFFFF, 0x1FFFFFFFF);
+#14 7.866       |                        ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.866 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:47,
+#14 7.866                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.866                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.866                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.866 /usr/lib/gcc/x86_64-linux-gnu/11/include/avx2intrin.h:913:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_xor_si256(__m256i, __m256i)': target specific option mismatch
+#14 7.866   913 | _mm256_xor_si256 (__m256i __A, __m256i __B)
+#14 7.866       | ^~~~~~~~~~~~~~~~
+#14 7.866 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.866                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.866                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.866 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:25:37: note: called from here
+#14 7.866    25 | const __m256i P_s = _mm256_xor_si256(P, MSB);
+#14 7.866       |                     ~~~~~~~~~~~~~~~~^~~~~~~~
+#14 7.866 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 7.866                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.866                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.866                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.866 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 7.866  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 7.866       | ^~~~~~~~~~~~~~~~~
+#14 7.866 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.866                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.866                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.866 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:24:38: note: called from here
+#14 7.866    24 | const __m256i P_n = _mm256_set_epi64x(GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG);
+#14 7.866       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.867 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 7.867                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.867                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.867                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.867 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 7.867  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 7.867       | ^~~~~~~~~~~~~~~~~
+#14 7.867 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.867                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.867                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.867 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:23:36: note: called from here
+#14 7.867    23 | const __m256i P = _mm256_set_epi64x(GOLDILOCKS_PRIME, GOLDILOCKS_PRIME, GOLDILOCKS_PRIME, GOLDILOCKS_PRIME);
+#14 7.867       |                   ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.867 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 7.867                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 7.867                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.867                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.867 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 7.867  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 7.867       | ^~~~~~~~~~~~~~~~~
+#14 7.867 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 7.867                  from src/starkpil/transcript/transcriptBN128.hpp:7,
+#14 7.867                  from src/starkpil/transcript/transcriptBN128.cpp:1:
+#14 7.867 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:22:38: note: called from here
+#14 7.867    22 | const __m256i MSB = _mm256_set_epi64x(MSB_, MSB_, MSB_, MSB_);
+#14 7.867       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+#14 7.907 make: *** [Makefile:169: build/./src/starkpil/transcript/transcriptBN128.cpp.o] Error 1
+#14 ...
+
+#15 [stage-1  3/20] RUN apt update && apt install -y build-essential libgmp-dev nlohmann-json3-dev libsecp256k1-dev libomp-dev libpqxx-dev libssl-dev libgrpc++-dev libprotobuf-dev grpc-proto libsodium-dev protobuf-compiler protobuf-compiler-grpc uuid-dev
+#15 0.106 
+#15 0.106 WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+#15 0.106 
+#15 0.593 Get:1 http://security.ubuntu.com/ubuntu jammy-security InRelease [129 kB]
+#15 0.669 Get:2 http://archive.ubuntu.com/ubuntu jammy InRelease [270 kB]
+#15 2.036 Get:3 http://security.ubuntu.com/ubuntu jammy-security/main amd64 Packages [2424 kB]
+#15 2.301 Get:4 http://archive.ubuntu.com/ubuntu jammy-updates InRelease [128 kB]
+#15 2.678 Get:5 http://archive.ubuntu.com/ubuntu jammy-backports InRelease [127 kB]
+#15 3.324 Get:6 http://security.ubuntu.com/ubuntu jammy-security/multiverse amd64 Packages [44.7 kB]
+#15 3.326 Get:7 http://security.ubuntu.com/ubuntu jammy-security/universe amd64 Packages [1164 kB]
+#15 3.372 Get:8 http://archive.ubuntu.com/ubuntu jammy/universe amd64 Packages [17.5 MB]
+#15 3.795 Get:9 http://security.ubuntu.com/ubuntu jammy-security/restricted amd64 Packages [3275 kB]
+#15 ...
+
+#14 [build 10/10] RUN EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU=1 make -j4
+#14 16.43 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 16.43                  from src/executor/executor.hpp:5,
+#14 16.43                  from src/executor/executor.cpp:2:
+#14 16.43 ./src/goldilocks/src/goldilocks_base_field_avx.hpp: In function 'void __static_initialization_and_destruction_0(int, int)':
+#14 16.43 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:22:38: warning: AVX vector return without AVX enabled changes the ABI [-Wpsabi]
+#14 16.43    22 | const __m256i MSB = _mm256_set_epi64x(MSB_, MSB_, MSB_, MSB_);
+#14 16.43       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+#14 21.94 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 21.94                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 21.94                  from src/executor/executor.hpp:5,
+#14 21.94                  from src/executor/executor.cpp:2:
+#14 21.94 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 21.94  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 21.94       | ^~~~~~~~~~~~~~~~~
+#14 21.94 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 21.94                  from src/executor/executor.hpp:5,
+#14 21.94                  from src/executor/executor.cpp:2:
+#14 21.94 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:26:41: note: called from here
+#14 21.94    26 | const __m256i sqmask = _mm256_set_epi64x(0x1FFFFFFFF, 0x1FFFFFFFF, 0x1FFFFFFFF, 0x1FFFFFFFF);
+#14 21.94       |                        ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 21.94 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:47,
+#14 21.94                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 21.94                  from src/executor/executor.hpp:5,
+#14 21.94                  from src/executor/executor.cpp:2:
+#14 21.94 /usr/lib/gcc/x86_64-linux-gnu/11/include/avx2intrin.h:913:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_xor_si256(__m256i, __m256i)': target specific option mismatch
+#14 21.94   913 | _mm256_xor_si256 (__m256i __A, __m256i __B)
+#14 21.94       | ^~~~~~~~~~~~~~~~
+#14 21.94 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 21.94                  from src/executor/executor.hpp:5,
+#14 21.94                  from src/executor/executor.cpp:2:
+#14 21.94 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:25:37: note: called from here
+#14 21.94    25 | const __m256i P_s = _mm256_xor_si256(P, MSB);
+#14 21.94       |                     ~~~~~~~~~~~~~~~~^~~~~~~~
+#14 21.94 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 21.94                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 21.94                  from src/executor/executor.hpp:5,
+#14 21.94                  from src/executor/executor.cpp:2:
+#14 21.94 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 21.94  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 21.94       | ^~~~~~~~~~~~~~~~~
+#14 21.94 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 21.94                  from src/executor/executor.hpp:5,
+#14 21.94                  from src/executor/executor.cpp:2:
+#14 21.94 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:24:38: note: called from here
+#14 21.94    24 | const __m256i P_n = _mm256_set_epi64x(GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG);
+#14 21.94       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 21.94 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 21.94                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 21.94                  from src/executor/executor.hpp:5,
+#14 21.94                  from src/executor/executor.cpp:2:
+#14 21.94 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 21.94  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 21.94       | ^~~~~~~~~~~~~~~~~
+#14 21.94 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 21.94                  from src/executor/executor.hpp:5,
+#14 21.94                  from src/executor/executor.cpp:2:
+#14 21.94 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:23:36: note: called from here
+#14 21.94    23 | const __m256i P = _mm256_set_epi64x(GOLDILOCKS_PRIME, GOLDILOCKS_PRIME, GOLDILOCKS_PRIME, GOLDILOCKS_PRIME);
+#14 21.94       |                   ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 21.95 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 21.95                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 21.95                  from src/executor/executor.hpp:5,
+#14 21.95                  from src/executor/executor.cpp:2:
+#14 21.95 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 21.95  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 21.95       | ^~~~~~~~~~~~~~~~~
+#14 21.95 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 21.95                  from src/executor/executor.hpp:5,
+#14 21.95                  from src/executor/executor.cpp:2:
+#14 21.95 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:22:38: note: called from here
+#14 21.95    22 | const __m256i MSB = _mm256_set_epi64x(MSB_, MSB_, MSB_, MSB_);
+#14 21.95       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+#14 21.95 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 21.95                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 21.95                  from src/executor/executor.hpp:5,
+#14 21.95                  from src/executor/executor.cpp:2:
+#14 21.95 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 21.95  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 21.95       | ^~~~~~~~~~~~~~~~~
+#14 21.95 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 21.95                  from src/executor/executor.hpp:5,
+#14 21.95                  from src/executor/executor.cpp:2:
+#14 21.95 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:26:41: note: called from here
+#14 21.95    26 | const __m256i sqmask = _mm256_set_epi64x(0x1FFFFFFFF, 0x1FFFFFFFF, 0x1FFFFFFFF, 0x1FFFFFFFF);
+#14 21.95       |                        ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 21.95 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:47,
+#14 21.95                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 21.95                  from src/executor/executor.hpp:5,
+#14 21.95                  from src/executor/executor.cpp:2:
+#14 21.95 /usr/lib/gcc/x86_64-linux-gnu/11/include/avx2intrin.h:913:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_xor_si256(__m256i, __m256i)': target specific option mismatch
+#14 21.95   913 | _mm256_xor_si256 (__m256i __A, __m256i __B)
+#14 21.95       | ^~~~~~~~~~~~~~~~
+#14 21.95 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 21.95                  from src/executor/executor.hpp:5,
+#14 21.95                  from src/executor/executor.cpp:2:
+#14 21.95 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:25:37: note: called from here
+#14 21.95    25 | const __m256i P_s = _mm256_xor_si256(P, MSB);
+#14 21.95       |                     ~~~~~~~~~~~~~~~~^~~~~~~~
+#14 21.95 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 21.95                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 21.95                  from src/executor/executor.hpp:5,
+#14 21.95                  from src/executor/executor.cpp:2:
+#14 21.95 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 21.95  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 21.95       | ^~~~~~~~~~~~~~~~~
+#14 21.95 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 21.95                  from src/executor/executor.hpp:5,
+#14 21.95                  from src/executor/executor.cpp:2:
+#14 21.95 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:24:38: note: called from here
+#14 21.95    24 | const __m256i P_n = _mm256_set_epi64x(GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG, GOLDILOCKS_PRIME_NEG);
+#14 21.95       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 21.95 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 21.95                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 21.95                  from src/executor/executor.hpp:5,
+#14 21.95                  from src/executor/executor.cpp:2:
+#14 21.95 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 21.95  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 21.95       | ^~~~~~~~~~~~~~~~~
+#14 21.95 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 21.95                  from src/executor/executor.hpp:5,
+#14 21.95                  from src/executor/executor.cpp:2:
+#14 21.95 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:23:36: note: called from here
+#14 21.95    23 | const __m256i P = _mm256_set_epi64x(GOLDILOCKS_PRIME, GOLDILOCKS_PRIME, GOLDILOCKS_PRIME, GOLDILOCKS_PRIME);
+#14 21.95       |                   ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 21.95 In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+#14 21.95                  from ./src/goldilocks/src/goldilocks_base_field.hpp:9,
+#14 21.95                  from src/executor/executor.hpp:5,
+#14 21.95                  from src/executor/executor.cpp:2:
+#14 21.95 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+#14 21.95  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+#14 21.95       | ^~~~~~~~~~~~~~~~~
+#14 21.95 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+#14 21.95                  from src/executor/executor.hpp:5,
+#14 21.95                  from src/executor/executor.cpp:2:
+#14 21.95 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:22:38: note: called from here
+#14 21.95    22 | const __m256i MSB = _mm256_set_epi64x(MSB_, MSB_, MSB_, MSB_);
+#14 21.95       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+#14 22.01 make: *** [Makefile:169: build/./src/executor/executor.cpp.o] Error 1
+#14 ERROR: process "/bin/sh -c EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU=1 make -j4" did not complete successfully: exit code: 2
+
+#15 [stage-1  3/20] RUN apt update && apt install -y build-essential libgmp-dev nlohmann-json3-dev libsecp256k1-dev libomp-dev libpqxx-dev libssl-dev libgrpc++-dev libprotobuf-dev grpc-proto libsodium-dev protobuf-compiler protobuf-compiler-grpc uuid-dev
+#15 CANCELED
+------
+ > [build 10/10] RUN EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU=1 make -j4:
+21.95 /usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1303:1: error: inlining failed in call to 'always_inline' '__m256i _mm256_set_epi64x(long long int, long long int, long long int, long long int)': target specific option mismatch
+21.95  1303 | _mm256_set_epi64x (long long __A, long long __B, long long __C,
+21.95       | ^~~~~~~~~~~~~~~~~
+21.95 In file included from ./src/goldilocks/src/goldilocks_base_field.hpp:251,
+21.95                  from src/executor/executor.hpp:5,
+21.95                  from src/executor/executor.cpp:2:
+21.95 ./src/goldilocks/src/goldilocks_base_field_avx.hpp:22:38: note: called from here
+21.95    22 | const __m256i MSB = _mm256_set_epi64x(MSB_, MSB_, MSB_, MSB_);
+21.95       |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+22.01 make: *** [Makefile:169: build/./src/executor/executor.cpp.o] Error 1
+------
+Dockerfile:15
+--------------------
+  13 |     # 使用新的 Makefile
+  14 |     RUN make generate
+  15 | >>> RUN EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU=1 make -j4
+  16 |     
+  17 |     FROM ubuntu:22.04
+--------------------
+ERROR: failed to solve: process "/bin/sh -c EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU=1 make -j4" did not complete successfully: exit code: 2

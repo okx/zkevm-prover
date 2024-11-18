@@ -1,6 +1,5 @@
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
-#include <grpcpp/grpcpp.h>
 #include <grpcpp/health_check_service_interface.h>
 
 #include "config.hpp"
@@ -12,7 +11,7 @@ using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
 
-void AggregatorServer::run (void)
+void AggregatorServer::run(void)
 {
     ServerBuilder builder;
     
@@ -21,7 +20,8 @@ void AggregatorServer::run (void)
     rq.SetMaxThreads(4);
     builder.SetResourceQuota(rq);
 
-    AggregatorServiceImpl service(fr, config);
+    // 修改這裡，移除 fr 參數
+    AggregatorServiceImpl service(config);
 
     std::string server_address("0.0.0.0:" + to_string(config.aggregatorServerPort));
 
@@ -45,18 +45,20 @@ void AggregatorServer::run (void)
     server->Wait();
 }
 
-void AggregatorServer::runThread (void)
+void AggregatorServer::runThread(void)
 {
+    std::cout << "AggregatorServer::runThread() creating aggregatorServerThread" << std::endl;
     pthread_create(&t, NULL, aggregatorServerThread, this);
 }
 
-void AggregatorServer::waitForThread (void)
+void AggregatorServer::waitForThread(void)
 {
     pthread_join(t, NULL);
 }
 
-void* aggregatorServerThread (void* arg)
+void* aggregatorServerThread(void* arg)
 {
+    std::cout << "aggregatorServerThread() started" << std::endl;
     AggregatorServer *pServer = (AggregatorServer *)arg;
     pServer->run();
     return NULL;

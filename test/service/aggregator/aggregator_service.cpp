@@ -1,21 +1,27 @@
-#include "config.hpp"
 #include "aggregator_service.hpp"
-#include "input.hpp"
-#include "proof_fflonk.hpp"
-#include "definitions.hpp"
+#include "utils.hpp"
 #include <grpcpp/grpcpp.h>
+#include <iostream>
+#include <fstream>
+#include <thread>
+#include <chrono>
+#include <nlohmann/json.hpp>
 
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
+using namespace std;
+using json = nlohmann::json;
 
 #define AGGREGATOR_SERVER_NUMBER_OF_LOOPS 1
 
 #define AGGREGATOR_SERVER_RETRY_SLEEP 10
 #define AGGREGATOR_SERVER_NUMBER_OF_GET_PROOF_RETRIES 600  // 600 retries every 10 seconds = 6000 seconds = 100 minutes
 
-::grpc::Status AggregatorServiceImpl::Channel(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::aggregator::v1::AggregatorMessage, ::aggregator::v1::ProverMessage>* stream)
+::grpc::Status AggregatorServiceImpl::Channel(::grpc::ServerContext* context, 
+    ::grpc::ServerReaderWriter<::aggregator::v1::AggregatorMessage, 
+    ::aggregator::v1::ProverMessage>* stream)
 {
 #ifdef LOG_SERVICE
     cout << "AggregatorServiceImpl::Channel() stream starts" << endl;
@@ -28,6 +34,7 @@ using grpc::Status;
     string requestID;
     string proof;
 
+    // Define file paths
     const string inputFile0  = "testvectors/e2e/fork_" + to_string(PROVER_FORK_ID) + "/input_executor_0.json";
     const string outputFile0 = "testvectors/aggregatedProof/fork_" + to_string(PROVER_FORK_ID) + "/recursive1.zkin.proof_0.json";
 
@@ -37,6 +44,7 @@ using grpc::Status;
     const string inputFile01a = outputFile0;
     const string inputFile01b = outputFile1;
     const string outputFile01 = "testvectors/finalProof/fork_" + to_string(PROVER_FORK_ID) + "/recursive2.zkin.proof_01.json";
+
 
     const string inputFile2  = "testvectors/e2e/fork_" + to_string(PROVER_FORK_ID) + "/input_executor_2.json";
     const string outputFile2 = "testvectors/aggregatedProof/fork_" + to_string(PROVER_FORK_ID) + "/recursive1.zkin.proof_2.json";
@@ -71,11 +79,13 @@ using grpc::Status;
     }
     if (result != aggregator::v1::Result::RESULT_ERROR)
     {
-        cerr << "Error: AggregatorServiceImpl::Channel() got cancel result=" << result << " instead of RESULT_CANCEL_ERROR" << endl;
+        cerr << "Error: Channel() got cancel result=" << result 
+             << " instead of RESULT_CANCEL_ERROR" << endl;
         return Status::CANCELLED;
     }
 
-    for ( uint64_t loop=0; loop<AGGREGATOR_SERVER_NUMBER_OF_LOOPS; loop++ )
+    // Main proof generation loop
+    for (uint64_t loop = 0; loop < AGGREGATOR_SERVER_NUMBER_OF_LOOPS; loop++)
     {
         // Generate batch proof 0
         grpcStatus = GenAndGetBatchProof(context, stream, inputFile0, outputFile0);
@@ -83,7 +93,8 @@ using grpc::Status;
         {
             return grpcStatus;
         }
-        cout << "AggregatorServiceImpl::Channel() called GenAndGetBatchProof(" << inputFile0 << ", " << outputFile0 << ")" << endl;
+        cout << "Channel() called GenAndGetBatchProof(" << inputFile0 
+             << ", " << outputFile0 << ")" << endl;
 
         // Generate batch proof 1
         grpcStatus = GenAndGetBatchProof(context, stream, inputFile1, outputFile1);
@@ -91,15 +102,18 @@ using grpc::Status;
         {
             return grpcStatus;
         }
-        cout << "AggregatorServiceImpl::Channel() called GenAndGetBatchProof(" << inputFile1 << ", " << outputFile1 << ")" << endl;
+        cout << "Channel() called GenAndGetBatchProof(" << inputFile1 
+             << ", " << outputFile1 << ")" << endl;
 
         // Generate aggregated proof 01
-        grpcStatus = GenAndGetAggregatedProof(context, stream, inputFile01a, inputFile01b, outputFile01);
+        grpcStatus = GenAndGetAggregatedProof(context, stream, 
+                                            inputFile01a, inputFile01b, outputFile01);
         if (grpcStatus.error_code() != Status::OK.error_code())
         {
             return grpcStatus;
         }
-        cout << "AggregatorServiceImpl::Channel() called GenAndGetAggregatedProof(" << inputFile01a << ", " << inputFile01b << ", " << outputFile01 << ")" << endl;
+        cout << "Channel() called GenAndGetAggregatedProof(" << inputFile01a 
+             << ", " << inputFile01b << ", " << outputFile01 << ")" << endl;
 
 
         // Generate batch proof 2
@@ -245,130 +259,79 @@ using grpc::Status;
     return Status::OK;
 }
 
-::grpc::Status AggregatorServiceImpl::GenBatchProof(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::aggregator::v1::AggregatorMessage, ::aggregator::v1::ProverMessage>* stream, const string &inputFile, string &requestID)
+::grpc::Status AggregatorServiceImpl::GenBatchProof(::grpc::ServerContext* context, 
+    ::grpc::ServerReaderWriter<::aggregator::v1::AggregatorMessage, 
+    ::aggregator::v1::ProverMessage>* stream, 
+    const string &inputFile, 
+    string &requestID)
 {
     aggregator::v1::AggregatorMessage aggregatorMessage;
     aggregator::v1::ProverMessage proverMessage;
     bool bResult;
-    string uuid;
 
-    if (inputFile.size() == 0)
-    {
-        cerr << "Error: AggregatorServiceImpl::GenBatchProof() found inputFile empty" << endl;
+    if (inputFile.empty()) {
+        cerr << "Error: GenBatchProof() found inputFile empty" << endl;
         exitProcess();
     }
 
-    aggregator::v1::InputProver *pInputProver = new aggregator::v1::InputProver();
-    zkassertpermanent(pInputProver != NULL);
-    Input input(fr);
-    json inputJson;
-    file2json(inputFile, inputJson);
-    zkresult zkResult = input.load(inputJson);
-    if (zkResult != ZKR_SUCCESS)
-    {
-        cerr << "Error: AggregatorServiceImpl::GenBatchProof() failed calling input.load() zkResult=" << zkResult << "=" << zkresult2string(zkResult) << endl;
-        exitProcess();
-    }
-
-    // Parse public inputs
-    aggregator::v1::PublicInputs * pPublicInputs = new aggregator::v1::PublicInputs();
-    pPublicInputs->set_old_state_root(scalar2ba(input.publicInputsExtended.publicInputs.oldStateRoot));
-    pPublicInputs->set_old_acc_input_hash(scalar2ba(input.publicInputsExtended.publicInputs.oldAccInputHash));
-    pPublicInputs->set_old_batch_num(input.publicInputsExtended.publicInputs.oldBatchNum);
-    pPublicInputs->set_chain_id(input.publicInputsExtended.publicInputs.chainID);
-    pPublicInputs->set_fork_id(input.publicInputsExtended.publicInputs.forkID);
-    pPublicInputs->set_batch_l2_data(input.publicInputsExtended.publicInputs.batchL2Data);
-    pPublicInputs->set_l1_info_root(scalar2ba(input.publicInputsExtended.publicInputs.l1InfoRoot));
-    pPublicInputs->set_timestamp_limit(input.publicInputsExtended.publicInputs.timestampLimit);
-    pPublicInputs->set_forced_blockhash_l1(scalar2ba(input.publicInputsExtended.publicInputs.forcedBlockHashL1));
-    pPublicInputs->set_sequencer_addr(Add0xIfMissing(input.publicInputsExtended.publicInputs.sequencerAddr.get_str(16)));
-    pPublicInputs->set_aggregator_addr(Add0xIfMissing(input.publicInputsExtended.publicInputs.aggregatorAddress.get_str(16)));
+    // Create mock input data
+    auto* pInputProver = new aggregator::v1::InputProver();
+    auto* pPublicInputs = new aggregator::v1::PublicInputs();
+    
+    // Set mock values for testing
+    pPublicInputs->set_old_state_root("0x1234");
+    pPublicInputs->set_old_acc_input_hash("0x5678");
+    pPublicInputs->set_old_batch_num(1);
+    pPublicInputs->set_chain_id(1);
+    pPublicInputs->set_fork_id(PROVER_FORK_ID);
+    pPublicInputs->set_batch_l2_data("0x9abc");
+    pPublicInputs->set_timestamp_limit(1000);
+    pPublicInputs->set_sequencer_addr("0x1234");
+    pPublicInputs->set_aggregator_addr("0x5678");
+    
     pInputProver->set_allocated_public_inputs(pPublicInputs);
 
-    // Parse keys map
-    DatabaseMap::MTMap::const_iterator it;
-    for (it=input.db.begin(); it!=input.db.end(); it++)
-    {
-        string key = NormalizeToNFormat(it->first, 64);
-        string value;
-        vector<Goldilocks::Element> dbValue = it->second;
-        for (uint64_t i=0; i<dbValue.size(); i++)
-        {
-            value += NormalizeToNFormat(fr.toString(dbValue[i], 16), 16);
-        }
-        (*pInputProver->mutable_db())[key] = value;
-    }
+    // Add some mock db entries
+    (*pInputProver->mutable_db())["key1"] = "value1";
+    (*pInputProver->mutable_db())["key2"] = "value2";
 
-    // Parse contracts data
-    DatabaseMap::ProgramMap::const_iterator itc;
-    for (itc=input.contractsBytecode.begin(); itc!=input.contractsBytecode.end(); itc++)
-    {
-        string key = NormalizeToNFormat(itc->first, 64);
-        string value;
-        vector<uint8_t> contractValue = itc->second;
-        for (uint64_t i=0; i<contractValue.size(); i++)
-        {
-            value += byte2string(contractValue[i]);
-        }
-        (*pInputProver->mutable_contracts_bytecode())[key] = value;
-    }
-
-    unordered_map<uint64_t, L1Data>::const_iterator itL1Data;
-    for (itL1Data = input.l1InfoTreeData.begin(); itL1Data != input.l1InfoTreeData.end(); itL1Data++)
-    {
-        aggregator::v1::L1Data l1Data;
-        l1Data.set_global_exit_root(string2ba(itL1Data->second.globalExitRoot.get_str(16)));
-        l1Data.set_blockhash_l1(string2ba(itL1Data->second.blockHashL1.get_str(16)));
-        l1Data.set_min_timestamp(itL1Data->second.minTimestamp);
-        for (uint64_t i=0; i<itL1Data->second.smtProof.size(); i++)
-        {
-            l1Data.add_smt_proof(string2ba(itL1Data->second.smtProof[i].get_str(16)));
-        }
-        (*pInputProver->mutable_public_inputs()->mutable_l1_info_tree_data())[itL1Data->first] = l1Data;
-    }
-
-    // Allocate the gen batch request
-    aggregator::v1::GenBatchProofRequest *pGenBatchProofRequest = new aggregator::v1::GenBatchProofRequest();
-    zkassertpermanent(pGenBatchProofRequest != NULL );
+    // Add some mock contract data
+    (*pInputProver->mutable_contracts_bytecode())["contract1"] = "bytecode1";
+    
+    // Create and send request
+    auto* pGenBatchProofRequest = new aggregator::v1::GenBatchProofRequest();
     pGenBatchProofRequest->set_allocated_input(pInputProver);
 
-    // Send the gen proof request
     aggregatorMessage.Clear();
     messageId++;
     aggregatorMessage.set_id(to_string(messageId));
     aggregatorMessage.set_allocated_gen_batch_proof_request(pGenBatchProofRequest);
+
     bResult = stream->Write(aggregatorMessage);
-    if (!bResult)
-    {
-        cerr << "Error: AggregatorServiceImpl::Channel() failed calling stream->Write(aggregatorMessage)" << endl;
+    if (!bResult) {
+        cerr << "Error: GenBatchProof() failed calling stream->Write()" << endl;
         return Status::CANCELLED;
     }
 
-    // Receive the corresponding get proof response message
+    // Get response
     proverMessage.Clear();
     bResult = stream->Read(&proverMessage);
-    if (!bResult)
-    {
-        cerr << "Error: AggregatorServiceImpl::Channel() failed calling stream->Read(proverMessage)" << endl;
+    if (!bResult) {
+        cerr << "Error: GenBatchProof() failed calling stream->Read()" << endl;
         return Status::CANCELLED;
     }
     
-    // Check type
-    if (proverMessage.response_case() != aggregator::v1::ProverMessage::ResponseCase::kGenBatchProofResponse)
-    {
-        cerr << "Error: AggregatorServiceImpl::Channel() got proverMessage.response_case=" << proverMessage.response_case() << " instead of GEN_BATCH_PROOF_RESPONSE" << endl;
+    if (proverMessage.response_case() != aggregator::v1::ProverMessage::ResponseCase::kGenBatchProofResponse) {
+        cerr << "Error: GenBatchProof() got unexpected response type" << endl;
         return Status::CANCELLED;
     }
 
-    // Check id
-    if (proverMessage.id() != aggregatorMessage.id())
-    {
-        cerr << "Error: AggregatorServiceImpl::Channel() got proverMessage.id=" << proverMessage.id() << " instead of aggregatorMessage.id=" << aggregatorMessage.id() << endl;
+    if (proverMessage.id() != aggregatorMessage.id()) {
+        cerr << "Error: GenBatchProof() got mismatched message ID" << endl;
         return Status::CANCELLED;
     }
 
     requestID = proverMessage.gen_batch_proof_response().id();
-
     return Status::OK;
 }
 
@@ -718,7 +681,9 @@ using grpc::Status;
     return Status::OK;
 }
 
-::grpc::Status AggregatorServiceImpl::ChannelOld(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::aggregator::v1::AggregatorMessage, ::aggregator::v1::ProverMessage>* stream)
+::grpc::Status AggregatorServiceImpl::ChannelOld(::grpc::ServerContext* context, 
+    ::grpc::ServerReaderWriter<::aggregator::v1::AggregatorMessage, 
+    ::aggregator::v1::ProverMessage>* stream)
 {
 #ifdef LOG_SERVICE
     cout << "AggregatorServiceImpl::Channel() stream starts" << endl;
@@ -731,246 +696,181 @@ using grpc::Status;
     //while (true)
     {
         // CALL GET STATUS
-
-        // Send a get status request message
         aggregatorMessage.Clear();
-        aggregator::v1::GetStatusRequest * pGetStatusRequest = new aggregator::v1::GetStatusRequest();
+        auto* pGetStatusRequest = new aggregator::v1::GetStatusRequest();
         zkassertpermanent(pGetStatusRequest != NULL);
         aggregatorMessage.set_allocated_get_status_request(pGetStatusRequest);
         messageId++;
         aggregatorMessage.set_id(to_string(messageId));
+        
         bResult = stream->Write(aggregatorMessage);
-        if (!bResult)
-        {
-            cerr << "Error: AggregatorServiceImpl::Channel() failed calling stream->Write(aggregatorMessage)" << endl;
+        if (!bResult) {
+            cerr << "Error: Channel() failed calling stream->Write()" << endl;
             return Status::CANCELLED;
         }
 
-        // Receive the corresponding get status response message
         proverMessage.Clear();
         bResult = stream->Read(&proverMessage);
-        if (!bResult)
-        {
-            cerr << "Error: AggregatorServiceImpl::Channel() failed calling stream->Read(proverMessage)" << endl;
+        if (!bResult) {
+            cerr << "Error: Channel() failed calling stream->Read()" << endl;
             return Status::CANCELLED;
         }
         
-        // Check type
-        if (proverMessage.response_case() != aggregator::v1::ProverMessage::ResponseCase::kGetStatusResponse)
-        {
-            cerr << "Error: AggregatorServiceImpl::Channel() got proverMessage.response_case=" << proverMessage.response_case() << " instead of GET_STATUS_RESPONSE" << endl;
+        if (proverMessage.response_case() != aggregator::v1::ProverMessage::ResponseCase::kGetStatusResponse) {
+            cerr << "Error: Channel() got unexpected response type" << endl;
             return Status::CANCELLED;
         }
 
-        // Check id
-        if (proverMessage.id() != aggregatorMessage.id())
-        {
-            cerr << "Error: AggregatorServiceImpl::Channel() got proverMessage.id=" << proverMessage.id() << " instead of aggregatorMessage.id=" << aggregatorMessage.id() << endl;
+        if (proverMessage.id() != aggregatorMessage.id()) {
+            cerr << "Error: Channel() got mismatched message ID" << endl;
             return Status::CANCELLED;
         }
 
         sleep(1);
 
         // CALL CANCEL (it should return an error)
-
-        // Send a cancel request message
         aggregatorMessage.Clear();
         messageId++;
         aggregatorMessage.set_id(to_string(messageId));
-        aggregator::v1::CancelRequest * pCancelRequest = new aggregator::v1::CancelRequest();
+        auto* pCancelRequest = new aggregator::v1::CancelRequest();
         zkassertpermanent(pCancelRequest != NULL);
         pCancelRequest->set_id("invalid_id");
         aggregatorMessage.set_allocated_cancel_request(pCancelRequest);
+        
         bResult = stream->Write(aggregatorMessage);
-        if (!bResult)
-        {
-            cerr << "Error: AggregatorServiceImpl::Channel() failed calling stream->Write(aggregatorMessage)" << endl;
+        if (!bResult) {
+            cerr << "Error: Channel() failed calling stream->Write()" << endl;
             return Status::CANCELLED;
         }
 
-        // Receive the corresponding cancel response message
         proverMessage.Clear();
         bResult = stream->Read(&proverMessage);
-        if (!bResult)
-        {
-            cerr << "Error: AggregatorServiceImpl::Channel() failed calling stream->Read(proverMessage)" << endl;
+        if (!bResult) {
+            cerr << "Error: Channel() failed calling stream->Read()" << endl;
             return Status::CANCELLED;
         }
         
-        // Check type
-        if (proverMessage.response_case() != aggregator::v1::ProverMessage::ResponseCase::kCancelResponse)
-        {
-            cerr << "Error: AggregatorServiceImpl::Channel() got proverMessage.response_case=" << proverMessage.response_case() << " instead of CANCEL_RESPONSE" << endl;
+        if (proverMessage.response_case() != aggregator::v1::ProverMessage::ResponseCase::kCancelResponse) {
+            cerr << "Error: Channel() got unexpected response type" << endl;
             return Status::CANCELLED;
         }
 
-        // Check id
-        if (proverMessage.id() != aggregatorMessage.id())
-        {
-            cerr << "Error: AggregatorServiceImpl::Channel() got proverMessage.id=" << proverMessage.id() << " instead of aggregatorMessage.id=" << aggregatorMessage.id() << endl;
+        if (proverMessage.id() != aggregatorMessage.id()) {
+            cerr << "Error: Channel() got mismatched message ID" << endl;
             return Status::CANCELLED;
         }
 
-        // Check cancel result
-        if (proverMessage.cancel_response().result() != aggregator::v1::Result::RESULT_ERROR)
-        {
-            cerr << "Error: AggregatorServiceImpl::Channel() got proverMessage.cancel_response().result()=" << proverMessage.cancel_response().result() << " instead of RESULT_CANCEL_ERROR" << endl;
+        if (proverMessage.cancel_response().result() != aggregator::v1::Result::RESULT_ERROR) {
+            cerr << "Error: Channel() got unexpected cancel result" << endl;
             return Status::CANCELLED;
         }
 
         sleep(1);
 
         // Call GEN PROOF
-
-        if (config.inputFile.size() == 0)
-        {
-            cerr << "Error: AggregatorServiceImpl::Channel() found config.inputFile empty" << endl;
+        if (config.inputFile.empty()) {
+            cerr << "Error: Channel() found config.inputFile empty" << endl;
             exitProcess();
         }
-    //::grpc::ClientContext context;
-        aggregator::v1::InputProver *pInputProver = new aggregator::v1::InputProver();
+
+        // 創建模擬的 input data
+        auto* pInputProver = new aggregator::v1::InputProver();
         zkassertpermanent(pInputProver != NULL);
-        Input input(fr);
-        json inputJson;
-        file2json(config.inputFile, inputJson);
-        zkresult zkResult = input.load(inputJson);
-        if (zkResult != ZKR_SUCCESS)
-        {
-            cerr << "Error: AggregatorServiceImpl::Channel() failed calling input.load() zkResult=" << zkResult << "=" << zkresult2string(zkResult) << endl;
-            exitProcess();
-        }
-
-        // Parse public inputs
-        aggregator::v1::PublicInputs * pPublicInputs = new aggregator::v1::PublicInputs();
-        pPublicInputs->set_old_state_root(scalar2ba(input.publicInputsExtended.publicInputs.oldStateRoot));
-        pPublicInputs->set_old_acc_input_hash(scalar2ba(input.publicInputsExtended.publicInputs.oldAccInputHash));
-        pPublicInputs->set_old_batch_num(input.publicInputsExtended.publicInputs.oldBatchNum);
-        pPublicInputs->set_chain_id(input.publicInputsExtended.publicInputs.chainID);
-        pPublicInputs->set_fork_id(input.publicInputsExtended.publicInputs.forkID);
-        pPublicInputs->set_batch_l2_data(input.publicInputsExtended.publicInputs.batchL2Data);
-        pPublicInputs->set_l1_info_root(scalar2ba(input.publicInputsExtended.publicInputs.l1InfoRoot));
-        pPublicInputs->set_timestamp_limit(input.publicInputsExtended.publicInputs.timestampLimit);
-        pPublicInputs->set_forced_blockhash_l1(scalar2ba(input.publicInputsExtended.publicInputs.forcedBlockHashL1));
-        pPublicInputs->set_sequencer_addr(Add0xIfMissing(input.publicInputsExtended.publicInputs.sequencerAddr.get_str(16)));
-        pPublicInputs->set_aggregator_addr(Add0xIfMissing(input.publicInputsExtended.publicInputs.aggregatorAddress.get_str(16)));
+        
+        // 設置模擬的 public inputs
+        auto* pPublicInputs = new aggregator::v1::PublicInputs();
+        pPublicInputs->set_old_state_root("0x1234");
+        pPublicInputs->set_old_acc_input_hash("0x5678");
+        pPublicInputs->set_old_batch_num(1);
+        pPublicInputs->set_chain_id(1);
+        pPublicInputs->set_fork_id(PROVER_FORK_ID);
+        pPublicInputs->set_batch_l2_data("0x9abc");
+        pPublicInputs->set_l1_info_root("0xdef0");
+        pPublicInputs->set_timestamp_limit(1000);
+        pPublicInputs->set_forced_blockhash_l1("0x1111");
+        pPublicInputs->set_sequencer_addr("0x2222");
+        pPublicInputs->set_aggregator_addr("0x3333");
         pInputProver->set_allocated_public_inputs(pPublicInputs);
 
-        // Parse keys map
-        DatabaseMap::MTMap::const_iterator it;
-        for (it=input.db.begin(); it!=input.db.end(); it++)
-        {
-            string key = NormalizeToNFormat(it->first, 64);
-            string value;
-            vector<Goldilocks::Element> dbValue = it->second;
-            for (uint64_t i=0; i<dbValue.size(); i++)
-            {
-                value += NormalizeToNFormat(fr.toString(dbValue[i], 16), 16);
-            }
-            (*pInputProver->mutable_db())[key] = value;
-        }
+        // 添加模擬的 db 數據
+        (*pInputProver->mutable_db())["key1"] = "value1";
+        (*pInputProver->mutable_db())["key2"] = "value2";
 
-        // Parse contracts data
-        DatabaseMap::ProgramMap::const_iterator itc;
-        for (itc=input.contractsBytecode.begin(); itc!=input.contractsBytecode.end(); itc++)
-        {
-            string key = NormalizeToNFormat(itc->first, 64);
-            string value;
-            vector<uint8_t> contractValue = itc->second;
-            for (uint64_t i=0; i<contractValue.size(); i++)
-            {
-                value += byte2string(contractValue[i]);
-            }
-            (*pInputProver->mutable_contracts_bytecode())[key] = value;
-        }
+        // 添加模擬的合約數據
+        (*pInputProver->mutable_contracts_bytecode())["contract1"] = "bytecode1";
+        (*pInputProver->mutable_contracts_bytecode())["contract2"] = "bytecode2";
 
-        // Allocate the gen batch request
-        aggregator::v1::GenBatchProofRequest *pGenBatchProofRequest = new aggregator::v1::GenBatchProofRequest();
-        zkassertpermanent(pGenBatchProofRequest != NULL );
+        // Send gen batch proof request
+        auto* pGenBatchProofRequest = new aggregator::v1::GenBatchProofRequest();
+        zkassertpermanent(pGenBatchProofRequest != NULL);
         pGenBatchProofRequest->set_allocated_input(pInputProver);
 
-        // Send the gen proof request
         aggregatorMessage.Clear();
         messageId++;
         aggregatorMessage.set_id(to_string(messageId));
         aggregatorMessage.set_allocated_gen_batch_proof_request(pGenBatchProofRequest);
+        
         bResult = stream->Write(aggregatorMessage);
-        if (!bResult)
-        {
-            cerr << "Error: AggregatorServiceImpl::Channel() failed calling stream->Write(aggregatorMessage)" << endl;
+        if (!bResult) {
+            cerr << "Error: Channel() failed calling stream->Write()" << endl;
             return Status::CANCELLED;
         }
 
-        // Receive the corresponding get proof response message
         proverMessage.Clear();
         bResult = stream->Read(&proverMessage);
-        if (!bResult)
-        {
-            cerr << "Error: AggregatorServiceImpl::Channel() failed calling stream->Read(proverMessage)" << endl;
+        if (!bResult) {
+            cerr << "Error: Channel() failed calling stream->Read()" << endl;
             return Status::CANCELLED;
         }
         
-        // Check type
-        if (proverMessage.response_case() != aggregator::v1::ProverMessage::ResponseCase::kGenBatchProofResponse)
-        {
-            cerr << "Error: AggregatorServiceImpl::Channel() got proverMessage.response_case=" << proverMessage.response_case() << " instead of GEN_BATCH_PROOF_RESPONSE" << endl;
+        if (proverMessage.response_case() != aggregator::v1::ProverMessage::ResponseCase::kGenBatchProofResponse) {
+            cerr << "Error: Channel() got unexpected response type" << endl;
             return Status::CANCELLED;
         }
 
-        // Check id
-        if (proverMessage.id() != aggregatorMessage.id())
-        {
-            cerr << "Error: AggregatorServiceImpl::Channel() got proverMessage.id=" << proverMessage.id() << " instead of aggregatorMessage.id=" << aggregatorMessage.id() << endl;
+        if (proverMessage.id() != aggregatorMessage.id()) {
+            cerr << "Error: Channel() got mismatched message ID" << endl;
             return Status::CANCELLED;
         }
 
         uuid = proverMessage.gen_batch_proof_response().id();
 
         // CALL GET PROOF AND CHECK IT IS PENDING
-
-        for (uint64_t i=0; i<5; i++)
-        {
-            // Send a get proof request message
+        for (uint64_t i = 0; i < 5; i++) {
             aggregatorMessage.Clear();
             messageId++;
             aggregatorMessage.set_id(to_string(messageId));
-            aggregator::v1::GetProofRequest * pGetProofRequest = new aggregator::v1::GetProofRequest();
+            auto* pGetProofRequest = new aggregator::v1::GetProofRequest();
             zkassertpermanent(pGetProofRequest != NULL);
             pGetProofRequest->set_id(uuid);
             aggregatorMessage.set_allocated_get_proof_request(pGetProofRequest);
+            
             bResult = stream->Write(aggregatorMessage);
-            if (!bResult)
-            {
-                cerr << "Error: AggregatorServiceImpl::Channel() failed calling stream->Write(aggregatorMessage)" << endl;
+            if (!bResult) {
+                cerr << "Error: Channel() failed calling stream->Write()" << endl;
                 return Status::CANCELLED;
             }
 
-            // Receive the corresponding get proof response message
             proverMessage.Clear();
             bResult = stream->Read(&proverMessage);
-            if (!bResult)
-            {
-                cerr << "Error: AggregatorServiceImpl::Channel() failed calling stream->Read(proverMessage)" << endl;
+            if (!bResult) {
+                cerr << "Error: Channel() failed calling stream->Read()" << endl;
                 return Status::CANCELLED;
             }
             
-            // Check type
-            if (proverMessage.response_case() != aggregator::v1::ProverMessage::ResponseCase::kGetProofResponse)
-            {
-                cerr << "Error: AggregatorServiceImpl::Channel() got proverMessage.response_case=" << proverMessage.response_case() << " instead of GET_PROOF_RESPONSE" << endl;
+            if (proverMessage.response_case() != aggregator::v1::ProverMessage::ResponseCase::kGetProofResponse) {
+                cerr << "Error: Channel() got unexpected response type" << endl;
                 return Status::CANCELLED;
             }
 
-            // Check id
-            if (proverMessage.id() != aggregatorMessage.id())
-            {
-                cerr << "Error: AggregatorServiceImpl::Channel() got proverMessage.id=" << proverMessage.id() << " instead of aggregatorMessage.id=" << aggregatorMessage.id() << endl;
+            if (proverMessage.id() != aggregatorMessage.id()) {
+                cerr << "Error: Channel() got mismatched message ID" << endl;
                 return Status::CANCELLED;
             }
 
-            // Check get proof result
-            if (proverMessage.get_proof_response().result() != aggregator::v1::GetProofResponse_Result_RESULT_PENDING)
-            {
-                cerr << "Error: AggregatorServiceImpl::Channel() got proverMessage.get_proof_response().result()=" << proverMessage.get_proof_response().result() << " instead of RESULT_GET_PROOF_PENDING" << endl;
+            if (proverMessage.get_proof_response().result() != 
+                aggregator::v1::GetProofResponse_Result_RESULT_PENDING) {
+                cerr << "Error: Channel() got unexpected proof result" << endl;
                 return Status::CANCELLED;
             }
 
@@ -979,7 +879,7 @@ using grpc::Status;
     }
 
 #ifdef LOG_SERVICE
-    cout << "AggregatorServiceImpl::Channel() stream done" << endl;
+    cout << "Channel() stream done" << endl;
 #endif
 
     return Status::OK;

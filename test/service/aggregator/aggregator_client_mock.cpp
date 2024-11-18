@@ -1,26 +1,109 @@
-
-#include <nlohmann/json.hpp>
 #include "aggregator_client_mock.hpp"
+#include "utils.hpp" 
+#include <nlohmann/json.hpp>
+#include <gtest/gtest.h>
+#include <sstream>
+#include <iomanip>
+#ifdef __APPLE__
+#include <sys/sysctl.h>
+#include <mach/mach.h>
+#include <mach/vm_statistics.h>
+#include <mach/mach_types.h>
+#include <mach/mach_init.h>
+#include <mach/mach_host.h>
+#else
+#include <sys/sysinfo.h>
+#endif
 
 using namespace std;
 using json = nlohmann::json;
 
-struct timeval lastAggregatorGenProof = {0, 0};
-tProverRequestType requestType;
-string lastAggregatorUUID;
+//std::chrono::system_clock::time_point lastAggregatorGenProof = std::chrono::system_clock::now();
+//tProverRequestType requestType = prt_none;
+//string lastAggregatorUUID;
 
-AggregatorClientMock::AggregatorClientMock (Goldilocks &fr, const Config &config) :
-    fr(fr),
-    config(config)
+// AggregatorClientMock::AggregatorClientMock (Goldilocks &fr, const Config &config) :
+// fr(fr),
+// config(config)
+// {
+
+// 添加平台特定的函數實現
+uint64_t getNumberOfCores() {
+#ifdef __APPLE__
+    int nm[2];
+    size_t len = 4;
+    uint32_t count;
+
+    nm[0] = CTL_HW;
+    nm[1] = HW_AVAILCPU;
+    sysctl(nm, 2, &count, &len, NULL, 0);
+
+    if (count < 1) {
+        nm[1] = HW_NCPU;
+        sysctl(nm, 2, &count, &len, NULL, 0);
+        if (count < 1) {
+            count = 1;
+        }
+    }
+    return count;
+#else
+    return sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+}
+
+void getMemoryInfo(MemoryInfo& info) {
+#ifdef __APPLE__
+    vm_size_t page_size;
+    mach_port_t mach_port;
+    mach_msg_type_number_t count;
+    vm_statistics64_data_t vm_stats;
+
+    mach_port = mach_host_self();
+    count = sizeof(vm_stats) / sizeof(natural_t);
+    if (KERN_SUCCESS == host_page_size(mach_port, &page_size) &&
+        KERN_SUCCESS == host_statistics64(mach_port, HOST_VM_INFO,
+                                        (host_info64_t)&vm_stats, &count)) {
+        uint64_t free_memory = (uint64_t)vm_stats.free_count * (uint64_t)page_size;
+        uint64_t total_memory = free_memory + 
+                               ((uint64_t)vm_stats.active_count + 
+                                (uint64_t)vm_stats.inactive_count + 
+                                (uint64_t)vm_stats.wire_count) * (uint64_t)page_size;
+        info.free = free_memory;
+        info.total = total_memory;
+    }
+#else
+    struct sysinfo si;
+    if (sysinfo(&si) == 0) {
+        info.total = si.totalram;
+        info.free = si.freeram;
+    }
+#endif
+}
+
+
+AggregatorClientMock::AggregatorClientMock(const Config &config) :
+    config(config),
+    requestType(prt_none),
+    lastAggregatorGenProof(std::chrono::system_clock::now())
 {
     grpc::ChannelArguments channelArguments;
     channelArguments.SetMaxReceiveMessageSize((config.aggregatorClientMaxRecvMsgSize == 0) ? -1 : config.aggregatorClientMaxRecvMsgSize);
 
     // Create channel
-    std::shared_ptr<grpc::Channel> channel = ::grpc::CreateCustomChannel(config.aggregatorClientHost + ":" + to_string(config.aggregatorClientPort), grpc::InsecureChannelCredentials(), channelArguments);
+    std::shared_ptr<grpc::Channel> channel = ::grpc::CreateCustomChannel(
+        config.aggregatorClientHost + ":" + to_string(config.aggregatorClientPort),
+        grpc::InsecureChannelCredentials(),
+        channelArguments);
 
     // Create stub (i.e. client)
     stub = new aggregator::v1::AggregatorService::Stub(channel);
+}
+
+AggregatorClientMock::~AggregatorClientMock() {
+    if (stub) {
+        delete stub;
+        stub = nullptr;
+    }
 }
 
 void AggregatorClientMock::runThread (void)
@@ -78,20 +161,36 @@ bool AggregatorClientMock::GetStatus (::aggregator::v1::GetStatusResponse &getSt
     return true;
 }
 
-bool AggregatorClientMock::GenBatchProof (const aggregator::v1::GenBatchProofRequest &genBatchProofRequest, aggregator::v1::GenBatchProofResponse &genBatchProofResponse)
+// TimeDiff 輔助函數實現
+double AggregatorClientMock::TimeDiff(const std::chrono::system_clock::time_point& start) const {
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> diff = end - start;
+    return diff.count();
+}
+
+// UUID 生成函數實現
+std::string AggregatorClientMock::getUUID() const {
+    // 實現你的 UUID 生成邏輯，或者調用原來的 getUUID() 函數
+    return ::getUUID();  // 假設有一個全局的 getUUID 函數
+}
+
+bool AggregatorClientMock::GenBatchProof(const aggregator::v1::GenBatchProofRequest &genBatchProofRequest,
+                                       aggregator::v1::GenBatchProofResponse &genBatchProofResponse)
 {
 #ifdef LOG_SERVICE
-    cout << "AggregatorClientMock::GenBatchProof() called with request: " << genBatchProofRequest.DebugString() << endl;
+    cout << "AggregatorClientMock::GenBatchProof() called with request: " 
+         << genBatchProofRequest.DebugString() << endl;
 #endif
     requestType = prt_genBatchProof;
     // Build the response as Ok, returning the UUID assigned by the prover to this request
     genBatchProofResponse.set_result(aggregator::v1::Result::RESULT_OK);
     lastAggregatorUUID = getUUID();
     genBatchProofResponse.set_id(lastAggregatorUUID);
-    gettimeofday(&lastAggregatorGenProof,NULL);
+    lastAggregatorGenProof = std::chrono::system_clock::now();
 
 #ifdef LOG_SERVICE
-    cout << "AggregatorClientMock::GenBatchProof() returns: " << genBatchProofResponse.DebugString() << endl;
+    cout << "AggregatorClientMock::GenBatchProof() returns: " 
+         << genBatchProofResponse.DebugString() << endl;
 #endif
     return true;
 }
@@ -106,7 +205,8 @@ bool AggregatorClientMock::GenStatelessBatchProof (const aggregator::v1::GenStat
     genBatchProofResponse.set_result(aggregator::v1::Result::RESULT_OK);
     lastAggregatorUUID = getUUID();
     genBatchProofResponse.set_id(lastAggregatorUUID);
-    gettimeofday(&lastAggregatorGenProof,NULL);
+    //gettimeofday(&lastAggregatorGenProof,NULL);
+    lastAggregatorGenProof = std::chrono::system_clock::now();
 
 #ifdef LOG_SERVICE
     cout << "AggregatorClientMock::GenStatelessBatchProof() returns: " << genBatchProofResponse.DebugString() << endl;
@@ -125,7 +225,8 @@ bool AggregatorClientMock::GenAggregatedProof (const aggregator::v1::GenAggregat
     genAggregatedProofResponse.set_result(aggregator::v1::Result::RESULT_OK);
     lastAggregatorUUID = getUUID();
     genAggregatedProofResponse.set_id(lastAggregatorUUID);
-    gettimeofday(&lastAggregatorGenProof,NULL);
+    //gettimeofday(&lastAggregatorGenProof,NULL);
+    lastAggregatorGenProof = std::chrono::system_clock::now();
 
 #ifdef LOG_SERVICE
     cout << "AggregatorClientMock::GenAggregatedProof() returns: " << genAggregatedProofResponse.DebugString() << endl;
@@ -145,7 +246,8 @@ bool AggregatorClientMock::GenFinalProof (const aggregator::v1::GenFinalProofReq
     genFinalProofResponse.set_result(aggregator::v1::Result::RESULT_OK);
     lastAggregatorUUID = getUUID();
     genFinalProofResponse.set_id(lastAggregatorUUID);
-    gettimeofday(&lastAggregatorGenProof,NULL);
+    //gettimeofday(&lastAggregatorGenProof,NULL);
+    lastAggregatorGenProof = std::chrono::system_clock::now();
 
 #ifdef LOG_SERVICE
     cout << "AggregatorClientMock::GenFinalProof() returns: " << genFinalProofResponse.DebugString() << endl;
@@ -160,7 +262,8 @@ bool AggregatorClientMock::Cancel (const aggregator::v1::CancelRequest &cancelRe
     if (bComputing && (cancelRequest.id() == lastAggregatorUUID ))
     {
         cancelResponse.set_result(aggregator::v1::Result::RESULT_OK);
-        lastAggregatorGenProof = {0,0};
+        //lastAggregatorGenProof = {0,0};
+        lastAggregatorGenProof = std::chrono::system_clock::time_point();
     }
     else
     {
