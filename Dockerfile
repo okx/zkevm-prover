@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 as build
+FROM ubuntu:22.04 AS build
 
 WORKDIR /usr/src/app
 
@@ -9,6 +9,8 @@ COPY ./test ./test
 COPY ./tools ./tools
 COPY ./config ./config
 COPY Makefile .
+RUN make clean
+RUN cd src/grpc && make && cd ../..
 RUN make generate
 RUN make -j
 
