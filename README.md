@@ -76,7 +76,7 @@ zypper install libbenchmark1 libomp16-devel libgmp10 nlohmann_json-devel postgre
 ```
 dnf group install "C Development Tools and Libraries" "Development Tools"
 dnf config-manager --add-repo https://terra.fyralabs.com/terra.repo
-dnf install google-benchmark-devel libomp-devel gmp gmp-devel gmp-c++ nlohmann-json-devel postgresql libpqxx-devel nasm libsecp256k1-devel grpc-devel libsodium-devel cmake grpc grpc-devel grpc-cpp protobuf-devel protobuf-c-devel uuid-devel libuuid-devel uuid-c++ llvm llvm-devel openssl-devel 
+dnf install google-benchmark-devel libomp-devel gmp gmp-devel gmp-c++ nlohmann-json-devel postgresql libpqxx-devel nasm libsecp256k1-devel grpc-devel libsodium-devel cmake grpc grpc-devel grpc-cpp protobuf-devel protobuf-c-devel uuid-devel libuuid-devel uuid-c++ llvm llvm-devel openssl-devel
 ```
 
 #### Arch
@@ -129,6 +129,15 @@ For example:
 sudo docker build -t zkprover .
 sudo docker run --rm --network host -ti -p 50051:50051 -p 50061:50061 -p 50071:50071 -v $PWD/testvectors:/usr/src/app zkprover input_executor.json
 ```
+
+## Docker for GPU prover
+
+```sh
+cd src/goldilocks && sh configure.sh && cd ../..
+sudo docker build -t zkprover-cuda -f Dockerfile-CUDA .
+sudo docker run --rm --network host -ti -p 50051:50051 -p 50061:50061 -p 50071:50071 -v $PWD/testvectors:/usr/src/app --runtime=nvidia --gpus all zkprover-cuda input_executor.json
+```
+
 
 ## Usage
 

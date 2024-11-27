@@ -1,5 +1,5 @@
-#INFO := $(shell cd src/goldilocks && ./configure.sh && cd ../.. && sleep 2)
-#include src/goldilocks/CudaArch.mk
+# INFO := $(shell cd src/goldilocks && ./configure.sh && cd ../.. && sleep 2)
+include src/goldilocks/CudaArch.mk
 NVCC := /usr/local/cuda/bin/nvcc
 
 TARGET_ZKP := zkProver
@@ -195,9 +195,9 @@ pols: pols_generator
 
 pols_diff: $(BUILD_DIR)/$(TARGET_PLD)
 
-$(BUILD_DIR)/$(TARGET_PLD): ./src/pols_diff/pols_diff.cpp 
+$(BUILD_DIR)/$(TARGET_PLD): ./src/pols_diff/pols_diff.cpp
 	$(MKDIR_P) $(BUILD_DIR)
-	g++ -g ./src/pols_diff/pols_diff.cpp ./src/config/fork_info.* $(CXXFLAGS) $(INC_FLAGS) -o $@ $(LDFLAGS) 
+	g++ -g ./src/pols_diff/pols_diff.cpp ./src/config/fork_info.* $(CXXFLAGS) $(INC_FLAGS) -o $@ $(LDFLAGS)
 
 witness2db: $(BUILD_DIR)/$(TARGET_W2DB)
 
