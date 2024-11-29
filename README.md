@@ -109,6 +109,15 @@ To compile in debug mode, run `make -j dbg=1`.
 ./build/zkProver -c testvectors/config_runFile_BatchProof.json
 ```
 
+### Build and Test on GPU
+
+```sh
+make clean
+make generate
+make -j gpu
+./build-gpu/zkProverGpu -c testvectors/config_runFile_BatchProof.json
+```
+
 ## HashDB service database
 
 To use persistence in the HashDB (Merkle-tree) service you must create the database objects needed by the service. To do this run the shell script:
