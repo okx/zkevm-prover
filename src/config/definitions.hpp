@@ -103,7 +103,6 @@
 
 //#define MULTI_ROM_TEST
 
-//#define ENABLE_EXPERIMENTAL_CODE
-
+#define ENABLE_EXPERIMENTAL_CODE
 
 #endif

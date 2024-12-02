@@ -33,7 +33,6 @@
 #include "commit_pols_starks.hpp"
 #include "chelpers_steps.hpp"
 #include "chelpers_steps_pack.hpp"
-#include "chelpers_steps_gpu.hpp"
 #ifdef __AVX512__
 #include "chelpers_steps_avx512.hpp"
 #endif
@@ -107,7 +106,7 @@ Prover::Prover(Goldilocks &fr,
             pthread_create(&cleanerPthread, NULL, cleanerThread, this);
 
             bool reduceMemoryZkevm = REDUCE_ZKEVM_MEMORY ? true : false;
-            
+
             StarkInfo _starkInfo(config.zkevmStarkInfo, reduceMemoryZkevm);
 
             // Allocate an area of memory, mapped to file, to store all the committed polynomials,
@@ -138,7 +137,7 @@ Prover::Prover(Goldilocks &fr,
             alloc_pinned_mem(uint64_t(1<<24) * _starkInfo.mapSectionsN.section[eSection::cm1_n]);
             warmup_gpu();
 #endif
-            
+
             json finalVerkeyJson;
             file2json(config.finalVerkey, finalVerkeyJson);
             domainSizeFflonk = 1 << uint64_t(finalVerkeyJson["power"]);
@@ -152,7 +151,7 @@ Prover::Prover(Goldilocks &fr,
             string recursive1Chelpers = USE_GENERIC_PARSER ? config.recursive1GenericCHelpers : config.recursive1CHelpers;
             string recursive2Chelpers = USE_GENERIC_PARSER ? config.recursive2GenericCHelpers : config.recursive2CHelpers;
             TimerStopAndLog(PROVER_INIT_STARKINFO);
-            TimerStart(PROVER_INIT_STARK_ZKEVM);    
+            TimerStart(PROVER_INIT_STARK_ZKEVM);
             starkZkevm = new Starks(config, {config.zkevmConstPols, config.mapConstPolsFile, config.zkevmConstantsTree, config.zkevmStarkInfo, zkevmChelpers}, reduceMemoryZkevm, pAddress);
             TimerStopAndLog(PROVER_INIT_STARK_ZKEVM);
             TimerStart(PROVER_INIT_STARK_C12A);
@@ -594,11 +593,9 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
         /*  Generate stark proof            */
         /*************************************/
 
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
-        CHelpersStepsGPU cHelpersSteps;
-#elif defined(__AVX512__)
+#if defined(__AVX512__)
         CHelpersStepsAvx512 cHelpersSteps;
-#elif defined(__PACK__) 
+#elif defined(__PACK__)
         CHelpersStepsPack cHelpersSteps;
         cHelpersSteps.nrowsPack = NROWS_PACK;
 #else
@@ -610,7 +607,7 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
         ZkevmSteps zkevmChelpersSteps;
         uint64_t polBits = starkZkevm->starkInfo.starkStruct.steps[starkZkevm->starkInfo.starkStruct.steps.size() - 1].nBits;
         FRIProof fproof((1 << polBits), FIELD_EXTENSION, starkZkevm->starkInfo.starkStruct.steps.size(), starkZkevm->starkInfo.evMap.size(), starkZkevm->starkInfo.nPublics);
-        
+
         if(USE_GENERIC_PARSER) {
             starkZkevm->genProof(fproof, &publics[0], zkevmVerkey, &cHelpersSteps);
         } else {
@@ -693,7 +690,7 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
         Recursive1Steps recursive1ChelpersSteps;
         uint64_t polBitsRecursive1 = starksRecursive1->starkInfo.starkStruct.steps[starksRecursive1->starkInfo.starkStruct.steps.size() - 1].nBits;
         FRIProof fproofRecursive1((1 << polBitsRecursive1), FIELD_EXTENSION, starksRecursive1->starkInfo.starkStruct.steps.size(), starksRecursive1->starkInfo.evMap.size(), starksRecursive1->starkInfo.nPublics);
-        
+
         if(USE_GENERIC_PARSER) {
             starksRecursive1->genProof(fproofRecursive1, publics, recursive1Verkey, &cHelpersSteps);
         } else {
@@ -840,23 +837,21 @@ void Prover::genAggregatedProof(ProverRequest *pProverRequest)
     Recursive2Steps recursive2ChelpersSteps;
     uint64_t polBitsRecursive2 = starksRecursive2->starkInfo.starkStruct.steps[starksRecursive2->starkInfo.starkStruct.steps.size() - 1].nBits;
     FRIProof fproofRecursive2((1 << polBitsRecursive2), FIELD_EXTENSION, starksRecursive2->starkInfo.starkStruct.steps.size(), starksRecursive2->starkInfo.evMap.size(), starksRecursive2->starkInfo.nPublics);
-    
+
     if(USE_GENERIC_PARSER) {
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
-        CHelpersStepsGPU cHelpersSteps;        
-#elif defined(__AVX512__)
+#if defined(__AVX512__)
         CHelpersStepsAvx512 cHelpersSteps;
-#elif defined(__PACK__) 
+#elif defined(__PACK__)
         CHelpersStepsPack cHelpersSteps;
         cHelpersSteps.nrowsPack = NROWS_PACK;
 #else
         CHelpersSteps cHelpersSteps;
-#endif        
+#endif
         starksRecursive2->genProof(fproofRecursive2, publics, recursive2VerkeyValues, &cHelpersSteps);
     } else {
         starksRecursive2->genProof(fproofRecursive2, publics, recursive2VerkeyValues, &recursive2ChelpersSteps);
     }
-   
+
     TimerStopAndLog(STARK_RECURSIVE_2_PROOF_BATCH_PROOF);
 
     // Save the proof & zkinproof
@@ -937,7 +932,7 @@ void Prover::genFinalProof(ProverRequest *pProverRequest)
     #else
         #error "Invalid PROVER_FORK_ID"
     #endif
-    
+
 
     // void *pointercmPolsRecursiveF = mapFile("config/recursivef/recursivef.commit", cmPolsRecursiveF.size(), true);
     // memcpy(pointercmPolsRecursiveF, cmPolsRecursiveF.address(), cmPolsRecursiveF.size());
@@ -951,11 +946,9 @@ void Prover::genFinalProof(ProverRequest *pProverRequest)
     uint64_t polBitsRecursiveF = starksRecursiveF->starkInfo.starkStruct.steps[starksRecursiveF->starkInfo.starkStruct.steps.size() - 1].nBits;
     FRIProofC12 fproofRecursiveF((1 << polBitsRecursiveF), FIELD_EXTENSION, starksRecursiveF->starkInfo.starkStruct.steps.size(), starksRecursiveF->starkInfo.evMap.size(), starksRecursiveF->starkInfo.nPublics);
     if(USE_GENERIC_PARSER) {
-        #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
-            CHelpersStepsGPU cHelpersSteps; 
-        #elif defined(__AVX512__)
+        #if defined(__AVX512__)
             CHelpersStepsAvx512 cHelpersSteps;
-        #elif defined(__PACK__) 
+        #elif defined(__PACK__)
             CHelpersStepsPack cHelpersSteps;
             cHelpersSteps.nrowsPack = NROWS_PACK;
         #else
@@ -966,7 +959,7 @@ void Prover::genFinalProof(ProverRequest *pProverRequest)
         RecursiveFSteps recursiveFChelpersSteps;
         starksRecursiveF->genProof(fproofRecursiveF, publics, &recursiveFChelpersSteps);
     }
-    
+
     TimerStopAndLog(STARK_RECURSIVE_F_PROOF_BATCH_PROOF);
 
     // Save the proof & zkinproof
@@ -1038,7 +1031,7 @@ void Prover::genFinalProof(ProverRequest *pProverRequest)
         zklog.error("Prover::genFinalProof() zkey protocolId has to be Fflonk");
         exitProcess();
     }
-    
+
     prover->setZkey(zkey.get());
 
     BinFileUtils::BinFile *pZkey = zkey.release();
