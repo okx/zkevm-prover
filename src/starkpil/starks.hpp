@@ -78,6 +78,9 @@ private:
 
 void printPolRoot(uint64_t polId, StepsParams& params); // function for DBG purposes
 void merkelizeMemory(); // function for DBG purposes
+#ifdef LDE_MT_DEBUG
+void writeBinaryFile(Goldilocks::Element *p, uint64_t N, uint64_t ncols, std::string filename);
+#endif
 
 public:
     Starks(const Config &config, StarkFiles starkFiles, bool reduceMemory_, void *_pAddress) : config(config),
@@ -252,7 +255,7 @@ public:
 
         delete pConstPols;
         delete pConstPols2ns;
-        
+
         if (config.mapConstPolsFile)
         {
             unmapFile(pConstPolsAddress, constPolsSize);
@@ -279,7 +282,7 @@ public:
         assert(cHelpersBinFile.get() == nullptr);
         assert(cHelpersBinFile == nullptr);
         delete pCHelpers;
-        
+
     };
 
     void genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldilocks::Element verkey[4], CHelpersSteps *chelpersSteps);
