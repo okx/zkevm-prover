@@ -134,7 +134,6 @@ Prover::Prover(Goldilocks &fr,
             }
 
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
-            alloc_pinned_mem(uint64_t(1<<24) * _starkInfo.mapSectionsN.section[eSection::cm1_n]);
             warmup_gpu();
 #endif
 
@@ -190,10 +189,6 @@ Prover::~Prover()
         {
             free_zkevm(pAddress);
         }
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
-        free_pinned_mem();
-#endif
-
         delete starkZkevm;
         delete starksC12a;
         delete starksRecursive1;

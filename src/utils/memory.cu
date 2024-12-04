@@ -1,6 +1,9 @@
 #include <stdint.h>
+#include <assert.h>
 
 #ifdef __USE_CUDA__
+
+/*
 void *calloc_zkevm(uint64_t count, uint64_t size) {
     char *a;
     cudaMallocManaged(&a, count*size);
@@ -18,4 +21,21 @@ void *malloc_zkevm(uint64_t size) {
 }
 
 void free_zkevm(void *ptr) { cudaFree(ptr); }
+*/
+
+void *calloc_zkevm(uint64_t count, uint64_t size) {
+    char *a;
+    cudaMallocHost(&a, count*size);
+    assert(a != NULL);
+    return a;
+}
+
+void *malloc_zkevm(uint64_t size) {
+    char *a;
+    cudaMallocHost(&a, size);
+    return a;
+}
+
+void free_zkevm(void *ptr) { cudaFreeHost(ptr); }
+
 #endif
