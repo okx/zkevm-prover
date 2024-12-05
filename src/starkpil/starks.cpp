@@ -100,6 +100,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
             {
                 ntt.extendPol(p_cm1_2ns, p_cm1_n, NExtended, N, ncols, pBuffHelperStage1, 3, nBlocksStage1);
             }
+            treesGL[0]->merkelize();
         }
         else
         {
