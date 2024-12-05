@@ -85,7 +85,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
         nBlocksStage1++;
     }
 
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+#if defined(__USE_CUDA__)
     TimerStart(STARK_STEP_1_LDE_AND_MERKLETREE_GPU);
     uint64_t ncols = starkInfo.mapSectionsN.section[eSection::cm1_n];
     if (ncols > 0)
@@ -216,7 +216,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     TimerStopAndLog(STARK_STEP_2_CALCULATEH1H2_TRANSPOSE_2);
 
     TimerStart(STARK_STEP_2_LDE_AND_MERKLETREE);
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+#if defined(__USE_CUDA__)
     ncols = starkInfo.mapSectionsN.section[eSection::cm2_n];
     if (ncols > 0)
     {
@@ -293,7 +293,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     transposeZRows(pAddress, numCommited, newpols_);
     TimerStopAndLog(STARK_STEP_3_CALCULATE_Z_TRANSPOSE_2);
     TimerStart(STARK_STEP_3_LDE_AND_MERKLETREE);
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+#if defined(__USE_CUDA__)
     ncols = starkInfo.mapSectionsN.section[eSection::cm3_n];
     if (ncols > 0)
     {

@@ -46,7 +46,7 @@
 #include "exit_process.hpp"
 #include "memory.cuh"
 
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+#if defined(__USE_CUDA__)
 #include "cuda_utils.hpp"
 #include "ntt_goldilocks.hpp"
 #include <pthread.h>
@@ -133,7 +133,7 @@ Prover::Prover(Goldilocks &fr,
                 zklog.info("Prover::Prover() successfully allocated " + to_string(polsSize) + " bytes");
             }
 
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+#if defined(__USE_CUDA__)
             warmup_gpu();
 #endif
 

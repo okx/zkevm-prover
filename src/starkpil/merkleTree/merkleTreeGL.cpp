@@ -36,7 +36,7 @@ void MerkleTreeGL::genMerkleProof(Goldilocks::Element *proof, uint64_t idx, uint
 
 void MerkleTreeGL::merkelize()
 {
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+#ifdef __USE_CUDA__
     PoseidonGoldilocks::merkletree_cuda(nodes, source, width, height);
 #else
 #ifdef __AVX512__
