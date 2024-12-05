@@ -73,16 +73,25 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     TimerStart(STARK_STEP_1);
     TimerStart(STARK_STEP_1_LDE_AND_MERKLETREE);
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+    TimerStart(STARK_STEP_1_LDE_AND_MERKLETREE_GPU);
     uint64_t ncols = starkInfo.mapSectionsN.section[eSection::cm1_n];
     if (ncols > 0)
     {
-        ntt.LDE_MerkleTree_Auto(treesGL[0]->get_nodes_ptr(), p_cm1_n, N, NExtended, ncols, p_cm1_2ns);
+        if (reduceMemory)
+        {
+            ntt.LDE_MerkleTree_Auto(treesGL[0]->get_nodes_ptr(), p_cm1_n, N, NExtended, ncols, p_cm1_2ns_tmp);
+        }
+        else
+        {
+            ntt.LDE_MerkleTree_Auto(treesGL[0]->get_nodes_ptr(), p_cm1_n, N, NExtended, ncols, p_cm1_2ns);
+        }
     }
     else
     {
         treesGL[0]->merkelize();
     }
-#else
+    TimerStopAndLog(STARK_STEP_1_LDE_AND_MERKLETREE_GPU);
+#else   // __USE_CUDA__
     TimerStart(STARK_STEP_1_LDE);
     string nttHelperStage1 = reduceMemory ? "cm1_tmp" : "cm1";
     std::pair<uint64_t, uint64_t> nttOffsetHelperStage1 = starkInfo.mapNTTOffsetsHelpers[nttHelperStage1];
@@ -136,7 +145,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     writeBinaryFile(treesGL[0]->get_nodes_ptr(), nElem, 1, ss.str());
 #endif
 
-#endif
+#endif  // __USE_CUDA__
 
     treesGL[0]->getRoot(root0.address());
     zklog.info("MerkleTree rootGL 0: [ " + root0.toString(4) + " ]");
@@ -195,7 +204,14 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     ncols = starkInfo.mapSectionsN.section[eSection::cm2_n];
     if (ncols > 0)
     {
-        ntt.LDE_MerkleTree_Auto(treesGL[1]->get_nodes_ptr(), p_cm2_n, N, NExtended, ncols, p_cm2_2ns);
+        if (reduceMemory)
+        {
+            ntt.LDE_MerkleTree_Auto(treesGL[1]->get_nodes_ptr(), p_cm2_n, N, NExtended, ncols, p_cm2_2ns_tmp);
+        }
+        else
+        {
+            ntt.LDE_MerkleTree_Auto(treesGL[1]->get_nodes_ptr(), p_cm2_n, N, NExtended, ncols, p_cm2_2ns);
+        }
     }
     else
     {
