@@ -128,7 +128,8 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     std::stringstream ss;
     ss << "lde-input-" << fileindex << ".bin";
     writeBinaryFile(p_cm1_n, N, starkInfo.mapSectionsN.section[eSection::cm1_n], ss.str());
-#endif
+#endif  // LDE_MT_DEBUG
+
     if (reduceMemory)
     {
         ntt.extendPol(p_cm1_2ns_tmp, p_cm1_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm1_n], pBuffHelperStage1, 3, nBlocksStage1);
@@ -137,8 +138,9 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     {
         ntt.extendPol(p_cm1_2ns, p_cm1_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm1_n], pBuffHelperStage1, 3, nBlocksStage1);
     }
+
 #ifdef LDE_MT_DEBUG
-    ss.clear();
+    ss.str("");
     ss << "lde-output-" << fileindex << ".bin";
     if (reduceMemory)
     {
@@ -148,7 +150,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     {
         writeBinaryFile(p_cm1_2ns, NExtended, starkInfo.mapSectionsN.section[eSection::cm1_n], ss.str());
     }
-#endif
+#endif // LDE_MT_DEBUG
 
     TimerStopAndLog(STARK_STEP_1_LDE);
     TimerStart(STARK_STEP_1_MERKLETREE);
@@ -156,11 +158,11 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     TimerStopAndLog(STARK_STEP_1_MERKLETREE);
 
 #ifdef LDE_MT_DEBUG
-    ss.clear();
+    ss.str("");
     uint64_t nElem = NExtended * HASH_SIZE + (NExtended - 1) * HASH_SIZE;
     ss << "mt-output-" << fileindex << ".bin";
     writeBinaryFile(treesGL[0]->get_nodes_ptr(), nElem, 1, ss.str());
-#endif
+#endif  // LDE_MT_DEBUG
 
 #endif // __USE_CUDA__
 
@@ -247,6 +249,13 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     {
         nBlocksStage2++;
     }
+
+#ifdef LDE_MT_DEBUG
+    fileindex++;
+    ss << "lde-input-" << fileindex << ".bin";
+    writeBinaryFile(p_cm2_n, N, starkInfo.mapSectionsN.section[eSection::cm2_n], ss.str());
+#endif  // LDE_MT_DEBUG
+
     if (reduceMemory)
     {
         ntt.extendPol(p_cm2_2ns_tmp, p_cm2_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm2_n], pBuffHelperStage2, 3, nBlocksStage2);
@@ -255,10 +264,32 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     {
         ntt.extendPol(p_cm2_2ns, p_cm2_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm2_n], pBuffHelperStage2, 3, nBlocksStage2);
     }
+
+#ifdef LDE_MT_DEBUG
+    ss.str("");
+    ss << "lde-output-" << fileindex << ".bin";
+    if (reduceMemory)
+    {
+        writeBinaryFile(p_cm2_2ns_tmp, NExtended, starkInfo.mapSectionsN.section[eSection::cm2_n], ss.str());
+    }
+    else
+    {
+        writeBinaryFile(p_cm2_2ns, NExtended, starkInfo.mapSectionsN.section[eSection::cm2_n], ss.str());
+    }
+#endif // LDE_MT_DEBUG
+
     TimerStopAndLog(STARK_STEP_2_LDE);
     TimerStart(STARK_STEP_2_MERKLETREE);
     treesGL[1]->merkelize();
     TimerStopAndLog(STARK_STEP_2_MERKLETREE);
+
+#ifdef LDE_MT_DEBUG
+    ss.str("");
+    uint64_t nElem = NExtended * HASH_SIZE + (NExtended - 1) * HASH_SIZE;
+    ss << "mt-output-" << fileindex << ".bin";
+    writeBinaryFile(treesGL[0]->get_nodes_ptr(), nElem, 1, ss.str());
+#endif  // LDE_MT_DEBUG
+
 #endif
 
     treesGL[1]->getRoot(root1.address());
@@ -316,11 +347,33 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     {
         nBlocksStage3++;
     }
+
+#ifdef LDE_MT_DEBUG
+    fileindex++;
+    ss << "lde-input-" << fileindex << ".bin";
+    writeBinaryFile(p_cm2_n, N, starkInfo.mapSectionsN.section[eSection::cm2_n], ss.str());
+#endif  // LDE_MT_DEBUG
+
     ntt.extendPol(p_cm3_2ns, p_cm3_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm3_n], pBuffHelperStage3, 3, nBlocksStage3);
+
+#ifdef LDE_MT_DEBUG
+    ss.str("");
+    ss << "lde-output-" << fileindex << ".bin";
+    writeBinaryFile(p_cm3_2ns, NExtended, starkInfo.mapSectionsN.section[eSection::cm2_n], ss.str());
+#endif // LDE_MT_DEBUG
+
     TimerStopAndLog(STARK_STEP_3_LDE);
     TimerStart(STARK_STEP_3_MERKLETREE);
     treesGL[2]->merkelize();
     TimerStopAndLog(STARK_STEP_3_MERKLETREE);
+
+#ifdef LDE_MT_DEBUG
+    ss.str("");
+    uint64_t nElem = NExtended * HASH_SIZE + (NExtended - 1) * HASH_SIZE;
+    ss << "mt-output-" << fileindex << ".bin";
+    writeBinaryFile(treesGL[0]->get_nodes_ptr(), nElem, 1, ss.str());
+#endif  // LDE_MT_DEBUG
+
 #endif
 
     treesGL[2]->getRoot(root2.address());
