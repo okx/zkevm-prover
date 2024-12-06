@@ -22,7 +22,7 @@ void *malloc_zkevm(uint64_t size) {
 
 void free_zkevm(void *ptr) { cudaFree(ptr); }
 */
-
+/*
 void *calloc_zkevm(uint64_t count, uint64_t size) {
     char *a;
     cudaMallocHost(&a, count*size);
@@ -37,5 +37,10 @@ void *malloc_zkevm(uint64_t size) {
 }
 
 void free_zkevm(void *ptr) { cudaFreeHost(ptr); }
+*/
+
+void *calloc_zkevm(uint64_t count, uint64_t size) { return calloc(count, size); }
+void *malloc_zkevm(uint64_t size) { return malloc(size); }
+void free_zkevm(void *ptr) { free(ptr); }
 
 #endif
