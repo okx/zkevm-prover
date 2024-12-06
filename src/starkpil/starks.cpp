@@ -285,7 +285,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
 
 #ifdef LDE_MT_DEBUG
     ss.str("");
-    uint64_t nElem = NExtended * HASH_SIZE + (NExtended - 1) * HASH_SIZE;
+    nElem = NExtended * HASH_SIZE + (NExtended - 1) * HASH_SIZE;
     ss << "mt-output-" << fileindex << ".bin";
     writeBinaryFile(treesGL[0]->get_nodes_ptr(), nElem, 1, ss.str());
 #endif  // LDE_MT_DEBUG
@@ -369,7 +369,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
 
 #ifdef LDE_MT_DEBUG
     ss.str("");
-    uint64_t nElem = NExtended * HASH_SIZE + (NExtended - 1) * HASH_SIZE;
+    nElem = NExtended * HASH_SIZE + (NExtended - 1) * HASH_SIZE;
     ss << "mt-output-" << fileindex << ".bin";
     writeBinaryFile(treesGL[0]->get_nodes_ptr(), nElem, 1, ss.str());
 #endif  // LDE_MT_DEBUG
