@@ -322,7 +322,7 @@ public:
             uint64_t indx = idx_t[key];
             if (indx == 0)
             {
-                zklog.error("Polynomial::calculateH1H2() Number not included: w=" + to_string(i) + " plookup_number=" + to_string(pNumber) + "\nPol:" + Goldilocks::toString(fPol[i], 16));
+                zklog.error("Polynomial::calculateH1H2_() Number not included: w=" + to_string(i) + " plookup_number=" + to_string(pNumber) + "\nPol:" + Goldilocks::toString(fPol[i], 16));
                 exitProcess();
             }
             ++counter[indx - 1];
@@ -411,7 +411,7 @@ public:
             uint64_t ind = key % size_keys;
             if (!touched[ind])
             {
-                zklog.error("Polynomial::calculateH1H2() Number not included: w=" + to_string(i) + " plookup_number=" + to_string(pNumber) + "\nPol:" + Goldilocks::toString(fPol[i], 16));
+                zklog.error("Polynomial::calculateH1H2_opt1() Number not included: w=" + to_string(i) + " plookup_number=" + to_string(pNumber) + "\nPol:" + Goldilocks::toString(fPol[i], 16));
                 exitProcess();
             }
             uint64_t pos_ = buffer[ind];
@@ -432,7 +432,7 @@ public:
                     }
                     else
                     {
-                        zklog.error("Polynomial::calculateH1H2() Number not included: w=" + to_string(i) + " plookup_number=" + to_string(pNumber) + "\nPol:" + Goldilocks::toString(fPol[i], 16));
+                        zklog.error("Polynomial::calculateH1H2_opt1() Number not included: w=" + to_string(i) + " plookup_number=" + to_string(pNumber) + "\nPol:" + Goldilocks::toString(fPol[i], 16));
                         exitProcess();
                     }
                 }
@@ -532,7 +532,7 @@ public:
             uint64_t ind = key[0] % size_keys;
             if (!touched[ind])
             {
-                zklog.error("Polinomial::calculateH1H2() Number not included: w=" + to_string(i) + " plookup_number=" + to_string(pNumber) + "\nPol:" + Goldilocks::toString(fPol[i], 16));
+                zklog.error("Polinomial::calculateH1H2_opt3() Number not included: w=" + to_string(i) + " plookup_number=" + to_string(pNumber) + "\nPol:" + Goldilocks::toString(fPol[i], 16));
                 exitProcess();
             }
             uint64_t pos_ = buffer[ind];
@@ -553,7 +553,7 @@ public:
                     }
                     else
                     {
-                        zklog.error("Polinomial::calculateH1H2() Number not included: w=" + to_string(i) + " plookup_number=" + to_string(pNumber) + "\nPol:" + Goldilocks::toString(fPol[i], 16));
+                        zklog.error("Polinomial::calculateH1H2_opt3() Number not included: w=" + to_string(i) + " plookup_number=" + to_string(pNumber) + "\nPol:" + Goldilocks::toString(fPol[i], 16));
                         exitProcess();
                     }
                 }
@@ -602,7 +602,7 @@ public:
 
             uint64_t c = 0;
             for (uint64_t k = ii; k < min(size, ii + stride); ++k) {
-                Polinomial tmp(1, 3);                
+                Polinomial tmp(1, 3);
                 Polinomial::mulElement(tmp, 0, num, k - 1, denI, c);
                 Polinomial::mulElement(z, k, z, k - 1, tmp, 0);
                 c++;
