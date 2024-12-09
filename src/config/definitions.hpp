@@ -82,8 +82,8 @@
 #define DATABASE_USE_CACHE // If defined, the Database class uses a cache
 #define USE_NEW_KVTREE
 
-#define MAIN_SM_EXECUTOR_GENERATED_CODE
-#define MAIN_SM_PROVER_GENERATED_CODE
+//#define MAIN_SM_EXECUTOR_GENERATED_CODE
+//#define MAIN_SM_PROVER_GENERATED_CODE
 
 #define LOAD_CONST_FILES false
 
@@ -103,7 +103,7 @@
 
 //#define MULTI_ROM_TEST
 
-//#define ENABLE_EXPERIMENTAL_CODE
+#define ENABLE_EXPERIMENTAL_CODE
 
 
 #endif
