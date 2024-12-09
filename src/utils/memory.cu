@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#ifdef __USE_CUDA__
+#ifndef __USE_CUDA__
 void *calloc_zkevm(uint64_t count, uint64_t size) {
     char *a;
     cudaMallocManaged(&a, count*size);

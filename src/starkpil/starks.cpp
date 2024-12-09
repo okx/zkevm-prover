@@ -55,6 +55,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     uint64_t ncols = starkInfo.mapSectionsN.section[eSection::cm1_n];
     if (ncols > 0)
     {
+        printf("LDE_MerkleTree_Auto ...\n");
         ntt.LDE_MerkleTree_Auto(treesGL[0]->get_nodes_ptr(), p_cm1_n, N, NExtended, ncols, p_cm1_2ns);
     }
     else
