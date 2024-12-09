@@ -62,7 +62,7 @@ endif
 endif
 
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
-INC_FLAGS := $(addprefix -I,$(INC_DIRS))
+INC_FLAGS := $(addprefix -I,$(INC_DIRS)) -I/usr/local/cuda/include
 
 CPPFLAGS ?= $(INC_FLAGS) -MMD -MP
 
