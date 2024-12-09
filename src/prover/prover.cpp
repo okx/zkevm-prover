@@ -135,8 +135,8 @@ Prover::Prover(Goldilocks &fr,
             }
 
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
-            alloc_pinned_mem(uint64_t(1<<25) * _starkInfo.mapSectionsN.section[eSection::cm1_n]);
             warmup_gpu();
+            alloc_pinned_mem_per_device((uint64_t(1) << _starkInfo.starkStruct.nBitsExt) * 32);
 #endif
             
             json finalVerkeyJson;
