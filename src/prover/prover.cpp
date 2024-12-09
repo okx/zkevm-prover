@@ -594,9 +594,9 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
         /*  Generate stark proof            */
         /*************************************/
 
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
-        CHelpersStepsGPU cHelpersSteps;
-#elif defined(__AVX512__)
+//#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+//        CHelpersStepsGPU cHelpersSteps;
+#if defined(__AVX512__)
         CHelpersStepsAvx512 cHelpersSteps;
 #elif defined(__PACK__) 
         CHelpersStepsPack cHelpersSteps;
