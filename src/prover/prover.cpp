@@ -136,6 +136,7 @@ Prover::Prover(Goldilocks &fr,
 
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
             warmup_gpu();
+            printf("_starkInfo.starkStruct.nBitsExt:%lu\n", _starkInfo.starkStruct.nBitsExt);
             alloc_pinned_mem_per_device((uint64_t(1) << _starkInfo.starkStruct.nBitsExt) * 32);
 #endif
             
