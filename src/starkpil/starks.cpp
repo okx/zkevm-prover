@@ -9,7 +9,9 @@ USING_PROVER_FORK_NAMESPACE;
 #ifdef LDE_MT_DEBUG
 #include <iostream>
 #include <fstream>
-
+#include <unistd.h>
+#include <fcntl.h>
+/*
 void Starks::writeBinaryFile(Goldilocks::Element *input, uint64_t rows, uint64_t cols, std::string filename)
 {
     std::ofstream file;
@@ -23,6 +25,23 @@ void Starks::writeBinaryFile(Goldilocks::Element *input, uint64_t rows, uint64_t
     file.write((char *)&cols, sizeof(uint64_t));
     file.write((char *)input, rows * cols * sizeof(Goldilocks::Element));
     file.close();
+}
+*/
+
+void Starks::writeBinaryFile(Goldilocks::Element *input, uint64_t rows, uint64_t cols, std::string filename)
+{
+	int fd = open(filename.c_str(), O_WRONLY | O_CREAT, 0444);
+	assert(sizeof(uint64_t) == write(fd, &rows, sizeof(uint64_t)));
+	assert(sizeof(uint64_t) == write(fd, &cols, sizeof(uint64_t)));
+	const size_t m = (1 << 21);
+	const size_t total = rows * cols;
+	size_t curr = 0;
+	while (curr < total) {
+		size_t n = ((curr + m) > total) ? total - curr : m;
+		assert((n * sizeof(uint64_t)) == write(fd, input + curr, n * sizeof(uint64_t)));
+		curr += n;
+	}
+    	close(fd);
 }
 #endif
 
@@ -252,6 +271,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
 
 #ifdef LDE_MT_DEBUG
     fileindex++;
+    ss.str("");
     ss << "lde-input-" << fileindex << ".bin";
     writeBinaryFile(p_cm2_n, N, starkInfo.mapSectionsN.section[eSection::cm2_n], ss.str());
 #endif  // LDE_MT_DEBUG
@@ -350,6 +370,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
 
 #ifdef LDE_MT_DEBUG
     fileindex++;
+    ss.str("");
     ss << "lde-input-" << fileindex << ".bin";
     writeBinaryFile(p_cm2_n, N, starkInfo.mapSectionsN.section[eSection::cm2_n], ss.str());
 #endif  // LDE_MT_DEBUG
