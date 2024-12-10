@@ -132,7 +132,7 @@ public:
         if (!LOAD_CONST_FILES)
         {
             TimerStart(CALCULATE_CONST_TREE_TO_MEMORY);
-            pConstPolsAddress2ns = (void *)malloc_zkevm(NExtended * starkInfo.nConstants * sizeof(Goldilocks::Element));
+            pConstPolsAddress2ns = (void *)malloc(NExtended * starkInfo.nConstants * sizeof(Goldilocks::Element));
             if(pConstPolsAddress2ns == NULL)
             {
                 zklog.error("Starks::Starks() failed to allocate pConstPolsAddress2ns");
