@@ -307,7 +307,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     ss.str("");
     nElem = NExtended * HASH_SIZE + (NExtended - 1) * HASH_SIZE;
     ss << "mt-output-" << fileindex << ".bin";
-    writeBinaryFile(treesGL[0]->get_nodes_ptr(), nElem, 1, ss.str());
+    writeBinaryFile(treesGL[1]->get_nodes_ptr(), nElem, 1, ss.str());
 #endif  // LDE_MT_DEBUG
 
 #endif
@@ -372,7 +372,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     fileindex++;
     ss.str("");
     ss << "lde-input-" << fileindex << ".bin";
-    writeBinaryFile(p_cm2_n, N, starkInfo.mapSectionsN.section[eSection::cm2_n], ss.str());
+    writeBinaryFile(p_cm3_n, N, starkInfo.mapSectionsN.section[eSection::cm3_n], ss.str());
 #endif  // LDE_MT_DEBUG
 
     ntt.extendPol(p_cm3_2ns, p_cm3_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm3_n], pBuffHelperStage3, 3, nBlocksStage3);
@@ -380,7 +380,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
 #ifdef LDE_MT_DEBUG
     ss.str("");
     ss << "lde-output-" << fileindex << ".bin";
-    writeBinaryFile(p_cm3_2ns, NExtended, starkInfo.mapSectionsN.section[eSection::cm2_n], ss.str());
+    writeBinaryFile(p_cm3_2ns, NExtended, starkInfo.mapSectionsN.section[eSection::cm3_n], ss.str());
 #endif // LDE_MT_DEBUG
 
     TimerStopAndLog(STARK_STEP_3_LDE);
@@ -392,7 +392,7 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
     ss.str("");
     nElem = NExtended * HASH_SIZE + (NExtended - 1) * HASH_SIZE;
     ss << "mt-output-" << fileindex << ".bin";
-    writeBinaryFile(treesGL[0]->get_nodes_ptr(), nElem, 1, ss.str());
+    writeBinaryFile(treesGL[2]->get_nodes_ptr(), nElem, 1, ss.str());
 #endif  // LDE_MT_DEBUG
 
 #endif
