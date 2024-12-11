@@ -2,7 +2,7 @@
 #include "chelpers_steps_pack.hpp"
 #include "zklog.hpp"
 
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+#if defined(__USE_CUDA__) && defined(_ENABLE_EXPERIMENTAL_CODE)
 
 #include "gl64_t.cuh"
 #include "goldilocks_cubic_extension.cuh"
