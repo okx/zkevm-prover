@@ -1,4 +1,4 @@
 [submodule "src/goldilocks"]
 	path = src/goldilocks
 	url = https://github.com/okx/goldilocks.git
-	branch = develop-dumi-fork13
+	branch = develop
