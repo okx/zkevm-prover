@@ -141,14 +141,20 @@ public:
             TimerStart(EXTEND_CONST_POLS);
             uint64_t nBlocks = 8;
             uint64_t bufferSize = ((2 * NExtended * starkInfo.nConstants) * sizeof(Goldilocks::Element) / nBlocks);
+#ifndef __USE_CUDA__
             Goldilocks::Element* nttHelper = (Goldilocks::Element *)malloc(bufferSize);
             if(nttHelper == NULL)
             {
                 zklog.error("Starks::Starks() failed to allocate nttHelper");
                 exitProcess();
             }
+#else
+            Goldilocks::Element* nttHelper = NULL;
+#endif
             ntt.extendPol((Goldilocks::Element *)pConstPolsAddress2ns, (Goldilocks::Element *)pConstPolsAddress, NExtended, N, starkInfo.nConstants, nttHelper, 3, nBlocks);
+#ifndef __USE_CUDA__
             free(nttHelper);
+#endif
             TimerStopAndLog(EXTEND_CONST_POLS);
             TimerStart(MERKELIZE_CONST_TREE);
             treesGL[4] = new MerkleTreeGL(NExtended, starkInfo.nConstants, (Goldilocks::Element *)pConstPolsAddress2ns);
