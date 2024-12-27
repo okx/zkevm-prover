@@ -62,13 +62,6 @@ public:
     uint64_t section[eSectionMax];
 };
 
-void printPolsSections(const PolsSections& sections) {
-    printf("Sections by index:\n");
-    for (int i = 0; i < eSectionMax; i++) {
-        printf("section[%d] = %llu\n", i, sections.section[i]);
-    }
-}
-
 class VarPolMap
 {
 public:
