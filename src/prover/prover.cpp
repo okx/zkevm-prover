@@ -110,6 +110,10 @@ Prover::Prover(Goldilocks &fr,
             
             StarkInfo _starkInfo(config.zkevmStarkInfo, reduceMemoryZkevm);
 
+            printPolsSections(_starkInfo.mapSectionsN);
+            printPolsSections(_starkInfo.mapOffsets);
+            printf("mapTotalN: %llu\n", _starkInfo.mapTotalN);
+
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
             warmup_gpu();
             alloc_pinned_mem_per_device((uint64_t(1) << _starkInfo.starkStruct.nBitsExt) * 32);
