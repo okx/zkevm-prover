@@ -59,8 +59,7 @@
     "mapConstPolsFile": false,
     "mapConstantsTreeFile": false,
 
-    "inputFile": "testvectors/collection/fork_10/input_executor_3.json",
-    "inputFile2": "testvectors/collection/fork_10/input_executor_1.json",
+    "inputFile": "testvectors/pay-batch-10.json",
 
     "outputPath": "runtime/output",
     "configPath": "config",
