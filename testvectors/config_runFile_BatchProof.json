@@ -59,7 +59,8 @@
     "mapConstPolsFile": false,
     "mapConstantsTreeFile": false,
 
-    "inputFile": "testvectors/pay-batch-10.json",
+    "inputFile": "testvectors/pay/20uop-0.json",
+    "inputFile2": "testvectors/pay/20uop-1.json",
 
     "outputPath": "runtime/output",
     "configPath": "config",
