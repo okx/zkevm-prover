@@ -317,6 +317,10 @@ void StarkRecursiveF::genProof(FRIProofC12 &proof, Goldilocks::Element publicInp
 
     TimerStart(STARK_RECURSIVE_F_STEP_3_LDE_AND_MERKLETREE);
 
+    for (int i = 0; i < 21; i++) {
+        printf("%lu\n", p_cm3_n[i]);
+    }
+
     ntt.extendPol(p_cm3_2ns, p_cm3_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm3_n], pBuffer);
 
     for (int i = 0; i < 21; i++) {
