@@ -6,6 +6,7 @@
 #include "poseidon_opt.hpp"
 #include "zklog.hpp"
 #include "exit_process.hpp"
+#include <stdio.h>
 
 #define NUM_CHALLENGES 8
 
@@ -332,6 +333,21 @@ void StarkRecursiveF::genProof(FRIProofC12 &proof, Goldilocks::Element publicInp
     }
 
     ntt.extendPol(p_cm3_2ns, p_cm3_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm3_n], pBuffer);
+
+    // 打开文件用于写入
+    FILE *fp = fopen("p_cm3_2ns.txt", "w");
+    if (fp == NULL) {
+        printf("无法打开文件\n");
+        return 1;
+    }
+
+    // 写入数组
+    for (uint64_t i = 0; i < NExtended * starkInfo.mapSectionsN.section[eSection::cm3_n]; i++) {
+        fprintf(fp, "%lu\n", Goldilocks::toU64(p_cm3_2ns[i]));
+    }
+
+    // 关闭文件
+    fclose(fp);
 
     for (int i = 0; i < 21; i++) {
         printf("%lu\n", p_cm3_2ns[i]);
