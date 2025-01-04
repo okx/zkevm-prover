@@ -193,19 +193,16 @@ StarkRecursiveF::~StarkRecursiveF()
     delete pCHelpers;
 }
 
-int writeArrayToFile(const char* filename, const uint64_t* arr, int size) {
+int writeArrayToFile(const char* filename, const uint64_t* arr, uint64_t size) {
     // 打开文件用于二进制写入
-    FILE *fp = fopen(filename, "wb");
+    FILE *fp = fopen(filename, "w");
     if (fp == NULL) {
         printf("无法打开文件 %s\n", filename);
         return 1;
     }
 
-    // 写入数组数据
-    if (fwrite(arr, sizeof(uint64_t), size, fp) != size) {
-        printf("写入数组数据失败\n");
-        fclose(fp);
-        return 1;
+    for (uint64_t i = 0; i < size; i++) {
+        fprintf(fp, "%lu\n", arr[i]);  // 每个数字后面加换行
     }
 
     // 关闭文件
