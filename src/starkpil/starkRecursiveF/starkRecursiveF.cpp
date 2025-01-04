@@ -338,7 +338,7 @@ void StarkRecursiveF::genProof(FRIProofC12 &proof, Goldilocks::Element publicInp
     FILE *fp = fopen("p_cm3_2ns.txt", "w");
     if (fp == NULL) {
         printf("无法打开文件\n");
-        return 1;
+        return;
     }
 
     // 写入数组
