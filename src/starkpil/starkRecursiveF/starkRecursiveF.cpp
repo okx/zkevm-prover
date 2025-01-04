@@ -320,7 +320,7 @@ void StarkRecursiveF::genProof(FRIProofC12 &proof, Goldilocks::Element publicInp
     ntt.extendPol(p_cm3_2ns, p_cm3_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm3_n], pBuffer);
 
     for (int i = 0; i < 21; i++) {
-        printf("lu\n", p_cm3_2ns[i]);
+        printf("%lu\n", p_cm3_2ns[i]);
     }
 
     treesBN128[2]->merkelize();
