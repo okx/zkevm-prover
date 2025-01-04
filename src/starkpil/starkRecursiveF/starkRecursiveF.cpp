@@ -193,6 +193,26 @@ StarkRecursiveF::~StarkRecursiveF()
     delete pCHelpers;
 }
 
+int writeArrayToFile(const char* filename, const uint64_t* arr, int size) {
+    // 打开文件用于二进制写入
+    FILE *fp = fopen(filename, "wb");
+    if (fp == NULL) {
+        printf("无法打开文件 %s\n", filename);
+        return 1;
+    }
+
+    // 写入数组数据
+    if (fwrite(arr, sizeof(uint64_t), size, fp) != size) {
+        printf("写入数组数据失败\n");
+        fclose(fp);
+        return 1;
+    }
+
+    // 关闭文件
+    fclose(fp);
+    return 0;
+}
+
 void StarkRecursiveF::genProof(FRIProofC12 &proof, Goldilocks::Element publicInputs[8], CHelpersSteps *cHelpersSteps)
 {
 
@@ -332,22 +352,11 @@ void StarkRecursiveF::genProof(FRIProofC12 &proof, Goldilocks::Element publicInp
         printf("%lu\n", p_cm3_n[i]);
     }
 
+    writeArrayToFile("p_cm3_n.bin", (uint64_t *)p_cm3_n, N * starkInfo.mapSectionsN.section[eSection::cm3_n]);
+
     ntt.extendPol(p_cm3_2ns, p_cm3_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm3_n], pBuffer);
 
-    // 打开文件用于写入
-    FILE *fp = fopen("p_cm3_2ns.txt", "w");
-    if (fp == NULL) {
-        printf("无法打开文件\n");
-        return;
-    }
-
-    // 写入数组
-    for (uint64_t i = 0; i < NExtended * starkInfo.mapSectionsN.section[eSection::cm3_n]; i++) {
-        fprintf(fp, "%lu\n", Goldilocks::toU64(p_cm3_2ns[i]));
-    }
-
-    // 关闭文件
-    fclose(fp);
+    writeArrayToFile("p_cm3_2ns.bin", (uint64_t *)p_cm3_2ns, NExtended * starkInfo.mapSectionsN.section[eSection::cm3_n]);
 
     for (int i = 0; i < 21; i++) {
         printf("%lu\n", p_cm3_2ns[i]);
