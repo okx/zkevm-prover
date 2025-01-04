@@ -9,6 +9,13 @@
 
 #define NUM_CHALLENGES 8
 
+void printPolsSections2(const PolsSections& sections) {
+    printf("Sections by index:\n");
+    for (int i = 0; i < eSectionMax; i++) {
+        printf("section[%d] = %lu\n", i, sections.section[i]);
+    }
+}
+
 StarkRecursiveF::StarkRecursiveF(const Config &config, void *_pAddress) : config(config),
                                                                           starkInfo(config.recursivefStarkInfo),
                                                                           N(config.generateProof() ? 1 << starkInfo.starkStruct.nBits : 0),
@@ -24,6 +31,9 @@ StarkRecursiveF::StarkRecursiveF(const Config &config, void *_pAddress) : config
     // Avoid unnecessary initialization if we are not going to generate any proof
     if (!config.generateProof())
         return;
+
+    printPolsSections2(starkInfo.mapSectionsN);
+    printPolsSections2(starkInfo.mapOffsets);
 
     // Allocate an area of memory, mapped to file, to read all the constant polynomials,
     // and create them using the allocated address
