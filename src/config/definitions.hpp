@@ -100,7 +100,7 @@
 //#define ENABLE_EXPERIMENTAL_CODE
 
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
-#define TRANSPOSE_TMP_POLS false
+#define TRANSPOSE_TMP_POLS true
 #else
 #define TRANSPOSE_TMP_POLS true
 #endif

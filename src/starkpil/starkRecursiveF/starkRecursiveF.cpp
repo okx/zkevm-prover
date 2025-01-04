@@ -168,13 +168,13 @@ StarkRecursiveF::StarkRecursiveF(const Config &config, void *_pAddress) : config
     p_f_2ns = &mem[starkInfo.mapOffsets.section[eSection::f_2ns]];
     pBuffer = &mem[starkInfo.mapTotalN];
 
-    writeArrayToFile("runtime/output/p_cm3_n_origin.bin", (uint64_t *)p_cm3_n, N * starkInfo.mapSectionsN.section[eSection::cm3_n]);
-
     TimerStart(CHELPERS_ALLOCATION);
     string recursivefChelpers = (USE_GENERIC_PARSER) ? config.recursivefGenericCHelpers : config.recursivefCHelpers;
     cHelpersBinFile = BinFileUtils::openExisting(recursivefChelpers, "chps", 1);
     chelpers.loadCHelpers(cHelpersBinFile.get());
     TimerStopAndLog(CHELPERS_ALLOCATION);
+
+    writeArrayToFile("runtime/output/p_cm3_n_origin.bin", (uint64_t *)p_cm3_n, N * starkInfo.mapSectionsN.section[eSection::cm3_n]);
 }
 
 StarkRecursiveF::~StarkRecursiveF()
@@ -273,6 +273,8 @@ void StarkRecursiveF::genProof(FRIProofC12 &proof, Goldilocks::Element publicInp
     TimerStopAndLog(STARK_RECURSIVE_F_STEP_1_LDE_AND_MERKLETREE);
     TimerStopAndLog(STARK_RECURSIVE_F_STEP_1);
 
+    writeArrayToFile("runtime/output/p_cm3_n_debug1.bin", (uint64_t *)p_cm3_n, N * starkInfo.mapSectionsN.section[eSection::cm3_n]);
+
     //--------------------------------
     // 2.- Caluculate plookups h1 and h2
     //--------------------------------
@@ -282,6 +284,8 @@ void StarkRecursiveF::genProof(FRIProofC12 &proof, Goldilocks::Element publicInp
     TimerStart(STARK_RECURSIVE_F_STEP_2_CALCULATE_EXPS);
     cHelpersSteps->calculateExpressions(starkInfo, params, chelpers.cHelpersArgs, chelpers.stagesInfo["step2"]);
     TimerStopAndLog(STARK_RECURSIVE_F_STEP_2_CALCULATE_EXPS);
+
+    writeArrayToFile("runtime/output/p_cm3_n_debug2.bin", (uint64_t *)p_cm3_n, N * starkInfo.mapSectionsN.section[eSection::cm3_n]);
 
     TimerStart(STARK_RECURSIVE_F_STEP_2_CALCULATEH1H2);
 #pragma omp parallel for
@@ -315,10 +319,13 @@ void StarkRecursiveF::genProof(FRIProofC12 &proof, Goldilocks::Element publicInp
     transcript.getField((uint64_t *)challenges[2]); // gamma
     transcript.getField((uint64_t *)challenges[3]); // betta
 
+    writeArrayToFile("runtime/output/p_cm3_n_debug3.bin", (uint64_t *)p_cm3_n, N * starkInfo.mapSectionsN.section[eSection::cm3_n]);
     TimerStart(STARK_RECURSIVE_F_STEP_3_PREV_CALCULATE_EXPS);
     cHelpersSteps->calculateExpressions(starkInfo, params, chelpers.cHelpersArgs, chelpers.stagesInfo["step3"]);
     TimerStopAndLog(STARK_RECURSIVE_F_STEP_3_PREV_CALCULATE_EXPS);
     TimerStart(STARK_RECURSIVE_F_STEP_3_CALCULATE_Z);
+
+    writeArrayToFile("runtime/output/p_cm3_n_debug4.bin", (uint64_t *)p_cm3_n, N * starkInfo.mapSectionsN.section[eSection::cm3_n]);
 
     for (uint64_t i = 0; i < starkInfo.puCtx.size(); i++)
     {
