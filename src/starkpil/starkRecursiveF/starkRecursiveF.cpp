@@ -352,11 +352,11 @@ void StarkRecursiveF::genProof(FRIProofC12 &proof, Goldilocks::Element publicInp
         printf("%lu\n", p_cm3_n[i]);
     }
 
-    writeArrayToFile("p_cm3_n.bin", (uint64_t *)p_cm3_n, N * starkInfo.mapSectionsN.section[eSection::cm3_n]);
+    writeArrayToFile("output/p_cm3_n.bin", (uint64_t *)p_cm3_n, N * starkInfo.mapSectionsN.section[eSection::cm3_n]);
 
     ntt.extendPol(p_cm3_2ns, p_cm3_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm3_n], pBuffer);
 
-    writeArrayToFile("p_cm3_2ns.bin", (uint64_t *)p_cm3_2ns, NExtended * starkInfo.mapSectionsN.section[eSection::cm3_n]);
+    writeArrayToFile("output/p_cm3_2ns.bin", (uint64_t *)p_cm3_2ns, NExtended * starkInfo.mapSectionsN.section[eSection::cm3_n]);
 
     for (int i = 0; i < 21; i++) {
         printf("%lu\n", p_cm3_2ns[i]);
