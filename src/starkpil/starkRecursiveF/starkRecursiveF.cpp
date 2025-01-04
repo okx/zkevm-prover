@@ -17,6 +17,23 @@ void printPolsSections2(const PolsSections& sections) {
     }
 }
 
+int writeArrayToFile(const char* filename, const uint64_t* arr, uint64_t size) {
+    // 打开文件用于二进制写入
+    FILE *fp = fopen(filename, "w");
+    if (fp == NULL) {
+        printf("无法打开文件 %s\n", filename);
+        return 1;
+    }
+
+    for (uint64_t i = 0; i < size; i++) {
+        fprintf(fp, "%lu\n", arr[i]);  // 每个数字后面加换行
+    }
+
+    // 关闭文件
+    fclose(fp);
+    return 0;
+}
+
 StarkRecursiveF::StarkRecursiveF(const Config &config, void *_pAddress) : config(config),
                                                                           starkInfo(config.recursivefStarkInfo),
                                                                           N(config.generateProof() ? 1 << starkInfo.starkStruct.nBits : 0),
@@ -151,6 +168,8 @@ StarkRecursiveF::StarkRecursiveF(const Config &config, void *_pAddress) : config
     p_f_2ns = &mem[starkInfo.mapOffsets.section[eSection::f_2ns]];
     pBuffer = &mem[starkInfo.mapTotalN];
 
+    writeArrayToFile("runtime/output/p_cm3_n_origin.bin", (uint64_t *)p_cm3_n, N * starkInfo.mapSectionsN.section[eSection::cm3_n]);
+
     TimerStart(CHELPERS_ALLOCATION);
     string recursivefChelpers = (USE_GENERIC_PARSER) ? config.recursivefGenericCHelpers : config.recursivefCHelpers;
     cHelpersBinFile = BinFileUtils::openExisting(recursivefChelpers, "chps", 1);
@@ -191,23 +210,6 @@ StarkRecursiveF::~StarkRecursiveF()
     assert(cHelpersBinFile.get() == nullptr);
     assert(cHelpersBinFile == nullptr);
     delete pCHelpers;
-}
-
-int writeArrayToFile(const char* filename, const uint64_t* arr, uint64_t size) {
-    // 打开文件用于二进制写入
-    FILE *fp = fopen(filename, "w");
-    if (fp == NULL) {
-        printf("无法打开文件 %s\n", filename);
-        return 1;
-    }
-
-    for (uint64_t i = 0; i < size; i++) {
-        fprintf(fp, "%lu\n", arr[i]);  // 每个数字后面加换行
-    }
-
-    // 关闭文件
-    fclose(fp);
-    return 0;
 }
 
 void StarkRecursiveF::genProof(FRIProofC12 &proof, Goldilocks::Element publicInputs[8], CHelpersSteps *cHelpersSteps)
