@@ -442,7 +442,7 @@ void* loadFileParallel(const string &fileName, uint64_t size) {
     }
 
     // Allocate memory
-    void* buffer = malloc_zkevm(size);
+    void* buffer = malloc(size);
     if (buffer == NULL) {
         zklog.error("loadFileParallel() failed calling malloc() of size: " + to_string(size));
         exitProcess();

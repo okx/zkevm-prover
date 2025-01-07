@@ -59,8 +59,8 @@
     "mapConstPolsFile": false,
     "mapConstantsTreeFile": false,
 
-    "inputFile": "testvectors/e2e/fork_13/input_executor_3.json",
-    "inputFile2": "testvectors/e2e/fork_13/input_executor_1.json",
+    "inputFile": "testvectors/pay-batch-10.json",
+    "_inputFile2": "testvectors/e2e/fork_13/input_executor_1.json",
 
     "outputPath": "runtime/output",
     "configPath": "config",

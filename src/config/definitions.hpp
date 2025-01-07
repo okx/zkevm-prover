@@ -99,7 +99,7 @@
 
 //#define ENABLE_EXPERIMENTAL_CODE
 
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE) && defined(GPU_STEP)
 #define TRANSPOSE_TMP_POLS false
 #else
 #define TRANSPOSE_TMP_POLS true

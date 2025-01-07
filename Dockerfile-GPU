@@ -1,0 +1,54 @@
+FROM ubuntu:22.04 AS build
+
+ARG ARG_PROVER_FORK_ID
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get update -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential libgmp-dev \
+    libbenchmark-dev nasm nlohmann-json3-dev libsecp256k1-dev libomp-dev \
+    libpqxx-dev git libssl-dev cmake libgrpc++-dev libprotobuf-dev grpc-proto \
+    libsodium-dev protobuf-compiler protobuf-compiler-grpc uuid-dev wget && \
+    DEBIAN_FRONTEND=noninteractive apt install -y nvidia-driver-550 && \
+    DEBIAN_FRONTEND=noninteractive wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb && \
+    dpkg -i cuda-keyring_1.1-1_all.deb && \
+    DEBIAN_FRONTEND=noninteractive apt-get update -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y install cuda-toolkit-12-4 && \
+    rm -fr /var/cache/apt/*
+
+WORKDIR /usr/src/app
+
+COPY ./src ./src
+COPY ./test ./test
+COPY ./tools ./tools
+COPY Makefile .
+RUN make PROVER_FORK_ID=$ARG_PROVER_FORK_ID generate
+RUN make PROVER_FORK_ID=$ARG_PROVER_FORK_ID gpu -j
+
+
+FROM ubuntu:22.04 AS executor
+
+WORKDIR /app
+COPY ./testvectors ./testvectors
+COPY ./setup ./setup
+COPY ./src/main_sm/fork_1/scripts/rom.json ./src/main_sm/fork_1/scripts/rom.json
+COPY ./src/main_sm/fork_2/scripts/rom.json ./src/main_sm/fork_2/scripts/rom.json
+COPY ./src/main_sm/fork_3/scripts/rom.json ./src/main_sm/fork_3/scripts/rom.json
+COPY ./src/main_sm/fork_4/scripts/rom.json ./src/main_sm/fork_4/scripts/rom.json
+COPY ./src/main_sm/fork_5/scripts/rom.json ./src/main_sm/fork_5/scripts/rom.json
+COPY ./src/main_sm/fork_6/scripts/rom.json ./src/main_sm/fork_6/scripts/rom.json
+COPY ./src/main_sm/fork_7/scripts/rom.json ./src/main_sm/fork_7/scripts/rom.json
+COPY ./src/main_sm/fork_8/scripts/rom.json ./src/main_sm/fork_8/scripts/rom.json
+COPY ./src/main_sm/fork_9/scripts/rom.json ./src/main_sm/fork_9/scripts/rom.json
+COPY ./src/main_sm/fork_10/scripts/rom_10.json ./src/main_sm/fork_10/scripts/rom_10.json
+COPY ./src/main_sm/fork_10/scripts/rom_11.json ./src/main_sm/fork_10/scripts/rom_11.json
+COPY ./src/main_sm/fork_12/scripts/rom_12.json ./src/main_sm/fork_12/scripts/rom_12.json
+COPY ./src/main_sm/fork_13/scripts/rom_13.json ./src/main_sm/fork_13/scripts/rom_13.json
+
+RUN DEBIAN_FRONTEND=noninteractive apt update && \
+    DEBIAN_FRONTEND=noninteractive apt install -y libgmp-dev \
+    nlohmann-json3-dev libsecp256k1-dev libomp-dev libpqxx-dev libssl-dev \
+    libgrpc++-dev libprotobuf-dev grpc-proto libsodium-dev && \
+    rm -fr /var/cache/apt/*
+
+COPY --from=build /usr/src/app/build-gpu/zkProverGpu /usr/local/bin/zkProver
+
+ENTRYPOINT []

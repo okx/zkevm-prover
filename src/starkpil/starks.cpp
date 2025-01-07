@@ -13,9 +13,9 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
 
     uint64_t numCommited = starkInfo.nCm1;
     Transcript transcript;
-    Polinomial evals(starkInfo.evMap.size(), FIELD_EXTENSION, true);
+    Polinomial evals(starkInfo.evMap.size(), FIELD_EXTENSION);
     Polinomial xDivXSubXi(&mem[starkInfo.mapOffsets.section[eSection::xDivXSubXi_2ns]], 2 * NExtended, FIELD_EXTENSION, FIELD_EXTENSION);
-    Polinomial challenges(NUM_CHALLENGES, FIELD_EXTENSION, true);
+    Polinomial challenges(NUM_CHALLENGES, FIELD_EXTENSION);
 
     CommitPols cmPols(pAddress, starkInfo.mapDeg.section[eSection::cm1_n]);
 
@@ -63,7 +63,9 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
         nBlocksStage1++;
     }
 
-    ntt.extendPol(reduceMemory?p_cm1_2ns_tmp:p_cm1_2ns, p_cm1_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm1_n], pBuffHelperStage1, 3, nBlocksStage1);
+    printf("start: %lu, available: %lu, nStage:%lu\n", nttOffsetHelperStage1.first, nttOffsetHelperStage1.second, nBlocksStage1);
+
+    ntt.extendPol(reduceMemory?p_cm1_2ns_tmp:p_cm1_2ns, p_cm1_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm1_n], pBuffHelperStage1, 3, nBlocksStage1, nttOffsetHelperStage1.second);
     TimerStopAndLog(STARK_STEP_1_LDE);
 
     TimerStart(STARK_STEP_1_MERKLETREE);
@@ -135,7 +137,9 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
         nBlocksStage2++;
     }
 
-    ntt.extendPol(reduceMemory?p_cm2_2ns_tmp:p_cm2_2ns, p_cm2_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm2_n], pBuffHelperStage2, 3, nBlocksStage2);
+    printf("start: %lu, available: %lu, nStage:%lu\n", nttOffsetHelperStage2.first, nttOffsetHelperStage2.second, nBlocksStage2);
+
+    ntt.extendPol(reduceMemory?p_cm2_2ns_tmp:p_cm2_2ns, p_cm2_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm2_n], pBuffHelperStage2, 3, nBlocksStage2, nttOffsetHelperStage2.second);
     TimerStopAndLog(STARK_STEP_2_LDE);
 
     TimerStart(STARK_STEP_2_MERKLETREE);
@@ -186,7 +190,9 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
         nBlocksStage3++;
     }
 
-    ntt.extendPol(p_cm3_2ns, p_cm3_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm3_n], pBuffHelperStage3, 3, nBlocksStage3);
+    printf("start: %lu, available: %lu, nStage:%lu\n", nttOffsetHelperStage3.first, nttOffsetHelperStage3.second, nBlocksStage3);
+
+    ntt.extendPol(p_cm3_2ns, p_cm3_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm3_n], pBuffHelperStage3, 3, nBlocksStage3, nttOffsetHelperStage3.second);
     TimerStopAndLog(STARK_STEP_3_LDE);
 
     TimerStart(STARK_STEP_3_MERKLETREE);
@@ -211,12 +217,14 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
             nBlocksStage1_++;
         }
 
-        ntt.extendPol(p_cm1_2ns, p_cm1_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm1_n], pBuffHelperStage1_, 3, nBlocksStage1_);
+        printf("start: %lu, available: %lu, nStage:%lu\n", nttOffsetHelperStage1_.first, nttOffsetHelperStage1_.second, nBlocksStage1_);
+
+        ntt.extendPol(p_cm1_2ns, p_cm1_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm1_n], pBuffHelperStage1_, 3, nBlocksStage1_, nttOffsetHelperStage1_.second);
         TimerStopAndLog(STARK_STEP_1_RECALCULATING_LDE);
 
         TimerStart(STARK_STEP_2_RECALCULATING_LDE);
         std::pair<uint64_t, uint64_t> nttOffsetHelperStage2_ = starkInfo.mapNTTOffsetsHelpers["cm2"];
-        Goldilocks::Element *pBuffHelperStage2_ = &params.pols[nttOffsetHelperStage2_.first];
+        //Goldilocks::Element *pBuffHelperStage2_ = &params.pols[nttOffsetHelperStage2_.first];
 
         uint64_t buffHelperElementsStage2_ = NExtended * starkInfo.mapSectionsN.section[cm2_n];
 
@@ -225,7 +233,9 @@ void Starks::genProof(FRIProof &proof, Goldilocks::Element *publicInputs, Goldil
             nBlocksStage2_++;
         }
 
-        ntt.extendPol(p_cm2_2ns, p_cm2_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm2_n], pBuffHelperStage2_, 3, nBlocksStage2_);
+        printf("start: %lu, available: %lu, nStage:%lu\n", nttOffsetHelperStage2_.first, nttOffsetHelperStage2_.second, nBlocksStage2_);
+
+        ntt.extendPol_CPU(p_cm2_2ns, p_cm2_n, NExtended, N, starkInfo.mapSectionsN.section[eSection::cm2_n], NULL, 3, nBlocksStage2_);
         TimerStopAndLog(STARK_STEP_2_RECALCULATING_LDE);
 
         treesGL[0]->setSource(p_cm1_2ns);

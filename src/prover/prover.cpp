@@ -112,7 +112,7 @@ Prover::Prover(Goldilocks &fr,
 
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
             warmup_gpu();
-            alloc_pinned_mem_per_device((uint64_t(1) << _starkInfo.starkStruct.nBitsExt) * 32);
+            //alloc_pinned_mem_per_device((uint64_t(1) << _starkInfo.starkStruct.nBitsExt) * 32);
 #endif
 
             // Allocate an area of memory, mapped to file, to store all the committed polynomials,
@@ -138,7 +138,14 @@ Prover::Prover(Goldilocks &fr,
                 }
                 zklog.info("Prover::Prover() successfully allocated " + to_string(polsSize) + " bytes");
             }
-            
+
+            std::pair<uint64_t, uint64_t> stage1 = _starkInfo.mapNTTOffsetsHelpers["cm1_tmp"];
+            uint64_t offset = stage1.first;
+            uint64_t available = stage1.second;
+            printf("offset:%lu, available:%lu\n", offset, available);
+            uint64_t *mem = (uint64_t *)pAddress;
+            set_pinned_mem(&mem[offset]);
+
             json finalVerkeyJson;
             file2json(config.finalVerkey, finalVerkeyJson);
             domainSizeFflonk = 1 << uint64_t(finalVerkeyJson["power"]);
@@ -192,7 +199,7 @@ Prover::~Prover()
             free_zkevm(pAddress);
         }
 #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
-        free_pinned_mem();
+        //free_pinned_mem();
 #endif
 
         delete starkZkevm;
@@ -516,7 +523,7 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
         json recursive2Verkey;
         file2json(config.recursive2Verkey, recursive2Verkey);
 
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE) && defined(GPU_STEP)
         Goldilocks::Element *publics = (Goldilocks::Element *)malloc_zkevm(starksRecursive1->starkInfo.nPublics);
 #else
         Goldilocks::Element publics[starksRecursive1->starkInfo.nPublics];
@@ -597,7 +604,7 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
         /*  Generate stark proof            */
         /*************************************/
 
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE) && defined(GPU_STEP)
         CHelpersStepsGPU cHelpersSteps;
 #elif defined(__AVX512__)
         CHelpersStepsAvx512 cHelpersSteps;
@@ -728,7 +735,7 @@ void Prover::genBatchProof(ProverRequest *pProverRequest)
             json2file(jProofRecursive1, pProverRequest->filePrefix + "batch_proof.proof.json");
         }
 
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE) && defined(GPU_STEP)
         free_zkevm(publics);
 #endif
         TimerStopAndLog(SAVE_PROOF);
@@ -849,7 +856,7 @@ void Prover::genAggregatedProof(ProverRequest *pProverRequest)
     FRIProof fproofRecursive2((1 << polBitsRecursive2), FIELD_EXTENSION, starksRecursive2->starkInfo.starkStruct.steps.size(), starksRecursive2->starkInfo.evMap.size(), starksRecursive2->starkInfo.nPublics);
     
     if(USE_GENERIC_PARSER) {
-#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+#if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE) && defined(GPU_STEP)
         CHelpersStepsGPU cHelpersSteps;
 #elif defined(__AVX512__)
         CHelpersStepsAvx512 cHelpersSteps;
@@ -958,7 +965,7 @@ void Prover::genFinalProof(ProverRequest *pProverRequest)
     uint64_t polBitsRecursiveF = starksRecursiveF->starkInfo.starkStruct.steps[starksRecursiveF->starkInfo.starkStruct.steps.size() - 1].nBits;
     FRIProofC12 fproofRecursiveF((1 << polBitsRecursiveF), FIELD_EXTENSION, starksRecursiveF->starkInfo.starkStruct.steps.size(), starksRecursiveF->starkInfo.evMap.size(), starksRecursiveF->starkInfo.nPublics);
     if(USE_GENERIC_PARSER) {
-        #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE)
+        #if defined(__USE_CUDA__) && defined(ENABLE_EXPERIMENTAL_CODE) && defined(GPU_STEP)
             CHelpersStepsGPU cHelpersSteps;
         #elif defined(__AVX512__)
             CHelpersStepsAvx512 cHelpersSteps;

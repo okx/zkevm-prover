@@ -58,31 +58,6 @@ public:
         _allocated = true;
     };
 
-    Polinomial(uint64_t degree,
-               uint64_t dim,
-               bool pinned,
-               std::string name = "") : _degree(degree),
-                                        _dim(dim),
-                                        _pinned(pinned),
-                                        _name(name)
-    {
-        if (degree == 0 || dim == 0)
-            return;
-        if (_pinned) {
-            _pAddress = (Goldilocks::Element *)calloc_zkevm(_degree * _dim, sizeof(Goldilocks::Element));
-        } else {
-            _pAddress = (Goldilocks::Element *)calloc(_degree * _dim, sizeof(Goldilocks::Element));
-        }
-
-        if (_pAddress == NULL)
-        {
-            zklog.error("Polinomial::Polinomial() failed allocating polinomial with size: " + to_string(_degree * _dim * sizeof(Goldilocks::Element)));
-            exitProcess();
-        }
-        _offset = _dim;
-        _allocated = true;
-    };
-
     ~Polinomial()
     {
         if (_allocated) {
