@@ -49,17 +49,7 @@ ifdef PROVER_FORK_ID
 	  CXXFLAGS += -DPROVER_FORK_ID=$(PROVER_FORK_ID)
 endif
 
-ifneq ($(avx512),0)
-ifeq ($(avx512),1)
-	CXXFLAGS += -mavx512f -D__AVX512__
-else
-# check if AVX-512 is supported
-AVX512_SUPPORTED := $(shell cat /proc/cpuinfo | grep -E 'avx512' -m 1)
-ifneq ($(AVX512_SUPPORTED),)
-	CXXFLAGS += -mavx512f -D__AVX512__
-endif
-endif
-endif
+CXXFLAGS += -mavx512f -D__AVX512__
 
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
